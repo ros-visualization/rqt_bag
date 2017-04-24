@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming changes
--------------------
+0.4.8 (2017-04-24)
+------------------
 * add rqt_bag.launch file (`#440 <https://github.com/ros-visualization/rqt_common_plugins/pull/440>`_)
 
 0.4.7 (2017-03-02)
