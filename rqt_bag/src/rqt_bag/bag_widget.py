@@ -263,6 +263,10 @@ class BagWidget(QWidget):
         if filename[0] != '':
             self.load_bag(filename[0])
 
+    def _print_cause_of_exception(self, exception):
+        qWarning("Loading failed due to: %s" % exception)
+        self.set_status_text.emit("Loading failed due to: %s" % exception)
+
     def load_bag(self, filename):
         qWarning("Loading %s" % filename)
 
@@ -276,24 +280,32 @@ class BagWidget(QWidget):
         #self.progress_bar.setFormat("Loading %s" % filename)
         #self.progress_bar.setTextVisible(True)
 
-        bag = rosbag.Bag(filename)
-        self.play_button.setEnabled(True)
-        self.thumbs_button.setEnabled(True)
-        self.zoom_in_button.setEnabled(True)
-        self.zoom_out_button.setEnabled(True)
-        self.zoom_all_button.setEnabled(True)
-        self.next_button.setEnabled(True)
-        self.previous_button.setEnabled(True)
-        self.faster_button.setEnabled(True)
-        self.slower_button.setEnabled(True)
-        self.begin_button.setEnabled(True)
-        self.end_button.setEnabled(True)
-        self.save_button.setEnabled(True)
-        self.record_button.setEnabled(False)
-        self._timeline.add_bag(bag)
-        qWarning("Done loading %s" % filename )
-        # put the progress bar back the way it was
-        self.set_status_text.emit("")
+        try:
+            bag = rosbag.Bag(filename)
+            self.play_button.setEnabled(True)
+            self.thumbs_button.setEnabled(True)
+            self.zoom_in_button.setEnabled(True)
+            self.zoom_out_button.setEnabled(True)
+            self.zoom_all_button.setEnabled(True)
+            self.next_button.setEnabled(True)
+            self.previous_button.setEnabled(True)
+            self.faster_button.setEnabled(True)
+            self.slower_button.setEnabled(True)
+            self.begin_button.setEnabled(True)
+            self.end_button.setEnabled(True)
+            self.save_button.setEnabled(True)
+            self.record_button.setEnabled(False)
+            self._timeline.add_bag(bag)
+            qWarning("Done loading %s" % filename )
+            # put the progress bar back the way it was
+            self.set_status_text.emit("")
+        except rosbag.ROSBagException as e:
+            self._print_cause_of_exception(e)
+        except rosbag.ROSBagUnindexedException as e:
+            self._print_cause_of_exception(e)
+        except rosbag.ROSBagFormatException as e:
+            self._print_cause_of_exception(e)
+
         #self.progress_bar.setFormat(progress_format)
         #self.progress_bar.setTextVisible(progress_text_visible) # causes a segfault :(
         #self.progress_bar.setRange(0, 100)
