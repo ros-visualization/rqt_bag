@@ -263,18 +263,14 @@ class BagWidget(QWidget):
         if filename[0] != '':
             self.load_bag(filename[0])
 
-    def _print_cause_of_exception(self, exception):
-        qWarning("Loading failed due to: %s" % exception)
-        self.set_status_text.emit("Loading failed due to: %s" % exception)
-
     def load_bag(self, filename):
-        qWarning("Loading %s" % filename)
+        qInfo("Loading '%s'..." % filename)
 
         # QProgressBar can EITHER: show text or show a bouncing loading bar,
         #  but apparently the text is hidden when the bounding loading bar is
         #  shown
         #self.progress_bar.setRange(0, 0)
-        self.set_status_text.emit("Loading %s" % filename)
+        self.set_status_text.emit("Loading '%s'" % filename)
         #progress_format = self.progress_bar.format()
         #progress_text_visible = self.progress_bar.isTextVisible()
         #self.progress_bar.setFormat("Loading %s" % filename)
@@ -296,15 +292,12 @@ class BagWidget(QWidget):
             self.save_button.setEnabled(True)
             self.record_button.setEnabled(False)
             self._timeline.add_bag(bag)
-            qWarning("Done loading %s" % filename )
+            qInfo("Done loading '%s'" % filename )
             # put the progress bar back the way it was
             self.set_status_text.emit("")
         except rosbag.ROSBagException as e:
-            self._print_cause_of_exception(e)
-        except rosbag.ROSBagUnindexedException as e:
-            self._print_cause_of_exception(e)
-        except rosbag.ROSBagFormatException as e:
-            self._print_cause_of_exception(e)
+            qWarning("Loading '%s' failed due to: %s" % (filename, e))
+            self.set_status_text.emit("Loading '%s' failed due to: %s" % (filename, e))
 
         #self.progress_bar.setFormat(progress_format)
         #self.progress_bar.setTextVisible(progress_text_visible) # causes a segfault :(
