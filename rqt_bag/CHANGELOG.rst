@@ -2,6 +2,14 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix regression from version 0.4.9 (`#16 <https://github.com/ros-visualization/rqt_bag/issues/16>`_)
+
+0.4.9 (2017-10-12)
+------------------
+* handle errors happening while loading a bag (`#14 <https://github.com/ros-visualization/rqt_bag/issues/14>`_)
+
 0.4.8 (2017-04-24)
 ------------------
 * add rqt_bag.launch file (`#440 <https://github.com/ros-visualization/rqt_common_plugins/pull/440>`_)
