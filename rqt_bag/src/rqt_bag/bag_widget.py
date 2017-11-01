@@ -37,7 +37,7 @@ import rospy
 import rospkg
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import Qt, qInfo, qWarning, Signal
+from python_qt_binding.QtCore import qDebug, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QIcon
 from python_qt_binding.QtWidgets import QFileDialog, QGraphicsView, QWidget
 
@@ -264,7 +264,7 @@ class BagWidget(QWidget):
             self.load_bag(filename[0])
 
     def load_bag(self, filename):
-        qInfo("Loading '%s'..." % filename)
+        qDebug("Loading '%s'..." % filename)
 
         # QProgressBar can EITHER: show text or show a bouncing loading bar,
         #  but apparently the text is hidden when the bounding loading bar is
@@ -292,7 +292,7 @@ class BagWidget(QWidget):
             self.save_button.setEnabled(True)
             self.record_button.setEnabled(False)
             self._timeline.add_bag(bag)
-            qInfo("Done loading '%s'" % filename )
+            qDebug("Done loading '%s'" % filename )
             # put the progress bar back the way it was
             self.set_status_text.emit("")
         except rosbag.ROSBagException as e:
