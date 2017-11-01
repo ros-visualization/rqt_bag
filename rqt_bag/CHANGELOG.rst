@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.11 (2017-11-01)
+-------------------
 * fix regression from version 0.4.10 (`#17 <https://github.com/ros-visualization/rqt_bag/issues/17>`_)
 
 0.4.10 (2017-10-25)
