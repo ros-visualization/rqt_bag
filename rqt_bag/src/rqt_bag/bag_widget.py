@@ -259,9 +259,9 @@ class BagWidget(QWidget):
 
 
     def _handle_load_clicked(self):
-        filename = QFileDialog.getOpenFileName(self, self.tr('Load from File'), '.', self.tr('Bag files {.bag} (*.bag)'))
-        if filename[0] != '':
-            self.load_bag(filename[0])
+        filenames = QFileDialog.getOpenFileNames(self, self.tr('Load from Files'), '.', self.tr('Bag files {.bag} (*.bag)'))
+        for filename in filenames[0]:
+            self.load_bag(filename)
 
     def load_bag(self, filename):
         qDebug("Loading '%s'..." % filename)
