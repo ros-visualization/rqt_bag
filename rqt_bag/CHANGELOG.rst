@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.12 (2018-03-21)
+-------------------
 * add support for opening multiple bag files at once (`#25 <https://github.com/ros-visualization/rqt_bag/issues/25>`_)
 * fix debug/warning messages for unicode filenames (`#26 <https://github.com/ros-visualization/rqt_bag/issues/26>`_)
 
