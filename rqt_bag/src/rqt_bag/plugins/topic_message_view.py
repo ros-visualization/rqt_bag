@@ -36,9 +36,11 @@ from python_qt_binding.QtWidgets import QAction, QToolBar
 
 
 class TopicMessageView(MessageView):
+
     """
     A message view with a toolbar for navigating messages in a single topic.
     """
+
     def __init__(self, timeline, parent, topic):
         MessageView.__init__(self, timeline, topic)
 

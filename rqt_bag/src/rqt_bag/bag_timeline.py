@@ -50,16 +50,19 @@ from .timeline_menu import TimelinePopupMenu
 
 
 class BagTimeline(QGraphicsScene):
+
     """
-    BagTimeline contains bag files, all information required to display the bag data visualization on the screen
-    Also handles events
+    BagTimeline contains bag files, all information required to display the bag data visualization
+    on the screen Also handles events
     """
     status_bar_changed_signal = Signal()
     selected_region_changed = Signal(rospy.Time, rospy.Time)
 
     def __init__(self, context, publish_clock):
         """
-        :param context: plugin context hook to enable adding rqt_bag plugin widgets as ROS_GUI snapin panes, ''PluginContext''
+        :param context:
+            plugin context hook to enable adding rqt_bag plugin widgets as ROS_GUI snapin panes,
+            ''PluginContext''
         """
         super(BagTimeline, self).__init__()
         self._bags = []
@@ -99,8 +102,9 @@ class BagTimeline(QGraphicsScene):
         self._listeners = {}
 
         # Initialize scene
-        # the timeline renderer fixes use of black pens and fills, so ensure we fix white here for contrast.
-        # otherwise a dark qt theme will default it to black and the frame render pen will be unreadable
+        # the timeline renderer fixes use of black pens and fills, so ensure we fix white here for
+        # contrast. Otherwise a dark qt theme will default it to black and the frame render
+        # pen will be unreadable
         self.setBackgroundBrush(Qt.white)
         self._timeline_frame = TimelineFrame(self)
         self._timeline_frame.setPos(0, 0)
@@ -179,7 +183,7 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             return sum(b.size for b in self._bags)
 
-    #TODO Rethink API and if these need to be visible
+    # TODO Rethink API and if these need to be visible
     def _get_start_stamp(self):
         """
         :return: first stamp in the bags, ''rospy.Time''
@@ -188,7 +192,8 @@ class BagTimeline(QGraphicsScene):
             start_stamp = None
             for bag in self._bags:
                 bag_start_stamp = bag_helper.get_start_stamp(bag)
-                if bag_start_stamp is not None and (start_stamp is None or bag_start_stamp < start_stamp):
+                if bag_start_stamp is not None and \
+                        (start_stamp is None or bag_start_stamp < start_stamp):
                     start_stamp = bag_start_stamp
             return start_stamp
 
@@ -236,7 +241,8 @@ class BagTimeline(QGraphicsScene):
             for bag in self._bags:
                 bag_datatype = bag_helper.get_datatype(bag, topic)
                 if datatype and bag_datatype and (bag_datatype != datatype):
-                    raise Exception('topic %s has multiple datatypes: %s and %s' % (topic, datatype, bag_datatype))
+                    raise Exception('topic %s has multiple datatypes: %s and %s' %
+                                    (topic, datatype, bag_datatype))
                 if bag_datatype:
                     datatype = bag_datatype
             return datatype
@@ -322,7 +328,7 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             entry_bag, entry = None, None
             for bag in self._bags:
-                bag_entry = bag._get_entry(t-rospy.Duration(0,1), bag._get_connections())
+                bag_entry = bag._get_entry(t - rospy.Duration(0, 1), bag._get_connections())
                 if bag_entry and (not entry or bag_entry.time < entry.time):
                     entry_bag, entry = bag, bag_entry
 
@@ -373,7 +379,7 @@ class BagTimeline(QGraphicsScene):
         if (self._player):
             self._player.resume()
 
-    ### Copy messages to...
+    # Copy messages to...
 
     def start_background_task(self, background_task):
         """
@@ -381,7 +387,9 @@ class BagTimeline(QGraphicsScene):
         :param background_task: name of the background task, ''str''
         """
         if self.background_task is not None:
-            QMessageBox(QMessageBox.Warning, 'Exclamation', 'Background operation already running:\n\n%s' % self.background_task, QMessageBox.Ok).exec_()
+            QMessageBox(
+                QMessageBox.Warning, 'Exclamation', 'Background operation already running:\n\n%s' %
+                self.background_task, QMessageBox.Ok).exec_()
             return False
 
         self.background_task = background_task
@@ -393,7 +401,9 @@ class BagTimeline(QGraphicsScene):
 
     def copy_region_to_bag(self, filename):
         if len(self._bags) > 0:
-            self._export_region(filename, self._timeline_frame.topics, self._timeline_frame.play_region[0], self._timeline_frame.play_region[1])
+            self._export_region(filename, self._timeline_frame.topics,
+                                self._timeline_frame.play_region[0],
+                                self._timeline_frame.play_region[1])
 
     def _export_region(self, path, topics, start_stamp, end_stamp):
         """
@@ -424,12 +434,15 @@ class BagTimeline(QGraphicsScene):
         try:
             export_bag = rosbag.Bag(path, 'w')
         except Exception:
-            QMessageBox(QMessageBox.Warning, 'rqt_bag', 'Error opening bag file [%s] for writing' % path, QMessageBox.Ok).exec_()
+            QMessageBox(QMessageBox.Warning, 'rqt_bag',
+                        'Error opening bag file [%s] for writing' % path, QMessageBox.Ok).exec_()
             self.stop_background_task()
             return
 
         # Run copying in a background thread
-        self._export_thread = threading.Thread(target=self._run_export_region, args=(export_bag, topics, start_stamp, end_stamp, bag_entries))
+        self._export_thread = threading.Thread(
+            target=self._run_export_region,
+            args=(export_bag, topics, start_stamp, end_stamp, bag_entries))
         self._export_thread.start()
 
     def _run_export_region(self, export_bag, topics, start_stamp, end_stamp, bag_entries):
@@ -452,7 +465,8 @@ class BagTimeline(QGraphicsScene):
                 topic, msg, t = self.read_message(bag, entry.position)
                 export_bag.write(topic, msg, t)
             except Exception as ex:
-                qWarning('Error exporting message at position %s: %s' % (str(entry.position), str(ex)))
+                qWarning('Error exporting message at position %s: %s' %
+                         (str(entry.position), str(ex)))
                 export_bag.close()
                 self.stop_background_task()
                 return
@@ -473,14 +487,15 @@ class BagTimeline(QGraphicsScene):
             self.status_bar_changed_signal.emit()
             export_bag.close()
         except Exception as ex:
-            QMessageBox(QMessageBox.Warning, 'rqt_bag', 'Error closing bag file [%s]: %s' % (export_bag.filename, str(ex)), QMessageBox.Ok).exec_()
+            QMessageBox(QMessageBox.Warning, 'rqt_bag', 'Error closing bag file [%s]: %s' % (
+                export_bag.filename, str(ex)), QMessageBox.Ok).exec_()
         self.stop_background_task()
 
     def read_message(self, bag, position):
         with self._bag_lock:
             return bag._read_message(position)
 
-    ### Mouse events
+    # Mouse events
     def on_mouse_down(self, event):
         if event.buttons() == Qt.LeftButton:
             self._timeline_frame.on_left_down(event)
@@ -516,7 +531,7 @@ class BagTimeline(QGraphicsScene):
     def translate_timeline_right(self):
         self._timeline_frame.translate_timeline_right()
 
-    ### Publishing
+    # Publishing
     def is_publishing(self, topic):
         return self._player and self._player.is_publishing(topic)
 
@@ -574,7 +589,7 @@ class BagTimeline(QGraphicsScene):
     def toggle_play_all(self):
         self.play_all = not self.play_all
 
-    ### Playing
+    # Playing
     def on_idle(self):
         self._step_playhead()
 
@@ -608,7 +623,8 @@ class BagTimeline(QGraphicsScene):
             if self.stick_to_end:
                 new_playhead = self.end_stamp
             else:
-                new_playhead = self._timeline_frame.playhead + rospy.Duration.from_sec((now - self.last_frame).to_sec() * self.play_speed)
+                new_playhead = self._timeline_frame.playhead + \
+                    rospy.Duration.from_sec((now - self.last_frame).to_sec() * self.play_speed)
 
                 start_stamp, end_stamp = self._timeline_frame.play_region
 
@@ -668,11 +684,12 @@ class BagTimeline(QGraphicsScene):
         self.last_frame = rospy.Time.from_sec(time.time())
         self.last_playhead = self._timeline_frame.playhead
 
-    ### Recording
+    # Recording
 
     def record_bag(self, filename, all=True, topics=[], regex=False, limit=0):
         try:
-            self._recorder = Recorder(filename, bag_lock=self._bag_lock, all=all, topics=topics, regex=regex, limit=limit)
+            self._recorder = Recorder(
+                filename, bag_lock=self._bag_lock, all=all, topics=topics, regex=regex, limit=limit)
         except Exception as ex:
             qWarning('Error opening bag for recording [%s]: %s' % (filename, str(ex)))
             return
@@ -724,7 +741,7 @@ class BagTimeline(QGraphicsScene):
                 except Exception as ex:
                     qWarning('Error calling timeline_changed on %s: %s' % (type(listener), str(ex)))
 
-    ### Views / listeners
+    # Views / listeners
     def add_view(self, topic, frame):
         self._views.append(frame)
 
@@ -734,7 +751,8 @@ class BagTimeline(QGraphicsScene):
     def add_listener(self, topic, listener):
         self._listeners.setdefault(topic, []).append(listener)
 
-        self._message_listener_threads[(topic, listener)] = MessageListenerThread(self, topic, listener)
+        self._message_listener_threads[(topic, listener)] = \
+            MessageListenerThread(self, topic, listener)
         # Notify the message listeners
         self._message_loaders[topic].reset()
         with self._playhead_positions_cvs[topic]:
@@ -756,7 +774,7 @@ class BagTimeline(QGraphicsScene):
                 del self._message_listener_threads[(topic, listener)]
             self.update()
 
-    ### Playhead
+    # Playhead
 
     # property: play_speed
     def _get_play_speed(self):

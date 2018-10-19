@@ -41,9 +41,11 @@ import time
 
 
 class TimelineCache(threading.Thread):
+
     """
     Caches items for timeline renderers
     """
+
     def __init__(self, loader, listener=None, max_cache_size=100):
         threading.Thread.__init__(self)
 

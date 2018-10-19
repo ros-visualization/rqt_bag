@@ -47,6 +47,7 @@ class RawView(TopicMessageView):
     Plugin to view a message in a treeview window
     The message is loaded into a custum treewidget
     """
+
     def __init__(self, timeline, parent, topic):
         """
         :param timeline: timeline data object, ''BagTimeline''
@@ -54,7 +55,9 @@ class RawView(TopicMessageView):
         """
         super(RawView, self).__init__(timeline, parent, topic)
         self.message_tree = MessageTree(parent)
-        parent.layout().addWidget(self.message_tree)  # This will automatically resize the message_tree to the windowsize
+
+        # This will automatically resize the message_tree to the windowsize
+        parent.layout().addWidget(self.message_tree)
 
     def message_viewed(self, bag, msg_details):
         super(RawView, self).message_viewed(bag, msg_details)
@@ -70,6 +73,7 @@ class RawView(TopicMessageView):
 
 
 class MessageTree(QTreeWidget):
+
     def __init__(self, parent):
         super(MessageTree, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -105,7 +109,8 @@ class MessageTree(QTreeWidget):
             if self._expanded_paths is None:
                 self._expanded_paths = set()
             else:
-                # Expand those that were previously expanded, and collapse any paths that we've seen for the first time
+                # Expand those that were previously expanded, and collapse any paths that
+                # we've seen for the first time
                 for item in self.get_all_items():
                     path = self.get_item_path(item)
                     if path in self._expanded_paths:

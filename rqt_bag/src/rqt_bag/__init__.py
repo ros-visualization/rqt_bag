@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from rqt_bag import bag_helper
-from rqt_bag.plugins.message_view       import MessageView
+from rqt_bag.plugins.message_view import MessageView
 from rqt_bag.plugins.topic_message_view import TopicMessageView
-from rqt_bag.plugins.timeline_renderer  import TimelineRenderer
-from rqt_bag.timeline_cache            import TimelineCache
+from rqt_bag.plugins.timeline_renderer import TimelineRenderer
+from rqt_bag.timeline_cache import TimelineCache

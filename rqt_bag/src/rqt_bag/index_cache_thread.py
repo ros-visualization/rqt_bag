@@ -35,10 +35,12 @@ import time
 
 
 class IndexCacheThread(threading.Thread):
+
     """
     Updates invalid caches.
     One thread per timeline.
     """
+
     def __init__(self, timeline):
         threading.Thread.__init__(self)
         self.timeline = timeline

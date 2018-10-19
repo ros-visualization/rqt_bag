@@ -37,6 +37,7 @@ from python_qt_binding.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QScroll
 
 
 class NodeSelection(QWidget):
+
     def __init__(self, parent):
         super(NodeSelection, self).__init__()
         self.parent_widget = parent

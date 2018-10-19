@@ -37,16 +37,19 @@ from python_qt_binding.QtCore import qWarning
 
 
 class ListenerEvent(QEvent):
+
     def __init__(self, data):
         super(ListenerEvent, self).__init__(QEvent.User)
         self.data = data
 
 
 class MessageListenerThread(threading.Thread):
+
     """
     Waits for new messages loaded on the given topic, then calls the message listener.
     One thread per listener, topic pair.
     """
+
     def __init__(self, timeline, topic, listener):
         threading.Thread.__init__(self)
 

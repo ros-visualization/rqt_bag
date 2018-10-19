@@ -38,6 +38,7 @@ import math
 import time
 import rospy
 
+
 def stamp_to_str(t):
     """
     Convert a rospy.Time to a human-readable string.
