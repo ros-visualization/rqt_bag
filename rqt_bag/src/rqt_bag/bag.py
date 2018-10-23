@@ -38,10 +38,13 @@ from qt_gui.plugin import Plugin
 
 from .bag_widget import BagWidget
 
+
 class Bag(Plugin):
+
     """
     Subclass of Plugin to provide interactive bag visualization, playing(publishing) and recording
     """
+
     def __init__(self, context):
         """
         :param context: plugin context hook to enable adding widgets as a ROS_GUI pane, ''PluginContext''
@@ -53,13 +56,14 @@ class Bag(Plugin):
 
         self._widget = BagWidget(context, args.clock)
         if context.serial_number() > 1:
-            self._widget.setWindowTitle(self._widget.windowTitle() + (' (%d)' % context.serial_number()))
+            self._widget.setWindowTitle(
+                self._widget.windowTitle() + (' (%d)' % context.serial_number()))
         context.add_widget(self._widget)
 
         def load_bags():
             for bagfile in args.bagfiles:
                 self._widget.load_bag(bagfile)
-        
+
         load_thread = threading.Thread(target=load_bags)
         load_thread.start()
 
@@ -73,7 +77,7 @@ class Bag(Plugin):
         if os.path.isfile(arg):
             return arg
         else:
-            parser.error("Bag file %s does not exist" % ( arg ))
+            parser.error("Bag file %s does not exist" % (arg))
 
     @staticmethod
     def add_arguments(parser):
@@ -95,5 +99,5 @@ class Bag(Plugin):
         # v = instance_settings.value(k)
         pass
 
-    #def trigger_configuration(self):
+    # def trigger_configuration(self):
         # TODO move some of the button functionality to config button if it is "more configy"

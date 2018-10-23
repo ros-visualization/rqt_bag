@@ -53,9 +53,11 @@ from python_qt_binding.QtGui import QBrush, QPen, QPixmap
 
 
 class ImageTimelineRenderer(TimelineRenderer):
+
     """
     Draws thumbnails of sensor_msgs/Image or sensor_msgs/CompressedImage in the timeline.
     """
+
     def __init__(self, timeline, thumbnail_height=160):
         super(ImageTimelineRenderer, self).__init__(timeline, msg_combine_px=40.0)
 
@@ -65,7 +67,8 @@ class ImageTimelineRenderer(TimelineRenderer):
         self.min_thumbnail_width = 8  # don't display thumbnails if less than this many pixels across
         self.quality = Image.NEAREST  # quality hint for thumbnail scaling
 
-        self.thumbnail_cache = TimelineCache(self._load_thumbnail, lambda topic, msg_stamp, thumbnail: self.timeline.scene().update())
+        self.thumbnail_cache = TimelineCache(
+            self._load_thumbnail, lambda topic, msg_stamp, thumbnail: self.timeline.scene().update())
     # TimelineRenderer implementation
 
     def get_segment_height(self, topic):
@@ -89,7 +92,8 @@ class ImageTimelineRenderer(TimelineRenderer):
         max_interval_thumbnail = self.timeline.map_dx_to_dstamp(self.thumbnail_combine_px)
         max_interval_thumbnail = max(0.1, max_interval_thumbnail)
         thumbnail_gap = 6
-        thumbnail_x, thumbnail_y, thumbnail_height = x + 1, y + 1, height - 2 - thumbnail_gap  # leave 1px border
+        # leave 1px border
+        thumbnail_x, thumbnail_y, thumbnail_height = x + 1, y + 1, height - 2 - thumbnail_gap
 
         # set color to white draw rectangle over messages
         painter.setBrush(QBrush(Qt.white))
@@ -103,15 +107,18 @@ class ImageTimelineRenderer(TimelineRenderer):
             if width > 1 and available_width < self.min_thumbnail_width:
                 break
 
-            # Try to display the thumbnail, if its right edge is to the right of the timeline's left side
+            # Try to display the thumbnail, if its right edge is to the right of the
+            # timeline's left side
             if not thumbnail_width or thumbnail_x + thumbnail_width >= self.timeline._history_left:
                 stamp = self.timeline.map_x_to_stamp(thumbnail_x, clamp_to_visible=False)
-                thumbnail_bitmap = self.thumbnail_cache.get_item(topic, stamp, max_interval_thumbnail)
+                thumbnail_bitmap = self.thumbnail_cache.get_item(
+                    topic, stamp, max_interval_thumbnail)
 
                 # Cache miss
                 if not thumbnail_bitmap:
                     thumbnail_details = (thumbnail_height,)
-                    self.thumbnail_cache.enqueue((topic, stamp, max_interval_thumbnail, thumbnail_details))
+                    self.thumbnail_cache.enqueue(
+                        (topic, stamp, max_interval_thumbnail, thumbnail_details))
                     if not thumbnail_width:
                         break
                 else:
@@ -122,7 +129,8 @@ class ImageTimelineRenderer(TimelineRenderer):
                             thumbnail_width = available_width - 1
                     QtImage = ImageQt(thumbnail_bitmap)
                     pixmap = QPixmap.fromImage(QtImage)
-                    painter.drawPixmap(thumbnail_x, thumbnail_y, thumbnail_width, thumbnail_height, pixmap)
+                    painter.drawPixmap(
+                        thumbnail_x, thumbnail_y, thumbnail_width, thumbnail_height, pixmap)
             thumbnail_x += thumbnail_width
 
             if width == 1:
@@ -174,7 +182,8 @@ class ImageTimelineRenderer(TimelineRenderer):
         # Calculate width to maintain aspect ratio
         try:
             pil_image_size = pil_image.size
-            thumbnail_width = int(round(thumbnail_height * (float(pil_image_size[0]) / pil_image_size[1])))
+            thumbnail_width = int(
+                round(thumbnail_height * (float(pil_image_size[0]) / pil_image_size[1])))
             # Scale to thumbnail size
             thumbnail = pil_image.resize((thumbnail_width, thumbnail_height), self.quality)
 

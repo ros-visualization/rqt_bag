@@ -34,12 +34,14 @@ from python_qt_binding.QtCore import QObject
 
 
 class TimelineRenderer(QObject):
+
     """
     A custom renderer for interval of time of a topic on the timeline.
 
     @param msg_combine_px: don't draw discrete messages if they're less than this many pixels separated [default: 1.5]
     @type  msg_combine_px: float
     """
+
     def __init__(self, timeline, msg_combine_px=1.5):
         super(TimelineRenderer, self).__init__()
         self.timeline = timeline

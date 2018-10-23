@@ -41,10 +41,13 @@ from python_qt_binding.QtCore import QObject
 
 CLOCK_TOPIC = "/clock"
 
+
 class Player(QObject):
+
     """
     This object handles publishing messages as the playhead passes over their position
     """
+
     def __init__(self, timeline):
         super(Player, self).__init__()
         self.timeline = timeline
@@ -104,7 +107,8 @@ class Player(QObject):
             return True
         except Exception as ex:
             # Any errors, stop listening/publishing to this topic
-            rospy.logerr('Error creating publisher on topic %s for type %s. \nError text: %s' % (topic, str(type(msg)), str(ex)))
+            rospy.logerr('Error creating publisher on topic %s for type %s. \nError text: %s' %
+                         (topic, str(type(msg)), str(ex)))
             if topic != CLOCK_TOPIC:
                 self.stop_publishing(topic)
             return False

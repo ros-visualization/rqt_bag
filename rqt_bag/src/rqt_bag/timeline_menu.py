@@ -32,7 +32,9 @@
 
 from python_qt_binding.QtWidgets import QVBoxLayout, QMenu, QWidget, QDockWidget
 
+
 class TopicPopupWidget(QWidget):
+
     def __init__(self, popup_name, timeline, viewer_type, topic):
         super(TopicPopupWidget, self).__init__()
         self.setObjectName(popup_name)
@@ -89,16 +91,18 @@ class TopicPopupWidget(QWidget):
 
         super(TopicPopupWidget, self).show()
 
+
 class TimelinePopupMenu(QMenu):
+
     """
     Custom popup menu displayed on rightclick from timeline
     """
+
     def __init__(self, timeline, event, menu_topic):
         super(TimelinePopupMenu, self).__init__()
 
         self.parent = timeline
         self.timeline = timeline
-
 
         if menu_topic is not None:
             self.setTitle(menu_topic)
@@ -127,7 +131,8 @@ class TimelinePopupMenu(QMenu):
             for topic, renderer in self._renderers:
                 self._thumbnail_actions.append(submenu.addAction(topic))
                 self._thumbnail_actions[-1].setCheckable(True)
-                self._thumbnail_actions[-1].setChecked(self.timeline._timeline_frame.is_renderer_active(topic))
+                self._thumbnail_actions[-1].setChecked(
+                    self.timeline._timeline_frame.is_renderer_active(topic))
         else:
             self._thumbnail_show_action = None
             self._thumbnail_hide_action = None
@@ -135,7 +140,8 @@ class TimelinePopupMenu(QMenu):
                 if menu_topic == topic:
                     self._thumbnail_actions.append(self.addAction("Thumbnail"))
                     self._thumbnail_actions[-1].setCheckable(True)
-                    self._thumbnail_actions[-1].setChecked(self.timeline._timeline_frame.is_renderer_active(topic))
+                    self._thumbnail_actions[-1].setChecked(
+                        self.timeline._timeline_frame.is_renderer_active(topic))
 
         # create view menu items
         self._topic_actions = []
@@ -205,8 +211,6 @@ class TimelinePopupMenu(QMenu):
             self._publish_actions[-1].setChecked(self.timeline.is_publishing(menu_topic))
             self._publish_all = None
             self._publish_none = None
-
-
 
         action = self.exec_(event.globalPos())
         if action is not None and action != 0:

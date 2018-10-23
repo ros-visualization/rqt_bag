@@ -79,7 +79,9 @@ from rqt_plot.data_plot import DataPlot
 # rospy used for Time and Duration objects, for interacting with rosbag
 import rospy
 
+
 class PlotView(MessageView):
+
     """
     Popup plot viewer
     """
@@ -102,10 +104,11 @@ class PlotView(MessageView):
             self.message_cleared()
         else:
             self.plot_widget.message_tree.set_message(msg)
-            self.plot_widget.set_cursor((t-self.plot_widget.start_stamp).to_sec())
+            self.plot_widget.set_cursor((t - self.plot_widget.start_stamp).to_sec())
 
     def message_cleared(self):
         pass
+
 
 class PlotWidget(QWidget):
 
@@ -121,7 +124,7 @@ class PlotWidget(QWidget):
 
         # the current region-of-interest for our bag file
         # all resampling and plotting is done with these limits
-        self.limits = [0,(self.end_stamp-self.start_stamp).to_sec()]
+        self.limits = [0, (self.end_stamp - self.start_stamp).to_sec()]
 
         rp = rospkg.RosPack()
         ui_file = os.path.join(rp.get_path('rqt_bag_plugins'), 'resource', 'plot.ui')
@@ -134,8 +137,7 @@ class PlotWidget(QWidget):
         self.auto_res.stateChanged.connect(self.autoChanged)
 
         self.resolution.editingFinished.connect(self.settingsChanged)
-        self.resolution.setValidator(QDoubleValidator(0.0,1000.0,6,self.resolution))
-
+        self.resolution.setValidator(QDoubleValidator(0.0, 1000.0, 6, self.resolution))
 
         self.timeline.selected_region_changed.connect(self.region_changed)
 
@@ -167,7 +169,7 @@ class PlotWidget(QWidget):
         bag = None
         start_time = self.start_stamp
         while bag is None:
-            bag,entry = self.timeline.get_entry(start_time, topic)
+            bag, entry = self.timeline.get_entry(start_time, topic)
             if bag is None:
                 start_time = self.timeline.get_entry_after(start_time)[1].time
 
@@ -189,7 +191,7 @@ class PlotWidget(QWidget):
         self.resample_data([path])
 
     def update_plot(self):
-        if len(self.paths_on)>0:
+        if len(self.paths_on) > 0:
             self.resample_data(self.paths_on)
 
     def remove_plot(self, path):
@@ -200,8 +202,8 @@ class PlotWidget(QWidget):
     def load_data(self):
         """get a generator for the specified time range on our bag"""
         return self.bag.read_messages(self.msgtopic,
-                self.start_stamp+rospy.Duration.from_sec(self.limits[0]),
-                self.start_stamp+rospy.Duration.from_sec(self.limits[1]))
+                                      self.start_stamp + rospy.Duration.from_sec(self.limits[0]),
+                                      self.start_stamp + rospy.Duration.from_sec(self.limits[1]))
 
     def resample_data(self, fields):
         if self.resample_thread:
@@ -222,7 +224,7 @@ class PlotWidget(QWidget):
 
     def _resample_thread(self):
         # TODO:
-        # * look into doing partial display updates for long resampling 
+        # * look into doing partial display updates for long resampling
         #   operations
         # * add a progress bar for resampling operations
         x = {}
@@ -251,7 +253,7 @@ class PlotWidget(QWidget):
                     # the minimum and maximum values present within a sample
                     # If the data has spikes, this is particularly bad because they
                     # will be missed entirely at some resolutions and offsets
-                    if x[path]==[] or (entry[2]-self.start_stamp).to_sec()-x[path][-1] >= self.timestep:
+                    if x[path] == [] or (entry[2] - self.start_stamp).to_sec() - x[path][-1] >= self.timestep:
                         y_value = entry[1]
                         for field in path.split('.'):
                             index = None
@@ -263,7 +265,7 @@ class PlotWidget(QWidget):
                                 index = int(index)
                                 y_value = y_value[index]
                         y[path].append(y_value)
-                        x[path].append((entry[2]-self.start_stamp).to_sec())
+                        x[path].append((entry[2] - self.start_stamp).to_sec())
 
                 # TODO: incremental plot updates would go here...
                 #       we should probably do incremental updates based on time;
@@ -296,7 +298,7 @@ class PlotWidget(QWidget):
         # by changing the limits or by editing the resolution
         limits = self.limits
         if self.auto_res.isChecked():
-            timestep = round((limits[1]-limits[0])/200.0,5)
+            timestep = round((limits[1] - limits[0]) / 200.0, 5)
         else:
             timestep = float(self.resolution.text())
         self.resolution.setText(str(timestep))
@@ -304,14 +306,14 @@ class PlotWidget(QWidget):
 
     def region_changed(self, start, end):
         # this is the only place where self.limits is set
-        limits = [ (start - self.start_stamp).to_sec(),
-                   (end - self.start_stamp).to_sec() ]
+        limits = [(start - self.start_stamp).to_sec(),
+                  (end - self.start_stamp).to_sec()]
 
         # cap the limits to the start and end of our bag file
-        if limits[0]<0:
-            limits = [0.0,limits[1]]
-        if limits[1]>(self.end_stamp-self.start_stamp).to_sec():
-            limits = [limits[0],(self.end_stamp-self.start_stamp).to_sec()]
+        if limits[0] < 0:
+            limits = [0.0, limits[1]]
+        if limits[1] > (self.end_stamp - self.start_stamp).to_sec():
+            limits = [limits[0], (self.end_stamp - self.start_stamp).to_sec()]
 
         self.limits = limits
 
@@ -326,11 +328,11 @@ class PlotWidget(QWidget):
         self.update_plot()
 
     def autoChanged(self, state):
-        if state==2:
+        if state == 2:
             # auto mode enabled. recompute the timestep and resample
-            self.resolution.setDisabled(True) 
+            self.resolution.setDisabled(True)
             self.recompute_timestep()
-            self.update_plot()   
+            self.update_plot()
         else:
             # auto mode disabled. enable the resolution text box
             # no change to resolution yet, so no need to redraw
@@ -347,8 +349,8 @@ class PlotWidget(QWidget):
         self.plot.redraw()
 
 
-
 class MessageTree(QTreeWidget):
+
     def __init__(self, msg_type, parent):
         super(MessageTree, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -363,7 +365,6 @@ class MessageTree(QTreeWidget):
 
         # populate the tree from the message type
 
-
     @property
     def msg(self):
         return self._msg
@@ -377,7 +378,7 @@ class MessageTree(QTreeWidget):
                     self._expanded_paths.add(path)
                 elif path in self._expanded_paths:
                     self._expanded_paths.remove(path)
-                if item.checkState(0)==Qt.Checked:
+                if item.checkState(0) == Qt.Checked:
                     self._checked_states.add(path)
                 elif path in self._checked_states:
                     self._checked_states.remove(path)
@@ -389,7 +390,8 @@ class MessageTree(QTreeWidget):
             if self._expanded_paths is None:
                 self._expanded_paths = set()
             else:
-                # Expand those that were previously expanded, and collapse any paths that we've seen for the first time
+                # Expand those that were previously expanded, and collapse any paths that
+                # we've seen for the first time
                 for item in self.get_all_items():
                     path = self.get_item_path(item)
                     if path in self._expanded_paths:
@@ -433,9 +435,9 @@ class MessageTree(QTreeWidget):
         else:
             subobjs = []
 
-        plotitem=False
+        plotitem = False
         if type(obj) in [int, long, float]:
-            plotitem=True
+            plotitem = True
             if type(obj) == float:
                 obj_repr = '%.6f' % obj
             else:
@@ -464,11 +466,10 @@ class MessageTree(QTreeWidget):
             parent.addChild(item)
         if plotitem == True:
             if path.replace(' ', '') in self._checked_states:
-                item.setCheckState (0, Qt.Checked)
+                item.setCheckState(0, Qt.Checked)
             else:
-                item.setCheckState (0, Qt.Unchecked)
+                item.setCheckState(0, Qt.Unchecked)
         item.setData(0, Qt.UserRole, (path, obj_type))
-
 
         for subobj_name, subobj in subobjs:
             if subobj is None:
@@ -489,7 +490,7 @@ class MessageTree(QTreeWidget):
             self._add_msg_object(item, subpath, subobj_name, subobj, subobj_type)
 
     def handleChanged(self, item, column):
-        if item.data(0, Qt.UserRole)==None:
+        if item.data(0, Qt.UserRole) == None:
             pass
         else:
             path = self.get_item_path(item)

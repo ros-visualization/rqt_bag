@@ -52,6 +52,7 @@ import sys
 
 
 class Recorder(object):
+
     def __init__(self, filename, bag_lock=None, all=True, topics=[], regex=False, limit=0, master_check_interval=1.0):
         """
         Subscribe to ROS messages and record them to a bag file.
@@ -140,7 +141,7 @@ class Recorder(object):
 
         self._write_queue.put(self)
 
-    ## Implementation
+    # Implementation
 
     def _run_master_check(self):
         master = rosgraph.Master('rqt_bag_recorder')
@@ -164,7 +165,8 @@ class Recorder(object):
 
                         self._subscriber_helpers[topic] = _SubscriberHelper(self, topic, pytype)
                     except Exception as ex:
-                        print('Error subscribing to %s (ignoring): %s' % (topic, str(ex)), file=sys.stderr)
+                        print('Error subscribing to %s (ignoring): %s' %
+                              (topic, str(ex)), file=sys.stderr)
                         self._failed_topics.add(topic)
 
                 # Wait a while
@@ -241,6 +243,7 @@ class Recorder(object):
 
 
 class _SubscriberHelper(object):
+
     def __init__(self, recorder, topic, pytype):
         self.recorder = recorder
         self.topic = topic

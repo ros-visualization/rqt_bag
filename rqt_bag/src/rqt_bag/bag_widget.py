@@ -46,12 +46,15 @@ from rqt_bag import bag_helper
 from .bag_timeline import BagTimeline
 from .topic_selection import TopicSelection
 
+
 class BagGraphicsView(QGraphicsView):
+
     def __init__(self, parent=None):
         super(BagGraphicsView, self).__init__()
 
 
 class BagWidget(QWidget):
+
     """
     Widget for use with Bag class to display and replay bag files
     Handles all widget callbacks and contains the instance of BagTimeline for storing visualizing bag data
@@ -113,7 +116,8 @@ class BagWidget(QWidget):
         self.graphics_view.wheelEvent = self._timeline.on_mousewheel
         self.closeEvent = self.handle_close
         self.keyPressEvent = self.on_key_press
-        # TODO when the closeEvent is properly called by ROS_GUI implement that event instead of destroyed
+        # TODO when the closeEvent is properly called by ROS_GUI implement that
+        # event instead of destroyed
         self.destroyed.connect(self.handle_destroy)
 
         self.graphics_view.keyPressEvent = self.graphics_view_on_key_press
@@ -138,7 +142,8 @@ class BagWidget(QWidget):
     def graphics_view_on_key_press(self, event):
         key = event.key()
         if key in (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown):
-            # This causes the graphics view to ignore these keys so they can be caught by the bag_widget keyPressEvent
+            # This causes the graphics view to ignore these keys so they can be caught
+            # by the bag_widget keyPressEvent
             event.ignore()
         else:
             # Maintains functionality for all other keys QGraphicsView implements
@@ -175,9 +180,13 @@ class BagWidget(QWidget):
         event.accept()
 
     def _resizeEvent(self, event):
-        # TODO The -2 allows a buffer zone to make sure the scroll bars do not appear when not needed. On some systems (Lucid) this doesn't function properly
-        # need to look at a method to determine the maximum size of the scene that will maintain a proper no scrollbar fit in the view.
-        self.graphics_view.scene().setSceneRect(0, 0, self.graphics_view.width() - 2, max(self.graphics_view.height() - 2, self._timeline._timeline_frame._history_bottom))
+        # TODO The -2 allows a buffer zone to make sure the scroll bars do not
+        # appear when not needed. # On some systems (Lucid) this doesn't function
+        # properly # need to look at a method to determine the maximum size of the
+        # scene that # will maintain a proper no scrollbar fit in the view.
+        self.graphics_view.scene().setSceneRect(
+            0, 0, self.graphics_view.width() - 2,
+            max(self.graphics_view.height() - 2, self._timeline._timeline_frame._history_bottom))
 
     def _handle_publish_clicked(self, checked):
         self._timeline.set_publishing_state(checked)
@@ -233,14 +242,14 @@ class BagWidget(QWidget):
             self._timeline.toggle_recording()
             return
 
-        #TODO Implement limiting by regex and by number of messages per topic
+        # TODO Implement limiting by regex and by number of messages per topic
         self.topic_selection = TopicSelection()
         self.topic_selection.recordSettingsSelected.connect(self._on_record_settings_selected)
 
-
     def _on_record_settings_selected(self, all_topics, selected_topics):
         # TODO verify master is still running
-        filename = QFileDialog.getSaveFileName(self, self.tr('Select prefix for new Bag File'), '.', self.tr('Bag files {.bag} (*.bag)'))
+        filename = QFileDialog.getSaveFileName(
+            self, self.tr('Select prefix for new Bag File'), '.', self.tr('Bag files {.bag} (*.bag)'))
         if filename[0] != '':
             prefix = filename[0].strip()
 
@@ -257,9 +266,9 @@ class BagWidget(QWidget):
             self._recording = True
             self._timeline.record_bag(record_filename, all_topics, selected_topics)
 
-
     def _handle_load_clicked(self):
-        filenames = QFileDialog.getOpenFileNames(self, self.tr('Load from Files'), '.', self.tr('Bag files {.bag} (*.bag)'))
+        filenames = QFileDialog.getOpenFileNames(
+            self, self.tr('Load from Files'), '.', self.tr('Bag files {.bag} (*.bag)'))
         for filename in filenames[0]:
             self.load_bag(filename)
 
@@ -269,12 +278,12 @@ class BagWidget(QWidget):
         # QProgressBar can EITHER: show text or show a bouncing loading bar,
         #  but apparently the text is hidden when the bounding loading bar is
         #  shown
-        #self.progress_bar.setRange(0, 0)
+        # self.progress_bar.setRange(0, 0)
         self.set_status_text.emit("Loading '%s'..." % filename)
-        #progress_format = self.progress_bar.format()
-        #progress_text_visible = self.progress_bar.isTextVisible()
-        #self.progress_bar.setFormat("Loading %s" % filename)
-        #self.progress_bar.setTextVisible(True)
+        # progress_format = self.progress_bar.format()
+        # progress_text_visible = self.progress_bar.isTextVisible()
+        # self.progress_bar.setFormat("Loading %s" % filename)
+        # self.progress_bar.setTextVisible(True)
 
         try:
             bag = rosbag.Bag(filename)
@@ -299,13 +308,14 @@ class BagWidget(QWidget):
             qWarning("Loading '%s' failed due to: %s" % (filename.encode(errors='replace'), e))
             self.set_status_text.emit("Loading '%s' failed due to: %s" % (filename, e))
 
-        #self.progress_bar.setFormat(progress_format)
-        #self.progress_bar.setTextVisible(progress_text_visible) # causes a segfault :(
-        #self.progress_bar.setRange(0, 100)
+        # self.progress_bar.setFormat(progress_format)
+        # self.progress_bar.setTextVisible(progress_text_visible) # causes a segfault :(
+        # self.progress_bar.setRange(0, 100)
         # self clear loading filename
 
     def _handle_save_clicked(self):
-        filename = QFileDialog.getSaveFileName(self, self.tr('Save selected region to file...'), '.', self.tr('Bag files {.bag} (*.bag)'))
+        filename = QFileDialog.getSaveFileName(
+            self, self.tr('Save selected region to file...'), '.', self.tr('Bag files {.bag} (*.bag)'))
         if filename[0] != '':
             self._timeline.copy_region_to_bag(filename[0])
 
@@ -319,7 +329,8 @@ class BagWidget(QWidget):
     def _update_status_bar(self):
         if self._timeline._timeline_frame.playhead is None or self._timeline._timeline_frame.start_stamp is None:
             return
-        # TODO Figure out why this function is causing a "RuntimeError: wrapped C/C++ object of %S has been deleted" on close if the playhead is moving
+        # TODO Figure out why this function is causing a "RuntimeError: wrapped
+        # C/C++ object of %S has been deleted" on close if the playhead is moving
         try:
             # Background Process Status
             self.progress_bar.setValue(self._timeline.background_progress)
@@ -328,10 +339,13 @@ class BagWidget(QWidget):
             self.stamp_label.setText('%.3fs' % self._timeline._timeline_frame.playhead.to_sec())
 
             # Human-readable time
-            self.date_label.setText(bag_helper.stamp_to_str(self._timeline._timeline_frame.playhead))
+            self.date_label.setText(
+                bag_helper.stamp_to_str(self._timeline._timeline_frame.playhead))
 
             # Elapsed time (in seconds)
-            self.seconds_label.setText('%.3fs' % (self._timeline._timeline_frame.playhead - self._timeline._timeline_frame.start_stamp).to_sec())
+            self.seconds_label.setText(
+                '%.3fs' % (
+                    self._timeline._timeline_frame.playhead - self._timeline._timeline_frame.start_stamp).to_sec())
 
             # File size
             self.filesize_label.setText(bag_helper.filesize_to_str(self._timeline.file_size()))
