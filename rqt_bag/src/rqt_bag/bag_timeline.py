@@ -30,16 +30,17 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import rospy
-import rosbag
+import rclpy
 import time
 import threading
 
 
-from python_qt_binding.QtCore import Qt, QTimer, qWarning, Signal
+from python_qt_binding.QtCore import qDebug, Qt, QTimer, qWarning, Signal
 from python_qt_binding.QtWidgets import QGraphicsScene, QMessageBox
 
 from rqt_bag import bag_helper
+from rclpy.duration import Duration
+from rclpy.time import Time
 
 from .timeline_frame import TimelineFrame
 from .message_listener_thread import MessageListenerThread
@@ -56,7 +57,7 @@ class BagTimeline(QGraphicsScene):
     on the screen Also handles events
     """
     status_bar_changed_signal = Signal()
-    selected_region_changed = Signal(rospy.Time, rospy.Time)
+    selected_region_changed = Signal(Time, Time)
 
     def __init__(self, context, publish_clock):
         """
@@ -149,11 +150,12 @@ class BagTimeline(QGraphicsScene):
         """
         creates an indexing thread for each new topic in the bag
         fixes the boarders and notifies the indexing thread to index the new items bags
-        :param bag: ros bag file, ''rosbag.bag''
+        :param bag: ros bag file, ''rosbag2.bag''
         """
         self._bags.append(bag)
 
         bag_topics = bag_helper.get_topics(bag)
+        qDebug('Topics from this bag: {}'.format(bag_topics))
 
         new_topics = set(bag_topics) - set(self._timeline_frame.topics)
 
@@ -186,7 +188,7 @@ class BagTimeline(QGraphicsScene):
     # TODO Rethink API and if these need to be visible
     def _get_start_stamp(self):
         """
-        :return: first stamp in the bags, ''rospy.Time''
+        :return: first stamp in the bags, ''rclpy.time.Time''
         """
         with self._bag_lock:
             start_stamp = None
@@ -199,7 +201,7 @@ class BagTimeline(QGraphicsScene):
 
     def _get_end_stamp(self):
         """
-        :return: last stamp in the bags, ''rospy.Time''
+        :return: last stamp in the bags, ''rclpy.time.Time''
         """
         with self._bag_lock:
             end_stamp = None
@@ -251,12 +253,11 @@ class BagTimeline(QGraphicsScene):
         """
         generator function for bag entries
         :param topics: list of topics to query, ''list(str)''
-        :param start_stamp: stamp to start at, ''rospy.Time''
-        :param end_stamp: stamp to end at, ''rospy,Time''
+        :param start_stamp: stamp to start at, ''rclpy.time.Time''
+        :param end_stamp: stamp to end at, ''rclpy.time,Time''
         :returns: entries the bag file, ''msg''
         """
         with self._bag_lock:
-            from rosbag import bag  # for _mergesort
             bag_entries = []
             for b in self._bags:
                 bag_start_time = bag_helper.get_start_stamp(b)
@@ -267,23 +268,20 @@ class BagTimeline(QGraphicsScene):
                 if bag_end_time is not None and bag_end_time < start_stamp:
                     continue
 
-                connections = list(b._get_connections(topics))
-                bag_entries.append(b._get_entries(connections, start_stamp, end_stamp))
+                bag_entries.extend(b._get_entries(start_stamp, end_stamp))
 
-            for entry, _ in bag._mergesort(bag_entries, key=lambda entry: entry.time):
+            for entry in sorted(bag_entries, key=lambda entry: entry.timestamp):
                 yield entry
 
     def get_entries_with_bags(self, topic, start_stamp, end_stamp):
         """
         generator function for bag entries
         :param topics: list of topics to query, ''list(str)''
-        :param start_stamp: stamp to start at, ''rospy.Time''
-        :param end_stamp: stamp to end at, ''rospy,Time''
-        :returns: tuple of (bag, entry) for the entries in the bag file, ''(rosbag.bag, msg)''
+        :param start_stamp: stamp to start at, ''rclpy.time.Time''
+        :param end_stamp: stamp to end at, ''rclpy.time,Time''
+        :returns: tuple of (bag, entry) for the entries in the bag file, ''(rosbag2.bag, msg)''
         """
         with self._bag_lock:
-            from rosbag import bag  # for _mergesort
-
             bag_entries = []
             bag_by_iter = {}
             for b in self._bags:
@@ -295,26 +293,24 @@ class BagTimeline(QGraphicsScene):
                 if bag_end_time is not None and bag_end_time < start_stamp:
                     continue
 
-                connections = list(b._get_connections(topic))
-                it = iter(b._get_entries(connections, start_stamp, end_stamp))
-                bag_by_iter[it] = b
-                bag_entries.append(it)
+                for entry in b._get_entries(start_stamp, end_stamp):
+                    bag_entries.append((b, entry))
 
-            for entry, it in bag._mergesort(bag_entries, key=lambda entry: entry.time):
-                yield bag_by_iter[it], entry
+            for bag, entry in sorted(bag_entries, key=lambda item: item[1].timestamp):
+                yield bag, entry
 
     def get_entry(self, t, topic):
         """
         Access a bag entry
-        :param t: time, ''rospy.Time''
+        :param t: time, ''rclpy.time.Time''
         :param topic: the topic to be accessed, ''str''
-        :return: tuple of (bag, entry) corisponding to time t and topic, ''(rosbag.bag, msg)''
+        :return: tuple of (bag, entry) corresponding to time t and topic, ''(rosbag2.bag, msg)''
         """
         with self._bag_lock:
             entry_bag, entry = None, None
             for bag in self._bags:
-                bag_entry = bag._get_entry(t, bag._get_connections(topic))
-                if bag_entry and (not entry or bag_entry.time > entry.time):
+                bag_entry = bag._get_entry(t, topic)
+                if bag_entry and (not entry or bag_entry.timestamp > entry.timestamp):
                     entry_bag, entry = bag, bag_entry
 
             return entry_bag, entry
@@ -322,14 +318,14 @@ class BagTimeline(QGraphicsScene):
     def get_entry_before(self, t):
         """
         Access a bag entry
-        :param t: time, ''rospy.Time''
-        :return: tuple of (bag, entry) corresponding to time t, ''(rosbag.bag, msg)''
+        :param t: time, ''rclpy.time.Time''
+        :return: tuple of (bag, entry) corresponding to time t, ''(rosbag2.bag, msg)''
         """
         with self._bag_lock:
             entry_bag, entry = None, None
             for bag in self._bags:
-                bag_entry = bag._get_entry(t - rospy.Duration(0, 1), bag._get_connections())
-                if bag_entry and (not entry or bag_entry.time < entry.time):
+                bag_entry = bag._get_entry(t - Duration(nanoseconds=1))
+                if bag_entry and (not entry or bag_entry.timestamp < entry.timestamp):
                     entry_bag, entry = bag, bag_entry
 
             return entry_bag, entry
@@ -337,21 +333,21 @@ class BagTimeline(QGraphicsScene):
     def get_entry_after(self, t):
         """
         Access a bag entry
-        :param t: time, ''rospy.Time''
-        :return: tuple of (bag, entry) corisponding to time t, ''(rosbag.bag, msg)''
+        :param t: time, ''rclpy.time.Time''
+        :return: tuple of (bag, entry) corresponding to time t, ''(rosbag2.bag, msg)''
         """
         with self._bag_lock:
             entry_bag, entry = None, None
             for bag in self._bags:
-                bag_entry = bag._get_entry_after(t, bag._get_connections())
-                if bag_entry and (not entry or bag_entry.time < entry.time):
+                bag_entry = bag._get_entry_after(t)
+                if bag_entry and (not entry or bag_entry.timestamp < entry.timestamp):
                     entry_bag, entry = bag, bag_entry
 
             return entry_bag, entry
 
     def get_next_message_time(self):
         """
-        :return: time of the next message after the current playhead position,''rospy.Time''
+        :return: time of the next message after the current playhead position,''rclpy.time.Time''
         """
         if self._timeline_frame.playhead is None:
             return None
@@ -360,11 +356,11 @@ class BagTimeline(QGraphicsScene):
         if entry is None:
             return self._timeline_frame._start_stamp
 
-        return entry.time
+        return Time(nanoseconds=entry.timestamp)
 
     def get_previous_message_time(self):
         """
-        :return: time of the next message before the current playhead position,''rospy.Time''
+        :return: time of the next message before the current playhead position,''rclpy.time.Time''
         """
         if self._timeline_frame.playhead is None:
             return None
@@ -373,7 +369,7 @@ class BagTimeline(QGraphicsScene):
         if entry is None:
             return self._timeline_frame._end_stamp
 
-        return entry.time
+        return Time(nanoseconds=entry.timestamp)
 
     def resume(self):
         if (self._player):
@@ -410,8 +406,8 @@ class BagTimeline(QGraphicsScene):
         Starts a thread to save the current selection to a new bag file
         :param path: filesystem path to write to, ''str''
         :param topics: topics to write to the file, ''list(str)''
-        :param start_stamp: start of area to save, ''rospy.Time''
-        :param end_stamp: end of area to save, ''rospy.Time''
+        :param start_stamp: start of area to save, ''rclpy.time.Time''
+        :param end_stamp: end of area to save, ''rclpy.time.Time''
         """
         if not self.start_background_task('Copying messages to "%s"' % path):
             return
@@ -450,8 +446,8 @@ class BagTimeline(QGraphicsScene):
         Threaded function that saves the current selection to a new bag file
         :param export_bag: bagfile to write to, ''rosbag.bag''
         :param topics: topics to write to the file, ''list(str)''
-        :param start_stamp: start of area to save, ''rospy.Time''
-        :param end_stamp: end of area to save, ''rospy.Time''
+        :param start_stamp: start of area to save, ''rclpy.time.Time''
+        :param end_stamp: end of area to save, ''rclpy.time.Time''
         """
         total_messages = len(bag_entries)
         update_step = max(1, total_messages / 100)
@@ -597,8 +593,8 @@ class BagTimeline(QGraphicsScene):
         """
         moves the playhead to the next position based on the desired position
         """
-        # Reset when the playing mode switchs
-        if self._timeline_frame.playhead != self.last_playhead:
+        # Reset when the playing mode switches. A rclpy.time.Time cannot be compared to a NoneType
+        if self.last_playhead is None or self._timeline_frame.playhead != self.last_playhead:
             self.last_frame = None
             self.last_playhead = None
             self.desired_playhead = None
@@ -617,14 +613,14 @@ class BagTimeline(QGraphicsScene):
             self.last_playhead = None
             return
 
-        now = rospy.Time.from_sec(time.time())
+        now = Time(seconds=time.time())
         if self.last_frame:
             # Get new playhead
             if self.stick_to_end:
                 new_playhead = self.end_stamp
             else:
-                new_playhead = self._timeline_frame.playhead + \
-                    rospy.Duration.from_sec((now - self.last_frame).to_sec() * self.play_speed)
+                jump = bag_helper.to_sec(now - self.last_frame) * self.play_speed
+                new_playhead = self._timeline_frame.playhead + Duration(seconds=jump)
 
                 start_stamp, end_stamp = self._timeline_frame.play_region
 
@@ -668,9 +664,9 @@ class BagTimeline(QGraphicsScene):
             if not self.desired_playhead:
                 self.desired_playhead = self._timeline_frame.playhead
             else:
-                delta = rospy.Time.from_sec(time.time()) - self.last_frame
-                if delta > rospy.Duration.from_sec(0.1):
-                    delta = rospy.Duration.from_sec(0.1)
+                delta = Time(seconds=time.time()) - self.last_frame
+                if delta > Duration(seconds=0.1):
+                    delta = Duration(seconds=0.1)
                 self.desired_playhead += delta
 
             # Get the occurrence of the next message
@@ -681,7 +677,7 @@ class BagTimeline(QGraphicsScene):
             else:
                 self._timeline_frame.playhead = self.desired_playhead
 
-        self.last_frame = rospy.Time.from_sec(time.time())
+        self.last_frame = Time(seconds=time.time())
         self.last_playhead = self._timeline_frame.playhead
 
     # Recording
@@ -807,7 +803,7 @@ class BagTimeline(QGraphicsScene):
 
     def navigate_play(self):
         self.play_speed = 1.0
-        self.last_frame = rospy.Time.from_sec(time.time())
+        self.last_frame = Time(seconds=time.time())
         self.last_playhead = self._timeline_frame.playhead
         self._play_timer.start()
 

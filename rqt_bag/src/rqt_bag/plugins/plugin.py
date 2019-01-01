@@ -35,7 +35,9 @@ class Plugin(object):
 
     """
     Interface for rqt_bag plugins.
-    User-defined plugins may either subclass `rqt_bag.plugin.Plugin` or according to duck typing implement only the needed methods.
+
+    User-defined plugins may either subclass `rqt_bag.plugin.Plugin` or according to duck typing
+    implement only the needed methods.
     """
 
     def __init__(self):
