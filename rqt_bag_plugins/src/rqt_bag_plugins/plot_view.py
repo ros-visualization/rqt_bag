@@ -66,18 +66,20 @@ import os
 import math
 import codecs
 import threading
-import rospkg
 from rqt_bag import MessageView
 
+from ament_index_python import get_resource
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning, Signal
 from python_qt_binding.QtGui import QDoubleValidator, QIcon
-from python_qt_binding.QtWidgets import QWidget, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy
+from python_qt_binding.QtWidgets import \
+    QWidget, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy
 
 from rqt_plot.data_plot import DataPlot
 
-# rospy used for Time and Duration objects, for interacting with rosbag
-import rospy
+# rclpy used for Time and Duration objects, for interacting with rosbag
+from rclpy.duration import Duration
+from rclpy.time import Time
 
 # compatibility fix for python2/3
 try:
@@ -131,8 +133,8 @@ class PlotWidget(QWidget):
         # all resampling and plotting is done with these limits
         self.limits = [0, (self.end_stamp - self.start_stamp).to_sec()]
 
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_bag_plugins'), 'resource', 'plot.ui')
+        _, package_path = get_resource('packages', 'rqt_bag_plugins')
+        ui_file = os.path.join(package_path, 'resource', 'plot.ui')
         loadUi(ui_file, self)
         self.message_tree = MessageTree(msg_type, self)
         self.data_tree_layout.addWidget(self.message_tree)
@@ -207,8 +209,8 @@ class PlotWidget(QWidget):
     def load_data(self):
         """get a generator for the specified time range on our bag"""
         return self.bag.read_messages(self.msgtopic,
-                                      self.start_stamp + rospy.Duration.from_sec(self.limits[0]),
-                                      self.start_stamp + rospy.Duration.from_sec(self.limits[1]))
+                                      self.start_stamp + Duration(seconds=self.limits[0]),
+                                      self.start_stamp + Duration(seconds=self.limits[1]))
 
     def resample_data(self, fields):
         if self.resample_thread:
@@ -453,7 +455,7 @@ class MessageTree(QTreeWidget):
             else:
                 label += ':  %s' % obj_repr
 
-        elif type(obj) in [str, bool, int, long, float, complex, rospy.Time]:
+        elif type(obj) in [str, bool, int, long, float, complex, Time]:
             # Ignore any binary data
             obj_repr = codecs.utf_8_decode(str(obj).encode(), 'ignore')[0]
 

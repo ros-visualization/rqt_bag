@@ -30,6 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from python_qt_binding.QtCore import qDebug
 from python_qt_binding.QtWidgets import QVBoxLayout, QMenu, QWidget, QDockWidget
 
 
@@ -86,6 +87,8 @@ class TopicPopupWidget(QWidget):
             # create a new viewer
             self._viewer = self._viewer_type(self._timeline, self, self._topic)
             if not self._is_listening:
+                qDebug('Adding listener to topic {} of type {}'.format(
+                        self._topic, type(self._viewer)))
                 self._timeline.add_listener(self._topic, self._viewer)
                 self._is_listening = True
 
@@ -170,7 +173,9 @@ class TimelinePopupMenu(QMenu):
                 datatype_menu = QMenu(datatype, self)
                 datatype_topics = self._topics_by_type[datatype]
                 viewer_types = self.timeline._timeline_frame.get_viewer_types(datatype)
-                for topic in [t for t in self._topics if t in datatype_topics]:   # use timeline ordering
+
+                # use timeline ordering
+                for topic in [t for t in self._topics if t in datatype_topics]:
                     topic_menu = QMenu(topic, datatype_menu)
                     # View... / datatype / topic / Viewer
                     for viewer_type in viewer_types:
@@ -221,6 +226,7 @@ class TimelinePopupMenu(QMenu):
         :param action: action to execute, ''QAction''
         :raises: when it doesn't recognice the action passed in, ''Exception''
         """
+        qDebug('TimelinePopupMenu process action {}'.format(action))
         if action == self._reset_timeline:
             self.timeline._timeline_frame.reset_timeline()
         elif action == self._play_all:

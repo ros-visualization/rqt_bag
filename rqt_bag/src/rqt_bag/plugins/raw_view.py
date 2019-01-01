@@ -32,12 +32,14 @@
 """
 Defines a raw view: a TopicMessageView that displays the message contents in a tree.
 """
-import rospy
 import codecs
 import math
 
+from rclpy.time import Time
+
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtWidgets import QApplication, QAbstractItemView, QSizePolicy, QTreeWidget, QTreeWidgetItem, QWidget
+from python_qt_binding.QtWidgets import \
+    QApplication, QAbstractItemView, QSizePolicy, QTreeWidget, QTreeWidgetItem, QWidget
 from .topic_message_view import TopicMessageView
 
 # compatibility fix for python2/3
@@ -66,8 +68,8 @@ class RawView(TopicMessageView):
 
     def message_viewed(self, bag, msg_details):
         super(RawView, self).message_viewed(bag, msg_details)
-        _, msg, t = msg_details  # topic, msg, t = msg_details
-        if t is None:
+        _, _, _, msg = msg_details  # id, topic, timestamp, msg = msg_details
+        if msg is None:
             self.message_cleared()
         else:
             self.message_tree.set_message(msg)
@@ -109,7 +111,9 @@ class MessageTree(QTreeWidget):
             self.clear()
         if msg:
             # Populate the tree
-            self._add_msg_object(None, '', '', msg, msg._type)
+            # TODO(brawner) msg is stored in the db as a serialized byte array, needs to be
+            # unserialized
+            # self._add_msg_object(None, '', '', msg, msg._type)
 
             if self._expanded_paths is None:
                 self._expanded_paths = set()
@@ -147,7 +151,7 @@ class MessageTree(QTreeWidget):
         # Get tab indented text for all selected items
         def get_distance(item, ancestor, distance=0):
             parent = item.parent()
-            if parent == None:
+            if parent is None:
                 return distance
             else:
                 return get_distance(parent, ancestor, distance + 1)
@@ -160,7 +164,8 @@ class MessageTree(QTreeWidget):
         clipboard.setText(text)
 
     def get_item_path(self, item):
-        return item.data(0, Qt.UserRole)[0].replace(' ', '')  # remove spaces that may get introduced in indexing, e.g. [  3] is [3]
+        # remove spaces that may get introduced in indexing, e.g. [  3] is [3]
+        return item.data(0, Qt.UserRole)[0].replace(' ', '')
 
     def get_all_items(self):
         items = []
@@ -204,7 +209,7 @@ class MessageTree(QTreeWidget):
             else:
                 label += ':  %s' % obj_repr
 
-        elif type(obj) in [str, bool, int, long, float, complex, rospy.Time]:
+        elif type(obj) in [str, bool, int, long, float, complex, Time]:
             # Ignore any binary data
             obj_repr = codecs.utf_8_decode(str(obj), 'ignore')[0]
 

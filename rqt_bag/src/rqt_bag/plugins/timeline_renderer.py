@@ -38,7 +38,8 @@ class TimelineRenderer(QObject):
     """
     A custom renderer for interval of time of a topic on the timeline.
 
-    @param msg_combine_px: don't draw discrete messages if they're less than this many pixels separated [default: 1.5]
+    @param msg_combine_px: don't draw discrete messages if they're less than this many pixels
+        separated [default: 1.5]
     @type  msg_combine_px: float
     """
 

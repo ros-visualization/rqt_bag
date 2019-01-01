@@ -30,20 +30,18 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import rosgraph
-
 from python_qt_binding.QtCore import Qt, Signal
 from python_qt_binding.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QScrollArea, QPushButton
-from .node_selection import NodeSelection
+#from .node_selection import NodeSelection
 
 
 class TopicSelection(QWidget):
 
     recordSettingsSelected = Signal(bool, list)
 
-    def __init__(self):
+    def __init__(self, node):
         super(TopicSelection, self).__init__()
-        master = rosgraph.Master('rqt_bag_recorder')
+        self._node = node
         self.setWindowTitle("Select the topics you want to record")
         self.resize(500, 700)
 
@@ -70,7 +68,7 @@ class TopicSelection(QWidget):
         self.item_all = QCheckBox("All", self)
         self.item_all.stateChanged.connect(self.updateList)
         self.selection_vlayout.addWidget(self.item_all)
-        topic_data_list = master.getPublishedTopics('')
+        topic_data_list = self._node.get_topics_and_topic_types()
         topic_data_list.sort()
         for topic, datatype in topic_data_list:
             self.addCheckBox(topic)

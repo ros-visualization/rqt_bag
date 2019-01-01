@@ -32,6 +32,7 @@
 
 """
 Recorder subscribes to ROS messages and writes them to a bag file.
+TODO (brawner) Port to ROS2. Blocked by missing rclpy rosbag2 interface.
 """
 
 from __future__ import print_function
@@ -43,17 +44,18 @@ import re
 import threading
 import time
 
-import rosbag
-import rosgraph
-import roslib
-import rospy
+#import rosbag
+#import rosgraph
+#import roslib
+#import rospy
 
 import sys
 
 
 class Recorder(object):
 
-    def __init__(self, filename, bag_lock=None, all=True, topics=[], regex=False, limit=0, master_check_interval=1.0):
+    def __init__(self, filename, bag_lock=None, all=True, topics=[], regex=False, limit=0,
+                 master_check_interval=1.0):
         """
         Subscribe to ROS messages and record them to a bag file.
 
@@ -65,9 +67,11 @@ class Recorder(object):
         @type  topics: list of str
         @param regex: topics should be considered as regular expressions [default: False]
         @type  regex: bool
-        @param limit: record only this number of messages on each topic (if non-positive, then unlimited) [default: 0]
+        @param limit: record only this number of messages on each topic (if non-positive, then
+            unlimited) [default: 0]
         @type  limit: int
-        @param master_check_interval: period (in seconds) to check master for new topic publications [default: 1]
+        @param master_check_interval: period (in seconds) to check master for new topic
+            publications [default: 1]
         @type  master_check_interval: float
         """
         self._all = all
@@ -155,7 +159,10 @@ class Recorder(object):
                     #    we've failed to subscribe to it already, or
                     #    we've already reached the message limit, or
                     #    we don't want to subscribe
-                    if topic in self._subscriber_helpers or topic in self._failed_topics or topic in self._limited_topics or not self._should_subscribe_to(topic):
+                    if topic in self._subscriber_helpers or \
+                            topic in self._failed_topics or \
+                            topic in self._limited_topics or \
+                            not self._should_subscribe_to(topic):
                         continue
 
                     try:

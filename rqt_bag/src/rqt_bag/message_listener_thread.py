@@ -69,7 +69,8 @@ class MessageListenerThread(threading.Thread):
             # Wait for a new message
             cv = self.timeline._messages_cvs[self.topic]
             with cv:
-                while (self.topic not in self.timeline._messages) or (self.bag_msg_data == self.timeline._messages[self.topic]):
+                while (self.topic not in self.timeline._messages) or \
+                        (self.bag_msg_data == self.timeline._messages[self.topic]):
                     cv.wait()
                     if self._stop_flag:
                         return

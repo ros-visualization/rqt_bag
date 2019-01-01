@@ -30,18 +30,20 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from rclpy.time import Time
+from rclpy.duration import Duration
 
 from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QBrush, QCursor, QColor, QFont, \
     QFontMetrics, QPen, QPolygonF
 from python_qt_binding.QtWidgets import QGraphicsItem
-import rospy
 
 import bisect
 import threading
 
 from .index_cache_thread import IndexCacheThread
 from .plugins.raw_view import RawView
+from rqt_bag import bag_helper
 
 
 class _SelectionMode(object):
@@ -204,29 +206,31 @@ class TimelineFrame(QGraphicsItem):
         Sets the playhead to the new position, notifies the threads and updates the scene
         so it will redraw
         :signal: emits status_bar_changed_signal if the playhead is successfully set
-        :param playhead: Time to set the playhead to, ''rospy.Time()''
+        :param playhead: Time to set the playhead to, ''rclpy.time.Time()''
         """
         with self.scene()._playhead_lock:
-            if playhead == self._playhead:
+            # rclpy.time.Time objects cannot be compared to other types
+            if self._playhead is not None and playhead == self._playhead:
                 return
 
+            qDebug('Setting playhead {}'.format(playhead))
             self._playhead = playhead
             if self._playhead != self._end_stamp:
                 self.scene().stick_to_end = False
 
-            playhead_secs = playhead.to_sec()
+            playhead_secs = bag_helper.to_sec(playhead)
             if playhead_secs > self._stamp_right:
                 dstamp = playhead_secs - self._stamp_right + \
                     (self._stamp_right - self._stamp_left) * 0.75
-                if dstamp > self._end_stamp.to_sec() - self._stamp_right:
-                    dstamp = self._end_stamp.to_sec() - self._stamp_right
+                if dstamp > bag_helper.to_sec(self._end_stamp) - self._stamp_right:
+                    dstamp = bag_helper.to_sec(self._end_stamp) - self._stamp_right
                 self.translate_timeline(dstamp)
 
             elif playhead_secs < self._stamp_left:
                 dstamp = self._stamp_left - playhead_secs + \
                     (self._stamp_right - self._stamp_left) * 0.75
-                if dstamp > self._stamp_left - self._start_stamp.to_sec():
-                    dstamp = self._stamp_left - self._start_stamp.to_sec()
+                if dstamp > self._stamp_left - bag_helper.to_sec(self._start_stamp):
+                    dstamp = self._stamp_left - bag_helper.to_sec(self._start_stamp)
                 self.translate_timeline(-dstamp)
 
             # Update the playhead positions
@@ -234,9 +238,9 @@ class TimelineFrame(QGraphicsItem):
                 bag, entry = self.scene().get_entry(self._playhead, topic)
                 if entry:
                     if topic in self.scene()._playhead_positions and \
-                            self.scene()._playhead_positions[topic] == (bag, entry.position):
+                            self.scene()._playhead_positions[topic] == (bag, entry.timestamp):
                         continue
-                    new_playhead_position = (bag, entry.position)
+                    new_playhead_position = (bag, entry.timestamp)
                 else:
                     new_playhead_position = (None, None)
                 with self.scene()._playhead_positions_cvs[topic]:
@@ -261,7 +265,7 @@ class TimelineFrame(QGraphicsItem):
     def play_region(self):
         if self.has_selected_region:
             return (
-                rospy.Time.from_sec(self._selected_left), rospy.Time.from_sec(self._selected_right))
+                Time(seconds=self._selected_left), Time(seconds=self._selected_right))
         else:
             return (self._start_stamp, self._end_stamp)
 
@@ -345,8 +349,7 @@ class TimelineFrame(QGraphicsItem):
 
     def _layout(self):
         """
-        Recalculates the layout of the of the timeline to take into account any changes that have
-        occured
+        Recalculate the layout of the timeline to take into account any changes that have occured.
         """
         # Calculate history left and history width
         self._scene_width = self.scene().views()[0].size().width()
@@ -407,7 +410,6 @@ class TimelineFrame(QGraphicsItem):
         :param painter: allows access to paint functions,''QPainter''
         :param topic: the topic for which message boxes should be drawn, ''str''
         """
-
         # x, y, w, h = self._history_bounds[topic]
         _, y, _, h = self._history_bounds[topic]
 
@@ -421,7 +423,7 @@ class TimelineFrame(QGraphicsItem):
         msg_combine_interval = None
         if topic in self._rendered_topics:
             renderer = self._timeline_renderers.get(datatype)
-            if not renderer is None:
+            if renderer is not None:
                 msg_combine_interval = self.map_dx_to_dstamp(renderer.msg_combine_px)
         if msg_combine_interval is None:
             msg_combine_interval = self.map_dx_to_dstamp(self._default_msg_combine_px)
@@ -463,7 +465,7 @@ class TimelineFrame(QGraphicsItem):
             curpen.setWidth(self._active_message_line_width)
             painter.setPen(curpen)
             playhead_stamp = None
-            playhead_index = bisect.bisect_right(all_stamps, self.playhead.to_sec()) - 1
+            playhead_index = bisect.bisect_right(all_stamps, bag_helper.to_sec(self.playhead)) - 1
             if playhead_index >= 0:
                 playhead_stamp = all_stamps[playhead_index]
                 if playhead_stamp > self._stamp_left and playhead_stamp < self._stamp_right:
@@ -497,8 +499,8 @@ class TimelineFrame(QGraphicsItem):
         Draw markers to indicate the area the bag file represents within the current visible area.
         :param painter: allows access to paint functions,''QPainter''
         """
-        x_start, x_end = self.map_stamp_to_x(
-            self._start_stamp.to_sec()), self.map_stamp_to_x(self._end_stamp.to_sec())
+        x_start = self.map_stamp_to_x(bag_helper.to_sec(self._start_stamp))
+        x_end = self.map_stamp_to_x(bag_helper.to_sec(self._end_stamp))
         painter.setBrush(QBrush(self._bag_end_color))
         painter.drawRect(self._history_left, self._history_top, x_start -
                          self._history_left, self._history_bottom - self._history_top)
@@ -543,7 +545,7 @@ class TimelineFrame(QGraphicsItem):
         if self._selected_right is not None:
             x_right = self.map_stamp_to_x(self._selected_right)
         else:
-            x_right = self.map_stamp_to_x(self.playhead.to_sec())
+            x_right = self.map_stamp_to_x(bag_helper.to_sec(self.playhead))
 
         left = x_left
         top = self._history_top - self._playhead_pointer_size[1] - 5 - self._time_font_size - 4
@@ -575,7 +577,7 @@ class TimelineFrame(QGraphicsItem):
         Draw a line and 2 triangles to denote the current position being viewed
         :param painter: ,''QPainter''
         """
-        px = self.map_stamp_to_x(self.playhead.to_sec())
+        px = self.map_stamp_to_x(bag_helper.to_sec(self.playhead))
         pw, ph = self._playhead_pointer_size
 
         # Line
@@ -645,7 +647,7 @@ class TimelineFrame(QGraphicsItem):
         else:
             minor_division = None
 
-        start_stamp = self._start_stamp.to_sec()
+        start_stamp = bag_helper.to_sec(self._start_stamp)
 
         major_stamps = list(self._get_stamps(start_stamp, major_division))
         self._draw_major_divisions(painter, major_stamps, start_stamp, major_division)
@@ -799,7 +801,7 @@ class TimelineFrame(QGraphicsItem):
                 return
             self._rendered_topics.add(topic)
         else:
-            if not topic in self._rendered_topics:
+            if topic not in self._rendered_topics:
                 return
             self._rendered_topics.remove(topic)
         self.scene().update()
@@ -829,14 +831,14 @@ class TimelineFrame(QGraphicsItem):
             if len(topic_cache) == 0:
                 start_time = self._start_stamp
             else:
-                start_time = rospy.Time.from_sec(max(0.0, topic_cache[-1]))
+                start_time = Time(seconds=max(0.0, topic_cache[-1]))
 
         end_time = self._end_stamp
 
         topic_cache_len = len(topic_cache)
 
         for entry in self.scene().get_entries(topic, start_time, end_time):
-            topic_cache.append(entry.time.to_sec())
+            topic_cache.append(bag_helper.to_sec(Time(nanoseconds=entry.timestamp)))
 
         if topic in self.invalidated_caches:
             self.invalidated_caches.remove(topic)
@@ -975,9 +977,10 @@ class TimelineFrame(QGraphicsItem):
         self.emit_play_region()
 
         if self._stamp_left is not None:
-            self.playhead = rospy.Time.from_sec(self._stamp_left)
+            self.playhead = Time(seconds=self._stamp_left)
 
     def set_timeline_view(self, stamp_left, stamp_right):
+        qDebug('Setting timeline left: {} right: {}'.format(stamp_left, stamp_right))
         self._stamp_left = stamp_left
         self._stamp_right = stamp_right
 
@@ -997,10 +1000,10 @@ class TimelineFrame(QGraphicsItem):
         if start_stamp is None:
             return
 
-        if (end_stamp - start_stamp) < rospy.Duration.from_sec(5.0):
-            end_stamp = start_stamp + rospy.Duration.from_sec(5.0)
+        if (end_stamp - start_stamp) < Duration(seconds=5):
+            end_stamp = start_stamp + Duration(seconds=5)
 
-        self.set_timeline_view(start_stamp.to_sec(), end_stamp.to_sec())
+        self.set_timeline_view(bag_helper.to_sec(start_stamp), bag_helper.to_sec(end_stamp))
         self.scene().update()
 
     def zoom_in(self):
@@ -1049,9 +1052,12 @@ class TimelineFrame(QGraphicsItem):
         if self._stamp_left is None:
             return None
 
+        if self._stamp_right == self._stamp_left:
+            return None
+
         stamp_interval = self._stamp_right - self._stamp_left
         if center is None:
-            center = self.playhead.to_sec()
+            center = bag_helper.to_sec(self.playhead)
         center_frac = (center - self._stamp_left) / stamp_interval
 
         new_stamp_interval = zoom * stamp_interval
@@ -1082,7 +1088,7 @@ class TimelineFrame(QGraphicsItem):
         self.pause()
 
     def on_left_down(self, event):
-        if self.playhead == None:
+        if self.playhead is None:
             return
 
         self._clicked_pos = self._dragged_pos = event.pos()
@@ -1099,9 +1105,9 @@ class TimelineFrame(QGraphicsItem):
                 # Clicked within timeline - set playhead
                 playhead_secs = self.map_x_to_stamp(x)
                 if playhead_secs <= 0.0:
-                    self.playhead = rospy.Time(0, 1)
+                    self.playhead = Time(nanoseconds=1)
                 else:
-                    self.playhead = rospy.Time.from_sec(playhead_secs)
+                    self.playhead = Time(seconds=playhead_secs)
                 self.scene().update()
 
             elif y <= self._history_top:
@@ -1227,11 +1233,11 @@ class TimelineFrame(QGraphicsItem):
                         dstamp = self.map_dx_to_dstamp(dx_drag)
 
                         self._selected_left = max(
-                            self._start_stamp.to_sec(),
-                            min(self._end_stamp.to_sec(), self._selected_left + dstamp))
+                            bag_helper.to_sec(self._start_stamp),
+                            min(bag_helper.to_sec(self._end_stamp), self._selected_left + dstamp))
                         self._selected_right = max(
-                            self._start_stamp.to_sec(),
-                            min(self._end_stamp.to_sec(), self._selected_right + dstamp))
+                            bag_helper.to_sec(self._start_stamp),
+                            min(bag_helper.to_sec(self._end_stamp), self._selected_right + dstamp))
                         self.scene().update()
                     self.emit_play_region()
 
@@ -1240,8 +1246,8 @@ class TimelineFrame(QGraphicsItem):
                         clicked_y >= self._history_top and clicked_y <= self._history_bottom:
                     # Left and clicked within timeline: change playhead
                     if x_stamp <= 0.0:
-                        self.playhead = rospy.Time(0, 1)
+                        self.playhead = Time(0, 1)
                     else:
-                        self.playhead = rospy.Time.from_sec(x_stamp)
+                        self.playhead = Time(seconds=x_stamp)
                     self.scene().update()
             self._dragged_pos = event.pos()

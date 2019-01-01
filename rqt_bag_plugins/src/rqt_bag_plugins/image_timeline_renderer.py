@@ -31,8 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import print_function
-import rospy
-
+from rclpy.time import Time
 # HACK workaround for upstream pillow issue python-pillow/Pillow#400
 import sys
 from python_qt_binding import QT_BINDING_MODULES
@@ -79,8 +78,8 @@ class ImageTimelineRenderer(TimelineRenderer):
         draws a stream of images for the topic
         :param painter: painter object, ''QPainter''
         :param topic: topic to draw, ''str''
-        :param stamp_start: stamp to start drawing, ''rospy.Time''
-        :param stamp_end: stamp to end drawing, ''rospy.Time''
+        :param stamp_start: stamp to start drawing, ''rclpy.time.Time''
+        :param stamp_end: stamp to end drawing, ''rclpy.time.Time''
         :param x: x to draw images at, ''int''
         :param y: y to draw images at, ''int''
         :param width: width in pixels of the timeline area, ''int''
@@ -156,7 +155,7 @@ class ImageTimelineRenderer(TimelineRenderer):
         (thumbnail_height,) = thumbnail_details
 
         # Find position of stamp using index
-        t = rospy.Time.from_sec(stamp)
+        t = Time(seconds=stamp)
         bag, entry = self.timeline.scene().get_entry(t, topic)
         if not entry:
             return None, None
