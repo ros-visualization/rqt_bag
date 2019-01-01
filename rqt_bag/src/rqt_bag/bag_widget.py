@@ -33,18 +33,21 @@
 import os
 import time
 
-import rospy
-import rospkg
+
+from ament_index_python import get_resource
+from rclpy import logging
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import qDebug, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QIcon
 from python_qt_binding.QtWidgets import QFileDialog, QGraphicsView, QWidget
 
-import rosbag
+from rosbag2_transport import rosbag2_transport_py
 from rqt_bag import bag_helper
 from .bag_timeline import BagTimeline
 from .topic_selection import TopicSelection
+from .rosbag2 import Rosbag2
+import yaml
 
 
 class BagGraphicsView(QGraphicsView):
@@ -56,19 +59,24 @@ class BagGraphicsView(QGraphicsView):
 class BagWidget(QWidget):
 
     """
-    Widget for use with Bag class to display and replay bag files
-    Handles all widget callbacks and contains the instance of BagTimeline for storing visualizing bag data
+    Widget for use with Bag class to display and replay bag files.
+
+    Handles all widget callbacks and contains the instance of BagTimeline for storing visualizing
+    bag data
     """
 
     set_status_text = Signal(str)
 
     def __init__(self, context, publish_clock):
         """
-        :param context: plugin context hook to enable adding widgets as a ROS_GUI pane, ''PluginContext''
+        :param context: plugin context hook to enable adding widgets as a ROS_GUI pane,
+            ''PluginContext''
         """
         super(BagWidget, self).__init__()
-        rp = rospkg.RosPack()
-        ui_file = os.path.join(rp.get_path('rqt_bag'), 'resource', 'bag_widget.ui')
+        self._node = context.node
+        self._logger = logging.get_logger('rqt_bag.BagWidget')
+        _, package_path = get_resource('packages', 'rqt_bag')
+        ui_file = os.path.join(package_path, 'share', 'rqt_bag', 'resource', 'bag_widget.ui')
         loadUi(ui_file, self, {'BagGraphicsView': BagGraphicsView})
 
         self.setObjectName('BagWidget')
@@ -141,7 +149,8 @@ class BagWidget(QWidget):
 
     def graphics_view_on_key_press(self, event):
         key = event.key()
-        if key in (Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown):
+        if key in (
+                Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown):
             # This causes the graphics view to ignore these keys so they can be caught
             # by the bag_widget keyPressEvent
             event.ignore()
@@ -247,9 +256,9 @@ class BagWidget(QWidget):
         self.topic_selection.recordSettingsSelected.connect(self._on_record_settings_selected)
 
     def _on_record_settings_selected(self, all_topics, selected_topics):
-        # TODO verify master is still running
-        filename = QFileDialog.getSaveFileName(
-            self, self.tr('Select prefix for new Bag File'), '.', self.tr('Bag files {.bag} (*.bag)'))
+        filename = \
+            QFileDialog.getSaveFileName(self, self.tr('Select prefix for new Bag File'), '.',
+                                        self.tr('Bag files {.bag} (*.bag)'))
         if filename[0] != '':
             prefix = filename[0].strip()
 
@@ -260,15 +269,16 @@ class BagWidget(QWidget):
             if prefix:
                 record_filename = '%s_%s' % (prefix, record_filename)
 
-            rospy.loginfo('Recording to %s.' % record_filename)
+            self._logger.info('Recording to %s.' % record_filename)
 
             self.load_button.setEnabled(False)
             self._recording = True
             self._timeline.record_bag(record_filename, all_topics, selected_topics)
 
     def _handle_load_clicked(self):
-        filenames = QFileDialog.getOpenFileNames(
-            self, self.tr('Load from Files'), '.', self.tr('Bag files {.bag} (*.bag)'))
+        filenames = \
+            QFileDialog.getOpenFileNames(self, self.tr('Load from Files'), '.',
+                                         self.tr('Rosbag2 Metadata File {.yaml} (*.yaml)'))
         for filename in filenames[0]:
             self.load_bag(filename)
 
@@ -286,27 +296,33 @@ class BagWidget(QWidget):
         # self.progress_bar.setTextVisible(True)
 
         try:
-            bag = rosbag.Bag(filename)
-            self.play_button.setEnabled(True)
-            self.thumbs_button.setEnabled(True)
-            self.zoom_in_button.setEnabled(True)
-            self.zoom_out_button.setEnabled(True)
-            self.zoom_all_button.setEnabled(True)
-            self.next_button.setEnabled(True)
-            self.previous_button.setEnabled(True)
-            self.faster_button.setEnabled(True)
-            self.slower_button.setEnabled(True)
-            self.begin_button.setEnabled(True)
-            self.end_button.setEnabled(True)
-            self.save_button.setEnabled(True)
-            self.record_button.setEnabled(False)
-            self._timeline.add_bag(bag)
-            qDebug("Done loading '%s'" % filename.encode(errors='replace'))
-            # put the progress bar back the way it was
-            self.set_status_text.emit("")
-        except rosbag.ROSBagException as e:
+            with open(filename) as f:
+                bag_info = yaml.load(f)
+                bag = Rosbag2(bag_info['rosbag2_bagfile_information'], filename)
+        except Exception as e:
             qWarning("Loading '%s' failed due to: %s" % (filename.encode(errors='replace'), e))
             self.set_status_text.emit("Loading '%s' failed due to: %s" % (filename, e))
+            return
+
+        qDebug('Loading bag from metadata file "{}" Succeeded'.format(filename))
+
+        self.play_button.setEnabled(True)
+        self.thumbs_button.setEnabled(True)
+        self.zoom_in_button.setEnabled(True)
+        self.zoom_out_button.setEnabled(True)
+        self.zoom_all_button.setEnabled(True)
+        self.next_button.setEnabled(True)
+        self.previous_button.setEnabled(True)
+        self.faster_button.setEnabled(True)
+        self.slower_button.setEnabled(True)
+        self.begin_button.setEnabled(True)
+        self.end_button.setEnabled(True)
+        self.save_button.setEnabled(True)
+        self.record_button.setEnabled(False)
+        self._timeline.add_bag(bag)
+        qDebug("Done loading '%s'" % filename.encode(errors='replace'))
+        # put the progress bar back the way it was
+        self.set_status_text.emit("")
 
         # self.progress_bar.setFormat(progress_format)
         # self.progress_bar.setTextVisible(progress_text_visible) # causes a segfault :(
@@ -314,8 +330,9 @@ class BagWidget(QWidget):
         # self clear loading filename
 
     def _handle_save_clicked(self):
-        filename = QFileDialog.getSaveFileName(
-            self, self.tr('Save selected region to file...'), '.', self.tr('Bag files {.bag} (*.bag)'))
+        filename = \
+            QFileDialog.getSaveFileName(self, self.tr('Save selected region to file...'), '.',
+                                        self.tr('Bag files {.bag} (*.bag)'))
         if filename[0] != '':
             self._timeline.copy_region_to_bag(filename[0])
 
@@ -327,7 +344,8 @@ class BagWidget(QWidget):
             self.progress_bar.setTextVisible(False)
 
     def _update_status_bar(self):
-        if self._timeline._timeline_frame.playhead is None or self._timeline._timeline_frame.start_stamp is None:
+        if self._timeline._timeline_frame.playhead is None or \
+                self._timeline._timeline_frame.start_stamp is None:
             return
         # TODO Figure out why this function is causing a "RuntimeError: wrapped
         # C/C++ object of %S has been deleted" on close if the playhead is moving
@@ -336,7 +354,8 @@ class BagWidget(QWidget):
             self.progress_bar.setValue(self._timeline.background_progress)
 
             # Raw timestamp
-            self.stamp_label.setText('%.3fs' % self._timeline._timeline_frame.playhead.to_sec())
+            self.stamp_label.setText(
+                '%.3fs' % bag_helper.to_sec(self._timeline._timeline_frame.playhead))
 
             # Human-readable time
             self.date_label.setText(
@@ -344,8 +363,8 @@ class BagWidget(QWidget):
 
             # Elapsed time (in seconds)
             self.seconds_label.setText(
-                '%.3fs' % (
-                    self._timeline._timeline_frame.playhead - self._timeline._timeline_frame.start_stamp).to_sec())
+                '%.3fs' % bag_helper.to_sec(self._timeline._timeline_frame.playhead -
+                                            self._timeline._timeline_frame.start_stamp))
 
             # File size
             self.filesize_label.setText(bag_helper.filesize_to_str(self._timeline.file_size()))
@@ -368,7 +387,7 @@ class BagWidget(QWidget):
                 self.playspeed_label.setText(spd_str)
             else:
                 self.playspeed_label.setText('')
-        except:
+        except Exception as e:
             return
     # Shutdown all members
 

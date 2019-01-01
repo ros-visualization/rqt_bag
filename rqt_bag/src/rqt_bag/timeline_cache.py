@@ -125,9 +125,11 @@ class TimelineCache(threading.Thread):
                         cache_after_dist = abs(cache_after_stamp - stamp)
 
                     if cache_after_stamp and cache_after_dist < cache_before_dist:
-                        cache_dist, cache_stamp, cache_item = cache_after_dist, cache_after_stamp, cache_after_item
+                        cache_dist, cache_stamp, cache_item = \
+                            cache_after_dist, cache_after_stamp, cache_after_item
                     else:
-                        cache_dist, cache_stamp, cache_item = cache_before_dist, cache_before_stamp, cache_before_item
+                        cache_dist, cache_stamp, cache_item = \
+                            cache_before_dist, cache_before_stamp, cache_before_item
 
                     # Check entry is close enough
                     if cache_dist <= time_threshold:
