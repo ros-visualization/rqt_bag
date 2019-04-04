@@ -179,6 +179,17 @@ class BagTimeline(QGraphicsScene):
 
             self._timeline_frame.index_cache_cv.notify()
 
+    def clear(self):
+        """
+        clears all previously loaded bags
+        """
+        # FIXME Wrong
+        self._playhead_positions.clear()
+        self._messages_cvs.clear()
+        self._message_loaders.clear()
+        self._timeline_frame.reset_timeline()
+        del self._bags[:]
+
     def file_size(self):
         with self._bag_lock:
             return sum(b.size for b in self._bags)

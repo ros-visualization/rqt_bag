@@ -95,6 +95,7 @@ class BagWidget(QWidget):
         self.thumbs_button.setIcon(QIcon.fromTheme('insert-image'))
         self.record_button.setIcon(QIcon.fromTheme('media-record'))
         self.load_button.setIcon(QIcon.fromTheme('document-open'))
+        self.clear_timeline_button.setIcon(QIcon.fromTheme('edit-clear'))
         self.save_button.setIcon(QIcon.fromTheme('document-save'))
 
         self.play_button.clicked[bool].connect(self._handle_play_clicked)
@@ -110,6 +111,7 @@ class BagWidget(QWidget):
         self.end_button.clicked[bool].connect(self._handle_end_clicked)
         self.record_button.clicked[bool].connect(self._handle_record_clicked)
         self.load_button.clicked[bool].connect(self._handle_load_clicked)
+        self.clear_timeline_button.clicked[bool].connect(self._handle_clear_timeline_clicked)
         self.save_button.clicked[bool].connect(self._handle_save_clicked)
         self.graphics_view.mousePressEvent = self._timeline.on_mouse_down
         self.graphics_view.mouseReleaseEvent = self._timeline.on_mouse_up
@@ -264,6 +266,7 @@ class BagWidget(QWidget):
             rospy.loginfo('Recording to %s.' % record_filename)
 
             self.load_button.setEnabled(False)
+            self.load_clear_button.setEnabled(False)
             self._recording = True
             self._timeline.record_bag(record_filename, all_topics, selected_topics)
 
@@ -274,6 +277,24 @@ class BagWidget(QWidget):
             self.last_open_dir = QFileInfo(filenames[0][0]).absoluteDir().absolutePath()
         for filename in filenames[0]:
             self.load_bag(filename)
+
+    def _handle_clear_timeline_clicked(self):
+        self._timeline.clear()
+        self.play_button.setEnabled(False)
+        self.thumbs_button.setEnabled(False)
+        self.zoom_in_button.setEnabled(False)
+        self.zoom_out_button.setEnabled(False)
+        self.zoom_all_button.setEnabled(False)
+        self.next_button.setEnabled(False)
+        self.previous_button.setEnabled(False)
+        self.faster_button.setEnabled(False)
+        self.slower_button.setEnabled(False)
+        self.begin_button.setEnabled(False)
+        self.end_button.setEnabled(False)
+        self.save_button.setEnabled(False)
+        self.record_button.setEnabled(True)
+        self.set_status_text.emit("Timeline cleared")
+        # FIXME Does something else needs to be done?
 
     def load_bag(self, filename):
         qDebug("Loading '%s'..." % filename.encode(errors='replace'))
