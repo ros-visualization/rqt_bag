@@ -195,8 +195,11 @@ class PlotWidget(QWidget):
             self.resample_data(self.paths_on)
 
     def remove_plot(self, path):
-        self.plot.remove_curve(path)
-        self.paths_on.remove(path)
+        try:
+            self.plot.remove_curve(path)
+            self.paths_on.remove(path)
+        except:
+            rospy.logerr("Error removing " + path + " from plot - likely still being drawn.")
         self.plot.redraw()
 
     def load_data(self):
