@@ -40,7 +40,10 @@ import sys
 
 from PIL import Image
 from PIL import ImageOps
-import cairo
+try:
+    import cairo
+except ImportError:
+    import cairocffi as cairo
 
 
 def imgmsg_to_pil(img_msg, rgba=True):
