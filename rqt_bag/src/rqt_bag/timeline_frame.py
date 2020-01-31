@@ -317,7 +317,7 @@ class TimelineFrame(QGraphicsItem):
             #  We need to trim the topic
             trimmed = ''
             split_name = topic_name.split('/')
-            split_name = filter(lambda a: a != '', split_name)
+            split_name = list(filter(lambda a: a != '', split_name))
             #  Save important last element of topic name provided it is small
             popped_last = False
             if self._qfont_width(split_name[-1]) < .5 * allowed_width:
