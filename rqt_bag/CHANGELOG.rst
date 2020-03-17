@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.13 (2020-03-17)
+-------------------
 * fix Python 3 exception, wrap filter call in list() (`#46 <https://github.com/ros-visualization/rqt_bag/issues/46>`_)
 * add Python 3 conditional dependencies (`#44 <https://github.com/ros-visualization/rqt_bag/issues/44>`_)
 * autopep8 (`#30 <https://github.com/ros-visualization/rqt_bag/issues/30>`_)
