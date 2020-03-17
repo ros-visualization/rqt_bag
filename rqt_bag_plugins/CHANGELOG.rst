@@ -2,6 +2,12 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* add Python 3 conditional dependencies (`#44 <https://github.com/ros-visualization/rqt_bag/issues/44>`_)
+* add cairocffi as the fallback module (`#43 <https://github.com/ros-visualization/rqt_bag/issues/43>`_)
+* autopep8 (`#30 <https://github.com/ros-visualization/rqt_bag/issues/30>`_)
+
 0.4.12 (2018-03-21)
 -------------------
 
