@@ -12,6 +12,6 @@ install(DIRECTORY launch resource
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
-install(PROGRAMS scripts/rqt_bag
+catkin_install_python(PROGRAMS scripts/rqt_bag
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
