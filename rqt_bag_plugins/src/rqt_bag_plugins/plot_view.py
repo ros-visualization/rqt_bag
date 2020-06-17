@@ -79,6 +79,11 @@ from rqt_plot.data_plot import DataPlot
 # rospy used for Time and Duration objects, for interacting with rosbag
 import rospy
 
+# compatibility fix for python2/3
+try:
+    long
+except NameError:
+    long = int
 
 class PlotView(MessageView):
 
