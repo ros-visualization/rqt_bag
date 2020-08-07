@@ -37,7 +37,7 @@ import rospy
 import rospkg
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import qDebug, Qt, qWarning, Signal, QFileInfo
+from python_qt_binding.QtCore import qDebug, QFileInfo, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QIcon
 from python_qt_binding.QtWidgets import QFileDialog, QGraphicsView, QWidget
 
