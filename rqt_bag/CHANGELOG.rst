@@ -2,6 +2,12 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* save last directory opened to load a bag file (`#40 <https://github.com/ros-visualization/rqt_bag/issues/40>`_)
+* fix shebang line for Python 3 (`#48 <https://github.com/ros-visualization/rqt_bag/issues/48>`_)
+* bump CMake minimum version to avoid CMP0048 warning
+
 0.4.13 (2020-03-17)
 -------------------
 * fix Python 3 exception, wrap filter call in list() (`#46 <https://github.com/ros-visualization/rqt_bag/issues/46>`_)
