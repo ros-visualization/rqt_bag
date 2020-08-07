@@ -37,7 +37,7 @@ import rospy
 import rospkg
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import qDebug, Qt, qWarning, Signal
+from python_qt_binding.QtCore import qDebug, QFileInfo, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QIcon
 from python_qt_binding.QtWidgets import QFileDialog, QGraphicsView, QWidget
 
@@ -60,6 +60,7 @@ class BagWidget(QWidget):
     Handles all widget callbacks and contains the instance of BagTimeline for storing visualizing bag data
     """
 
+    last_open_dir = os.getcwd()
     set_status_text = Signal(str)
 
     def __init__(self, context, publish_clock):
@@ -268,7 +269,9 @@ class BagWidget(QWidget):
 
     def _handle_load_clicked(self):
         filenames = QFileDialog.getOpenFileNames(
-            self, self.tr('Load from Files'), '.', self.tr('Bag files {.bag} (*.bag)'))
+            self, self.tr('Load from Files'), self.last_open_dir, self.tr('Bag files {.bag} (*.bag)'))
+        if filenames and filenames[0]:
+            self.last_open_dir = QFileInfo(filenames[0][0]).absoluteDir().absolutePath()
         for filename in filenames[0]:
             self.load_bag(filename)
 
