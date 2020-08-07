@@ -270,7 +270,7 @@ class BagWidget(QWidget):
     def _handle_load_clicked(self):
         filenames = QFileDialog.getOpenFileNames(
             self, self.tr('Load from Files'), self.last_open_dir, self.tr('Bag files {.bag} (*.bag)'))
-        if len(filenames) is not 0 and len(filenames[0]) is not 0:
+        if filenames and filenames[0]:
             self.last_open_dir = QFileInfo(filenames[0][0]).absoluteDir().absolutePath()
         for filename in filenames[0]:
             self.load_bag(filename)
