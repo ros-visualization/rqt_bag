@@ -101,7 +101,6 @@ class ImageView(TopicMessageView):
     # End MessageView implementation
     def put_image_into_scene(self):
         if self._image:
-
             scale_factor = min(
                 float(self._image_view.size().width() - 2) / self._image.size[0],
                 float(self._image_view.size().height() - 2) / self._image.size[1])
