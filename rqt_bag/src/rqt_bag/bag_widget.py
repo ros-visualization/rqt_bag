@@ -60,7 +60,7 @@ class BagWidget(QWidget):
     Handles all widget callbacks and contains the instance of BagTimeline for storing visualizing bag data
     """
 
-    last_open_dir = ""
+    last_open_dir = os.getcwd()
     set_status_text = Signal(str)
 
     def __init__(self, context, publish_clock):
