@@ -101,8 +101,13 @@ class ImageView(TopicMessageView):
     # End MessageView implementation
     def put_image_into_scene(self):
         if self._image:
+            scale_factor = min(
+                float(self._image_view.size().width() - 2) / self._image.size[0],
+                float(self._image_view.size().height() - 2) / self._image.size[1])
             resized_image = self._image.resize(
-                (self._image_view.size().width() - 2, self._image_view.size().height() - 2), self.quality)
+                (int(scale_factor * self._image.size[0]),
+                 int(scale_factor * self._image.size[1])),
+                self.quality)
 
             QtImage = ImageQt(resized_image)
             pixmap = QPixmap.fromImage(QtImage)
