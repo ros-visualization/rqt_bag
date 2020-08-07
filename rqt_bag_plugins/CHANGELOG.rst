@@ -2,8 +2,8 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.14 (2020-08-07)
+-------------------
 * support 16-bit bayer images (`#45 <https://github.com/ros-visualization/rqt_bag/issues/45>`_)
 * maintain image aspect ratio (`#32 <https://github.com/ros-visualization/rqt_bag/issues/32>`_)
 * fix Python 3 issue: long/int (`#51 <https://github.com/ros-visualization/rqt_bag/issues/51>`_)

@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.14 (2020-08-07)
+-------------------
 * save last directory opened to load a bag file (`#40 <https://github.com/ros-visualization/rqt_bag/issues/40>`_)
 * fix shebang line for Python 3 (`#48 <https://github.com/ros-visualization/rqt_bag/issues/48>`_)
 * bump CMake minimum version to avoid CMP0048 warning
