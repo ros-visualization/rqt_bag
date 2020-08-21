@@ -2,6 +2,10 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix Python 3 issue: long/int (`#52 <https://github.com/ros-visualization/rqt_bag/issues/52>`_)
+
 0.4.14 (2020-08-07)
 -------------------
 * save last directory opened to load a bag file (`#40 <https://github.com/ros-visualization/rqt_bag/issues/40>`_)
