@@ -40,6 +40,11 @@ from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtWidgets import QApplication, QAbstractItemView, QSizePolicy, QTreeWidget, QTreeWidgetItem, QWidget
 from .topic_message_view import TopicMessageView
 
+# compatibility fix for python2/3
+try:
+    long
+except NameError:
+    long = int
 
 class RawView(TopicMessageView):
     name = 'Raw'
