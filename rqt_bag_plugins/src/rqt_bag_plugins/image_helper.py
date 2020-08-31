@@ -52,6 +52,7 @@ def imgmsg_to_pil(img_msg, rgba=True):
             pil_img = Image.open(StringIO(img_msg.data))
             if pil_img.mode != 'L':
                 pil_img = pil_bgr2rgb(pil_img)
+            pil_mode = 'RGB'
         else:
             alpha = False
             pil_mode = 'RGB'
