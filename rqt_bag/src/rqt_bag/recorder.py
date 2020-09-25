@@ -43,14 +43,10 @@ except ImportError:
 import re
 import threading
 import time
-
-#import rosbag
-#import rosgraph
-#import roslib
-#import rospy
-
 import sys
+import rosbag2_py
 
+from rosbag2_transport import rosbag2_transport_py
 
 class Recorder(object):
 
@@ -80,7 +76,15 @@ class Recorder(object):
         self._limit = limit
         self._master_check_interval = master_check_interval
 
-        self._bag = rosbag.Bag(filename, 'w')
+#       self._bag = rosbag.Bag(filename, 'w')
+#        serialization_format='cdr'
+#        storage_options = rosbag2_py.StorageOptions(uri=filename, storage_id='sqlite3')
+#        converter_options = rosbag2_py.ConverterOptions(
+#            input_serialization_format=serialization_format,
+#            output_serialization_format=serialization_format)
+#        self.rosbag_writer = rosbag2_py.SequentialWriter()
+#        self.rosbag_writer.open(storage_options, converter_options)
+
         self._bag_lock = bag_lock if bag_lock else threading.Lock()
         self._listeners = []
         self._subscriber_helpers = {}
@@ -103,9 +107,9 @@ class Recorder(object):
         self._master_check_thread = threading.Thread(target=self._run_master_check)
         self._write_thread = threading.Thread(target=self._run_write)
 
-    @property
-    def bag(self):
-        return self._bag
+#    @property
+#    def rosbag_writer(self):
+#        return self.rosbag_writer
 
     def add_listener(self, listener):
         """
@@ -148,33 +152,33 @@ class Recorder(object):
     # Implementation
 
     def _run_master_check(self):
-        master = rosgraph.Master('rqt_bag_recorder')
+#        master = rosgraph.Master('rqt_bag_recorder')
 
         try:
             while not self._stop_flag:
                 # Check for new topics
-                for topic, datatype in master.getPublishedTopics(''):
+#                for topic, datatype in master.getPublishedTopics(''):
                     # Check if:
                     #    the topic is already subscribed to, or
                     #    we've failed to subscribe to it already, or
                     #    we've already reached the message limit, or
                     #    we don't want to subscribe
-                    if topic in self._subscriber_helpers or \
-                            topic in self._failed_topics or \
-                            topic in self._limited_topics or \
-                            not self._should_subscribe_to(topic):
-                        continue
+#                    if topic in self._subscriber_helpers or \
+#                            topic in self._failed_topics or \
+#                            topic in self._limited_topics or \
+#                            not self._should_subscribe_to(topic):
+#                        continue
 
-                    try:
-                        pytype = roslib.message.get_message_class(datatype)
+#                    try:
+#                        pytype = roslib.message.get_message_class(datatype)
 
-                        self._message_count[topic] = 0
+#                        self._message_count[topic] = 0
 
-                        self._subscriber_helpers[topic] = _SubscriberHelper(self, topic, pytype)
-                    except Exception as ex:
-                        print('Error subscribing to %s (ignoring): %s' %
-                              (topic, str(ex)), file=sys.stderr)
-                        self._failed_topics.add(topic)
+#                        self._subscriber_helpers[topic] = _SubscriberHelper(self, topic, pytype)
+#                    except Exception as ex:
+#                        print('Error subscribing to %s (ignoring): %s' %
+#                              (topic, str(ex)), file=sys.stderr)
+#                        self._failed_topics.add(topic)
 
                 # Wait a while
                 self._stop_condition.acquire()
@@ -189,7 +193,8 @@ class Recorder(object):
 
         # Close the bag file so that the index gets written
         try:
-            self._bag.close()
+#            self._bag.close()
+             pass
         except Exception as ex:
             print('Error closing bag [%s]: %s' % (self._bag.filename, str(ex)))
 
@@ -208,7 +213,8 @@ class Recorder(object):
 
     def _unsubscribe(self, topic):
         try:
-            self._subscriber_helpers[topic].subscriber.unregister()
+#            self._subscriber_helpers[topic].subscriber.unregister()
+             pass
         except Exception:
             return
 
@@ -235,15 +241,15 @@ class Recorder(object):
                 if item == self:
                     continue
 
-                topic, m, t = item
+#                topic, m, t = item
 
                 # Write to the bag
-                with self._bag_lock:
-                    self._bag.write(topic, m, t)
+#                with self._bag_lock:
+#                    self._bag.write(topic, m, t)
 
                 # Notify listeners that a message has been recorded
-                for listener in self._listeners:
-                    listener(topic, m, t)
+#                for listener in self._listeners:
+#                    listener(topic, m, t)
 
         except Exception as ex:
             print('Error write to bag: %s' % str(ex), file=sys.stderr)
@@ -255,7 +261,7 @@ class _SubscriberHelper(object):
         self.recorder = recorder
         self.topic = topic
 
-        self.subscriber = rospy.Subscriber(self.topic, pytype, self.callback)
+#        self.subscriber = rospy.Subscriber(self.topic, pytype, self.callback)
 
     def callback(self, m):
         self.recorder._record(self.topic, m)

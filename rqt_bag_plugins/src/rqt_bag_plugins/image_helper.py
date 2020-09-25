@@ -46,9 +46,9 @@ except ImportError:
     import cairocffi as cairo
 
 
-def imgmsg_to_pil(img_msg, rgba=True):
+def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
     try:
-        if img_msg._type == 'sensor_msgs/CompressedImage':
+        if msg_type_name == 'sensor_msgs/msg/CompressedImage':
             pil_img = Image.open(StringIO(img_msg.data))
             if pil_img.mode != 'L':
                 pil_img = pil_bgr2rgb(pil_img)
@@ -85,7 +85,7 @@ def imgmsg_to_pil(img_msg, rgba=True):
             else:
                 raise Exception("Unsupported image format: %s" % img_msg.encoding)
             pil_img = Image.frombuffer(
-                pil_mode, (img_msg.width, img_msg.height), img_msg.data, 'raw', mode, 0, 1)
+                pil_mode, (img_msg.width, img_msg.height), img_msg.data.tobytes(), 'raw', mode, 0, 1)
 
         # 16 bits conversion to 8 bits
         if pil_mode == 'I;16':

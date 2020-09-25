@@ -66,17 +66,16 @@ class RawView(TopicMessageView):
         # This will automatically resize the message_tree to the windowsize
         parent.layout().addWidget(self.message_tree)
 
-    def message_viewed(self, bag, msg_details):
-        super(RawView, self).message_viewed(bag, msg_details)
-        _, _, _, msg = msg_details  # id, topic, timestamp, msg = msg_details
-        if msg is None:
+    def message_viewed(self, bag, entry, ros_message, msg_type_name, topic):
+        super(RawView, self).message_viewed(bag, entry, ros_message, msg_type_name, topic)
+        if ros_message is None:
             self.message_cleared()
         else:
-            self.message_tree.set_message(msg)
+            self.message_tree.set_message(ros_message, msg_type_name)
 
     def message_cleared(self):
         TopicMessageView.message_cleared(self)
-        self.message_tree.set_message(None)
+        self.message_tree.set_message(None, None)
 
 
 class MessageTree(QTreeWidget):
@@ -95,7 +94,7 @@ class MessageTree(QTreeWidget):
     def msg(self):
         return self._msg
 
-    def set_message(self, msg):
+    def set_message(self, msg, msg_type_name):
         """
         Clears the tree view and displays the new message
         :param msg: message object to display in the treeview, ''msg''
@@ -113,7 +112,7 @@ class MessageTree(QTreeWidget):
             # Populate the tree
             # TODO(brawner) msg is stored in the db as a serialized byte array, needs to be
             # unserialized
-            # self._add_msg_object(None, '', '', msg, msg._type)
+            self._add_msg_object(None, '', '', msg, msg_type_name)
 
             if self._expanded_paths is None:
                 self._expanded_paths = set()
@@ -211,7 +210,7 @@ class MessageTree(QTreeWidget):
 
         elif type(obj) in [str, bool, int, long, float, complex, Time]:
             # Ignore any binary data
-            obj_repr = codecs.utf_8_decode(str(obj), 'ignore')[0]
+            obj_repr = str(obj)
 
             # Truncate long representations
             if len(obj_repr) >= 50:
@@ -230,6 +229,9 @@ class MessageTree(QTreeWidget):
         for subobj_name, subobj in subobjs:
             if subobj is None:
                 continue
+
+            # Strip the leading underscore for display
+            subobj_name = subobj_name[1:]
 
             if path == '':
                 subpath = subobj_name  # root field

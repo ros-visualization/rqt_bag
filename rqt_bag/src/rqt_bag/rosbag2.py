@@ -40,6 +40,8 @@ from collections import namedtuple
 from python_qt_binding.QtCore import qDebug
 from rclpy.duration import Duration
 from rclpy.time import Time
+from rclpy.serialization import deserialize_message
+from rosidl_runtime_py.utilities import get_message
 
 import sqlite3
 import os
@@ -84,6 +86,24 @@ class Rosbag2:
             return None
         return entry[0]
 
+    def get_topic_info(self, topic_id):
+        db = sqlite3.connect(self.db_name)
+        cursor = db.cursor()
+        search = cursor.execute(
+            'SELECT name, type FROM topics WHERE id="{}";'.format(topic_id))
+        entry = search.fetchone()
+        cursor.close()
+        db.close()
+        if entry is None:
+            return None
+        return (entry[0], entry[1])
+
+    def convert_entry_to_ros_message(self, entry):
+        (topic, msg_type_name) = self.get_topic_info(entry.topic_id)
+        msg_type = get_message(msg_type_name)
+        ros_message = deserialize_message(entry.data, msg_type)
+        return (ros_message, msg_type_name, topic)
+
     def _get_entry(self, timestamp, topic=None):
         qDebug("Getting entry at {} for topic {}".format(timestamp, topic))
         db = sqlite3.connect(self.db_name)
@@ -94,6 +114,7 @@ class Rosbag2:
             topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
         search = cursor.execute(
             "SELECT {} FROM messages WHERE timestamp<{} {}ORDER BY timestamp DESC LIMIT 1;".format(
+            #"SELECT {} FROM messages WHERE timestamp={} {}ORDER BY timestamp DESC LIMIT 1;".format(
                 columns_str, timestamp.nanoseconds, topic_str))
         entry = search.fetchone()
         cursor.close()
@@ -132,7 +153,7 @@ class Rosbag2:
         cursor = db.cursor()
         topic_str = ''
         if topic is not None and topic in self.topics:
-            topic_str = 'AND topic_id={} '.format(get_topic_id(topic))
+            topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
         search = cursor.execute(
             "SELECT {} FROM messages WHERE timestamp>={} AND timestamp <{} {};".format(
                 columns_str, t_start.nanoseconds, t_end.nanoseconds, topic_str))

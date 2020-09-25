@@ -74,8 +74,8 @@ class TopicMessageView(MessageView):
 
     # MessageView implementation
 
-    def message_viewed(self, bag, msg_details):
-        _, _, self._stamp = msg_details[:3]
+    def message_viewed(self, bag, entry, ros_message, msg_type_name, topic):
+        self._stamp = entry.timestamp
 
     # Events
     def navigate_first(self):

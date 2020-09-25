@@ -30,17 +30,16 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import rosgraph
-import rosnode
 from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QScrollArea, QPushButton
 
 
 class NodeSelection(QWidget):
 
-    def __init__(self, parent):
+    def __init__(self, parent, node):
         super(NodeSelection, self).__init__()
         self.parent_widget = parent
+        self.node = node
         self.selected_nodes = []
         self.setWindowTitle("Select the nodes you want to record")
         self.resize(500, 700)
@@ -56,7 +55,7 @@ class NodeSelection(QWidget):
 
         self.selection_vlayout = QVBoxLayout(self)
 
-        self.node_list = rosnode.get_node_names()
+        self.node_list = self.node.get_node_names()
         self.node_list.sort()
         for node in self.node_list:
             self.addCheckBox(node)
@@ -79,11 +78,11 @@ class NodeSelection(QWidget):
             self.ok_button.setEnabled(False)
 
     def onButtonClicked(self):
-        master = rosgraph.Master('rqt_bag_recorder')
-        state = master.getSystemState()
-        subs = [t for t, l in state[1]
-                if len([node_name for node_name in self.selected_nodes if node_name in l]) > 0]
-        for topic in subs:
-            self.parent_widget.changeTopicCheckState(topic, Qt.Checked)
-            self.parent_widget.updateList(Qt.Checked, topic)
+        #master = rosgraph.Master('rqt_bag_recorder')
+        #state = master.getSystemState()
+        #subs = [t for t, l in state[1]
+        #        if len([node_name for node_name in self.selected_nodes if node_name in l]) > 0]
+        #for topic in subs:
+        #    self.parent_widget.changeTopicCheckState(topic, Qt.Checked)
+        #    self.parent_widget.updateList(Qt.Checked, topic)
         self.close()

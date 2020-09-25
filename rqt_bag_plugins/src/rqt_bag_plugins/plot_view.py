@@ -76,6 +76,7 @@ from python_qt_binding.QtWidgets import \
     QWidget, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy
 
 from rqt_plot.data_plot import DataPlot
+from rqt_bag import bag_helper
 
 # rclpy used for Time and Duration objects, for interacting with rosbag
 from rclpy.duration import Duration
@@ -101,17 +102,14 @@ class PlotView(MessageView):
 
         parent.layout().addWidget(self.plot_widget)
 
-    def message_viewed(self, bag, msg_details):
+    def message_viewed(self, bag, entry, ros_message, msg_type_name, topic):
         """
         refreshes the plot
         """
-        _, msg, t = msg_details[:3]
+        cursor_position = bag_helper.to_sec((Time(nanoseconds=entry.timestamp) - self.plot_widget.start_stamp))
 
-        if t is None:
-            self.message_cleared()
-        else:
-            self.plot_widget.message_tree.set_message(msg)
-            self.plot_widget.set_cursor((t - self.plot_widget.start_stamp).to_sec())
+        self.plot_widget.message_tree.set_message(ros_message, msg_type_name)
+        self.plot_widget.set_cursor(cursor_position)
 
     def message_cleared(self):
         pass
@@ -131,10 +129,10 @@ class PlotWidget(QWidget):
 
         # the current region-of-interest for our bag file
         # all resampling and plotting is done with these limits
-        self.limits = [0, (self.end_stamp - self.start_stamp).to_sec()]
+        self.limits = [0, bag_helper.to_sec(self.end_stamp - self.start_stamp)]
 
         _, package_path = get_resource('packages', 'rqt_bag_plugins')
-        ui_file = os.path.join(package_path, 'resource', 'plot.ui')
+        ui_file = os.path.join(package_path, 'share', 'rqt_bag_plugins', 'resource', 'plot.ui')
         loadUi(ui_file, self)
         self.message_tree = MessageTree(msg_type, self)
         self.data_tree_layout.addWidget(self.message_tree)
@@ -178,12 +176,12 @@ class PlotWidget(QWidget):
         while bag is None:
             bag, entry = self.timeline.get_entry(start_time, topic)
             if bag is None:
-                start_time = self.timeline.get_entry_after(start_time)[1].time
+                bag, entry = self.timeline.get_entry_after(start_time)
+                start_time = Time(nanoseconds=entry.timestamp)
 
         self.bag = bag
-        # get first message from bag
-        msg = bag._read_message(entry.position)
-        self.message_tree.set_message(msg[1])
+        (ros_message, msg_type, topic) = self.bag.convert_entry_to_ros_message(entry)
+        self.message_tree.set_message(ros_message, msg_type)
 
         # state used by threaded resampling
         self.resampling_active = False
@@ -208,9 +206,9 @@ class PlotWidget(QWidget):
 
     def load_data(self):
         """get a generator for the specified time range on our bag"""
-        return self.bag.read_messages(self.msgtopic,
-                                      self.start_stamp + Duration(seconds=self.limits[0]),
-                                      self.start_stamp + Duration(seconds=self.limits[1]))
+        return self.bag._get_entries(self.start_stamp + Duration(seconds=self.limits[0]),
+                                     self.start_stamp + Duration(seconds=self.limits[1]),
+                                     self.msgtopic)
 
     def resample_data(self, fields):
         if self.resample_thread:
@@ -243,16 +241,19 @@ class PlotWidget(QWidget):
         # bag object is not thread-safe; lock it while we resample
         with self.timeline._bag_lock:
             try:
-                msgdata = self.load_data()
+                bag_entries = self.load_data()
             except ValueError:
                 # bag is closed or invalid; we're done here
                 self.resampling_active = False
                 return
 
-            for entry in msgdata:
+            for entry in bag_entries:
                 # detect if we're cancelled and return early
                 if not self.resampling_active:
                     return
+
+                (ros_message, _, _) = self.bag.convert_entry_to_ros_message(entry)
+                timestamp = Time(nanoseconds=entry.timestamp)
 
                 for path in self.resample_fields:
                     # this resampling method is very unstable, because it picks
@@ -260,8 +261,8 @@ class PlotWidget(QWidget):
                     # the minimum and maximum values present within a sample
                     # If the data has spikes, this is particularly bad because they
                     # will be missed entirely at some resolutions and offsets
-                    if x[path] == [] or (entry[2] - self.start_stamp).to_sec() - x[path][-1] >= self.timestep:
-                        y_value = entry[1]
+                    if x[path] == [] or bag_helper.to_sec(timestamp - self.start_stamp) - x[path][-1] >= self.timestep:
+                        y_value = ros_message
                         for field in path.split('.'):
                             index = None
                             if field.endswith(']'):
@@ -272,7 +273,7 @@ class PlotWidget(QWidget):
                                 index = int(index)
                                 y_value = y_value[index]
                         y[path].append(y_value)
-                        x[path].append((entry[2] - self.start_stamp).to_sec())
+                        x[path].append(bag_helper.to_sec(timestamp - self.start_stamp))
 
                 # TODO: incremental plot updates would go here...
                 #       we should probably do incremental updates based on time;
@@ -313,14 +314,14 @@ class PlotWidget(QWidget):
 
     def region_changed(self, start, end):
         # this is the only place where self.limits is set
-        limits = [(start - self.start_stamp).to_sec(),
-                  (end - self.start_stamp).to_sec()]
+        limits = [bag_helper.to_sec(start - self.start_stamp),
+                  bag_helper.to_sec(end - self.start_stamp)]
 
         # cap the limits to the start and end of our bag file
         if limits[0] < 0:
             limits = [0.0, limits[1]]
-        if limits[1] > (self.end_stamp - self.start_stamp).to_sec():
-            limits = [limits[0], (self.end_stamp - self.start_stamp).to_sec()]
+        if limits[1] > bag_helper.to_sec(self.end_stamp - self.start_stamp):
+            limits = [limits[0], bag_helper.to_sec(self.end_stamp - self.start_stamp)]
 
         self.limits = limits
 
@@ -376,7 +377,7 @@ class MessageTree(QTreeWidget):
     def msg(self):
         return self._msg
 
-    def set_message(self, msg):
+    def set_message(self, msg, msg_type):
         # Remember whether items were expanded or not before deleting
         if self._msg:
             for item in self.get_all_items():
@@ -392,7 +393,7 @@ class MessageTree(QTreeWidget):
             self.clear()
         if msg:
             # Populate the tree
-            self._add_msg_object(None, '', '', msg, msg._type)
+            self._add_msg_object(None, '', '', msg, msg_type)
 
             if self._expanded_paths is None:
                 self._expanded_paths = set()

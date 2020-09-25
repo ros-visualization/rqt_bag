@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import rclpy
+import rosbag2_py
 import time
 import threading
 
@@ -426,9 +427,17 @@ class BagTimeline(QGraphicsScene):
             self.stop_background_task()
             return
 
-        # Open the path for writing
+        # Create a rosbag writer to export the messages in the selected region
         try:
-            export_bag = rosbag.Bag(path, 'w')
+            serialization_format = 'cdr'
+            storage_id = 'sqlite3'
+
+            storage_options = rosbag2_py.StorageOptions(uri=path, storage_id=storage_id)
+            converter_options = rosbag2_py.ConverterOptions(
+                input_serialization_format=serialization_format,
+                output_serialization_format=serialization_format)
+            rosbag_writer = rosbag2_py.SequentialWriter()
+            rosbag_writer.open(storage_options, converter_options)
         except Exception:
             QMessageBox(QMessageBox.Warning, 'rqt_bag',
                         'Error opening bag file [%s] for writing' % path, QMessageBox.Ok).exec_()
@@ -438,10 +447,10 @@ class BagTimeline(QGraphicsScene):
         # Run copying in a background thread
         self._export_thread = threading.Thread(
             target=self._run_export_region,
-            args=(export_bag, topics, start_stamp, end_stamp, bag_entries))
+            args=(rosbag_writer, topics, start_stamp, end_stamp, bag_entries, path, serialization_format))
         self._export_thread.start()
 
-    def _run_export_region(self, export_bag, topics, start_stamp, end_stamp, bag_entries):
+    def _run_export_region(self, rosbag_writer, topics, start_stamp, end_stamp, bag_entries, export_filename, serialization_format):
         """
         Threaded function that saves the current selection to a new bag file
         :param export_bag: bagfile to write to, ''rosbag.bag''
@@ -458,12 +467,21 @@ class BagTimeline(QGraphicsScene):
             if self.background_task_cancel:
                 break
             try:
-                topic, msg, t = self.read_message(bag, entry.position)
-                export_bag.write(topic, msg, t)
+                _, topic_id, t, serialized_msg = self.read_message(bag, entry.timestamp)
+                (topic_name, topic_type) = bag.get_topic_info(topic_id)
+
+                topic_metadata = rosbag2_py.TopicMetadata(name=topic_name, type=topic_type,
+                                     serialization_format=serialization_format)
+
+                # TODO(mjeronimo) Check whether we've created this before
+                rosbag_writer.create_topic(topic_metadata)
+
+                rosbag_writer.write(topic_name, serialized_msg, t)
+
             except Exception as ex:
                 qWarning('Error exporting message at position %s: %s' %
-                         (str(entry.position), str(ex)))
-                export_bag.close()
+                         (str(entry.timestamp), str(ex)))
+                del rosbag_writer
                 self.stop_background_task()
                 return
 
@@ -481,10 +499,10 @@ class BagTimeline(QGraphicsScene):
         try:
             self.background_progress = 0
             self.status_bar_changed_signal.emit()
-            export_bag.close()
+            del rosbag_writer
         except Exception as ex:
             QMessageBox(QMessageBox.Warning, 'rqt_bag', 'Error closing bag file [%s]: %s' % (
-                export_bag.filename, str(ex)), QMessageBox.Ok).exec_()
+                export_filename, str(ex)), QMessageBox.Ok).exec_()
         self.stop_background_task()
 
     def read_message(self, bag, position):
@@ -548,7 +566,7 @@ class BagTimeline(QGraphicsScene):
     def _create_player(self):
         if not self._player:
             try:
-                self._player = Player(self)
+                self._player = Player(self._context.node, self)
                 if self._publish_clock:
                     self._player.start_clock_publishing()
             except Exception as ex:
@@ -692,7 +710,8 @@ class BagTimeline(QGraphicsScene):
 
         self._recorder.add_listener(self._message_recorded)
 
-        self.add_bag(self._recorder.bag)
+        #TODO: MJ: Need to have a bag to add
+        # self.add_bag(self._recorder.bag)
 
         self._recorder.start()
 

@@ -147,12 +147,10 @@ class TimelineFrame(QGraphicsItem):
         self._default_pen = QPen(Qt.black)
         self._default_datatype_color = QColor(0, 0, 102, 204)
         self._datatype_colors = {
-            'sensor_msgs/CameraInfo': QColor(0, 0, 77, 204),
-            'sensor_msgs/Image': QColor(0, 77, 77, 204),
-            'sensor_msgs/LaserScan': QColor(153, 0, 0, 204),
-            'pr2_msgs/LaserScannerSignal': QColor(153, 0, 0, 204),
-            'pr2_mechanism_msgs/MechanismState': QColor(0, 153, 0, 204),
-            'tf/tfMessage': QColor(0, 153, 0, 204),
+            'sensor_msgs/msg/CameraInfo': QColor(0, 0, 77, 204),
+            'sensor_msgs/msg/Image': QColor(0, 77, 77, 204),
+            'sensor_msgs/msg/LaserScan': QColor(153, 0, 0, 204),
+            'tf2_msgs/msg/TFMessage': QColor(0, 153, 0, 204),
         }
         # minimum number of pixels allowed between two bag messages before they are combined
         self._default_msg_combine_px = 1.0
