@@ -404,7 +404,7 @@ class TimelineFrame(QGraphicsItem):
 
     def _draw_topic_history(self, painter, topic):
         """
-        Draw boxes corrisponding to message regions on the timeline.
+        Draw boxes corresponding to message regions on the timeline.
         :param painter: allows access to paint functions,''QPainter''
         :param topic: the topic for which message boxes should be drawn, ''str''
         """
@@ -835,7 +835,7 @@ class TimelineFrame(QGraphicsItem):
 
         topic_cache_len = len(topic_cache)
 
-        for entry in self.scene().get_entries(topic, start_time, end_time):
+        for entry in self.scene().get_entries([topic], start_time, end_time):
             topic_cache.append(bag_helper.to_sec(Time(nanoseconds=entry.timestamp)))
 
         if topic in self.invalidated_caches:
