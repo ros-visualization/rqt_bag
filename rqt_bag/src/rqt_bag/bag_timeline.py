@@ -269,7 +269,9 @@ class BagTimeline(QGraphicsScene):
                 if bag_end_time is not None and bag_end_time < start_stamp:
                     continue
 
-                bag_entries.extend(b._get_entries(start_stamp, end_stamp))
+                # Get all of the entries for the specified topics
+                for topic in topics:
+                    bag_entries.extend(b._get_entries(start_stamp, end_stamp, topic))
 
             for entry in sorted(bag_entries, key=lambda entry: entry.timestamp):
                 yield entry
@@ -467,16 +469,13 @@ class BagTimeline(QGraphicsScene):
             if self.background_task_cancel:
                 break
             try:
-                _, topic_id, t, serialized_msg = self.read_message(bag, entry.timestamp)
-                (topic_name, topic_type) = bag.get_topic_info(topic_id)
-
+                (topic_name, topic_type) = bag.get_topic_info(entry.topic_id)
                 topic_metadata = rosbag2_py.TopicMetadata(name=topic_name, type=topic_type,
                                      serialization_format=serialization_format)
 
                 # TODO(mjeronimo) Check whether we've created this before
                 rosbag_writer.create_topic(topic_metadata)
-
-                rosbag_writer.write(topic_name, serialized_msg, t)
+                rosbag_writer.write(topic_name, entry.data, entry.timestamp)
 
             except Exception as ex:
                 qWarning('Error exporting message at position %s: %s' %
