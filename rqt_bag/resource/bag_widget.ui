@@ -324,7 +324,7 @@
       <widget class="QLabel" name="stamp_label">
        <property name="maximumSize">
         <size>
-         <width>125</width>
+         <width>185</width>
          <height>16777215</height>
         </size>
        </property>
@@ -349,7 +349,7 @@
       <widget class="QLabel" name="date_label">
        <property name="maximumSize">
         <size>
-         <width>180</width>
+         <width>185</width>
          <height>16777215</height>
         </size>
        </property>
@@ -380,7 +380,7 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>110</width>
+         <width>90</width>
          <height>16777215</height>
         </size>
        </property>

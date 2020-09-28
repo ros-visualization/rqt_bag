@@ -138,7 +138,8 @@ class MessageTree(QTreeWidget):
                 event.accept()
             elif key == ord('A') or key == ord('a'):
                 # Ctrl-A: select all
-                self._select_all()
+                self.expandAll()
+                self.selectAll()
 
     def _select_all(self):
         for i in self.get_all_items():

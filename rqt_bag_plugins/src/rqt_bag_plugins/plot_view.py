@@ -429,7 +429,8 @@ class MessageTree(QTreeWidget):
             self.traverse(child, function)
 
     def _add_msg_object(self, parent, path, name, obj, obj_type):
-        label = name
+        # Remove the leading underscore for display
+        label = name[1:]
 
         if hasattr(obj, '__slots__'):
             subobjs = [(slot, getattr(obj, slot)) for slot in obj.__slots__]
@@ -501,7 +502,10 @@ class MessageTree(QTreeWidget):
         if item.data(0, Qt.UserRole) == None:
             pass
         else:
-            path = self.get_item_path(item)
+            # Strip the leading underscore from each of the path segments
+            segments = [segment[1:] for segment in self.get_item_path(item).split('.')]
+            path  = '.'.join(segments)
+
             if item.checkState(column) == Qt.Checked:
                 if path not in self.plot_list:
                     self.plot_list.add(path)

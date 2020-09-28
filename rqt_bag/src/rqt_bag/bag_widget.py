@@ -360,7 +360,7 @@ class BagWidget(QWidget):
 
             # Raw timestamp
             self.stamp_label.setText(
-                '%.3fs' % bag_helper.to_sec(self._timeline._timeline_frame.playhead))
+                '%.9fs' % bag_helper.to_sec(self._timeline._timeline_frame.playhead))
 
             # Human-readable time
             self.date_label.setText(
@@ -372,7 +372,9 @@ class BagWidget(QWidget):
                                             self._timeline._timeline_frame.start_stamp))
 
             # File size
-            self.filesize_label.setText(bag_helper.filesize_to_str(self._timeline.file_size()))
+            # TODO:
+            #self.filesize_label.setText(bag_helper.filesize_to_str(self._timeline.file_size()))
+            self.filesize_label.setText("<x> MB")
 
             # Play speed
             spd = self._timeline.play_speed
