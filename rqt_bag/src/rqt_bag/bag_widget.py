@@ -275,8 +275,8 @@ class BagWidget(QWidget):
             self._timeline.record_bag(record_filename, all_topics, selected_topics)
 
     def _handle_load_clicked(self):
-        # Create a dialog explicitly so that we can set options on it. We're currently using a native dialog
-        # which is not able to multi-select directories
+        # Create a dialog explicitly so that we can set options on it. We're currently using
+        # a native dialog which is not able to multi-select directories
         dialog = QFileDialog(self)
         dialog.setFileMode(QFileDialog.Directory)
         dialog.setOption(QFileDialog.ShowDirsOnly, True)
@@ -325,7 +325,10 @@ class BagWidget(QWidget):
         self.end_button.setEnabled(True)
         self.save_button.setEnabled(True)
         self.record_button.setEnabled(False)
+
+        # Add the newly opened bag to the timeline
         self._timeline.add_bag(bag)
+
         qDebug("Done loading '%s'" % filename.encode(errors='replace'))
         # put the progress bar back the way it was
         self.set_status_text.emit("")

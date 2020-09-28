@@ -155,7 +155,7 @@ class Rosbag2:
         if topic is not None and topic in self.topics:
             topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
         search = cursor.execute(
-            "SELECT {} FROM messages WHERE timestamp>={} AND timestamp <{} {};".format(
+            "SELECT {} FROM messages WHERE timestamp>={} AND timestamp <={} {};".format(
                 columns_str, t_start.nanoseconds, t_end.nanoseconds, topic_str))
         entries = search.fetchall()
         cursor.close()
