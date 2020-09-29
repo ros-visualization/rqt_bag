@@ -269,9 +269,12 @@ class BagTimeline(QGraphicsScene):
                 if bag_end_time is not None and bag_end_time < start_stamp:
                     continue
 
-                # Get all of the entries for the specified topics
+                # Get all of the entries for the specified topics. When opening multiple
+                # bags, the requested topic may not be in a given bag database 
                 for topic in topics:
-                    bag_entries.extend(b._get_entries(start_stamp, end_stamp, topic))
+                    entries = b._get_entries(start_stamp, end_stamp, topic)
+                    if entries is not None:
+                        bag_entries.extend(entries)
 
             for entry in sorted(bag_entries, key=lambda entry: entry.timestamp):
                 yield entry

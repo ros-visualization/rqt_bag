@@ -110,7 +110,10 @@ class Rosbag2:
         columns_str = ", ".join(SQL_COLUMNS)
         cursor = db.cursor()
         topic_str = ''
-        if topic is not None and topic in self.topics:
+        if topic is not None:
+            # The requested topic may not be in this database
+            if topic not in self.topics:
+                return None
             topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
         search = cursor.execute(
             "SELECT {} FROM messages WHERE timestamp<{} {}ORDER BY timestamp DESC LIMIT 1;".format(
@@ -132,8 +135,11 @@ class Rosbag2:
         columns_str = ", ".join(SQL_COLUMNS)
         cursor = db.cursor()
         topic_str = ''
-        if topic is not None and topic in self.topics:
-            topic_str = 'AND topic_id={} '.format(get_topic_id(topic))
+        if topic is not None:
+            # The requested topic may not be in this database
+            if topic not in self.topics:
+                return None
+            topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
         search = cursor.execute(
             "SELECT {} FROM messages WHERE timestamp>{} {}LIMIT 1;".format(
                 columns_str, timestamp.nanoseconds, topic_str))
@@ -152,7 +158,10 @@ class Rosbag2:
         columns_str = ", ".join(SQL_COLUMNS)
         cursor = db.cursor()
         topic_str = ''
-        if topic is not None and topic in self.topics:
+        if topic is not None:
+            # The requested topic may not be in this database
+            if topic not in self.topics:
+                return None
             topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
         search = cursor.execute(
             "SELECT {} FROM messages WHERE timestamp>={} AND timestamp <={} {};".format(
