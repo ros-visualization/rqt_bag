@@ -32,25 +32,37 @@
 
 """
 Recorder subscribes to ROS messages and writes them to a bag file.
-TODO (brawner) Port to ROS2. Blocked by missing rclpy rosbag2 interface.
 """
 
 from __future__ import print_function
 try:
     from queue import Queue
+    from queue import Empty
 except ImportError:
     from Queue import Queue
+    from Queue import Empty
 import re
 import threading
 import time
 import sys
 import rosbag2_py
+import yaml
+import os
 
 from rosbag2_transport import rosbag2_transport_py
+from .rosbag2 import Rosbag2
+from rclpy.qos import qos_profile_system_default
+from rclpy.topic_or_service_is_hidden import topic_or_service_is_hidden
+from rosidl_runtime_py.utilities import get_message
+from rclpy.serialization import serialize_message
+from rclpy.duration import Duration
+from rqt_bag import bag_helper
+from rclpy.time import Time
+
 
 class Recorder(object):
 
-    def __init__(self, filename, bag_lock=None, all=True, topics=[], regex=False, limit=0,
+    def __init__(self, node, filename, bag_lock=None, all=True, topics=[], regex=False, limit=0,
                  master_check_interval=1.0):
         """
         Subscribe to ROS messages and record them to a bag file.
@@ -70,20 +82,58 @@ class Recorder(object):
             publications [default: 1]
         @type  master_check_interval: float
         """
+        self._node = node
         self._all = all
         self._topics = topics
         self._regex = regex
         self._limit = limit
         self._master_check_interval = master_check_interval
+        self._serialization_format='cdr'
+        self._storage_id = 'sqlite3'
+        self._bag_filename = filename
 
-#       self._bag = rosbag.Bag(filename, 'w')
-#        serialization_format='cdr'
-#        storage_options = rosbag2_py.StorageOptions(uri=filename, storage_id='sqlite3')
-#        converter_options = rosbag2_py.ConverterOptions(
-#            input_serialization_format=serialization_format,
-#            output_serialization_format=serialization_format)
-#        self.rosbag_writer = rosbag2_py.SequentialWriter()
-#        self.rosbag_writer.open(storage_options, converter_options)
+        # TODO(mjeronimo): Need to unify the direct database access of the current Rosbag2
+        # implementation and the rosbag_writer into a single Rosbag2 class 
+        storage_options = rosbag2_py.StorageOptions(uri=filename, storage_id=self._storage_id)
+        converter_options = rosbag2_py.ConverterOptions(
+            input_serialization_format=self._serialization_format,
+            output_serialization_format=self._serialization_format)
+        self._rosbag_writer = rosbag2_py.SequentialWriter()
+        self._rosbag_writer.open(storage_options, converter_options)
+
+        ################################################################
+        # TODO(mjeronimo):
+        # with open(filename) as f:
+        #     bag_info = yaml.load(f, Loader=yaml.SafeLoader)
+        #     self._bag = Rosbag2(bag_info['rosbag2_bagfile_information'], filename)
+        bag_info = {}
+        bag_info['topics_with_message_count'] = []
+        for topic, msg_type_names in self.get_topic_names_and_types():
+            if topic in topics:
+                topic_info = {}
+                topic_info['topic_metadata'] = {}
+                topic_info['topic_metadata']['name'] = topic
+                topic_info['topic_metadata']['type'] = msg_type_names[0]    # TODO(mjeronimo): could have multiple
+                topic_info['topic_metadata']['serialization_format'] = self._serialization_format
+                topic_info['topic_metadata']['offered_qos_profiles'] = ""
+                bag_info['topics_with_message_count'].append(topic_info)
+
+                # Add the topic to the database
+                topic_metadata = rosbag2_py.TopicMetadata(name=topic, type=msg_type_names[0], serialization_format=self._serialization_format)
+                self._rosbag_writer.create_topic(topic_metadata) 
+
+        topic_info['message_count'] = 0
+        bag_info['relative_file_paths'] = []
+        bag_name = os.path.split(filename)[1]
+        bag_info['relative_file_paths'].append(bag_name + "_0.db3")
+        bag_info['starting_time'] = {}
+        now = Time() # self._node._clock.now()
+        bag_info['starting_time']['nanoseconds_since_epoch'] = now.nanoseconds
+        bag_info['duration'] = {}
+        bag_info['duration']['nanoseconds'] = 10 # TODO(mjeronimo): OK to be 0?
+
+        self._bag = Rosbag2(bag_info, filename + "/metadata.yaml")
+        ################################################################
 
         self._bag_lock = bag_lock if bag_lock else threading.Lock()
         self._listeners = []
@@ -103,13 +153,8 @@ class Recorder(object):
             self._regexes = None
 
         self._message_count = {}  # topic -> int (track number of messages recorded on each topic)
-
         self._master_check_thread = threading.Thread(target=self._run_master_check)
         self._write_thread = threading.Thread(target=self._run_write)
-
-#    @property
-#    def rosbag_writer(self):
-#        return self.rosbag_writer
 
     def add_listener(self, listener):
         """
@@ -123,6 +168,7 @@ class Recorder(object):
         """
         Start subscribing and recording messages to bag.
         """
+        print("Recoder: start")
         self._master_check_thread.start()
         self._write_thread.start()
 
@@ -137,12 +183,14 @@ class Recorder(object):
         self._paused = False
 
     def toggle_paused(self):
+        print("Recorder: toggle_paused")
         self._paused = not self._paused
 
     def stop(self):
         """
         Stop recording.
         """
+        print("Recoder: stop")
         with self._stop_condition:
             self._stop_flag = True
             self._stop_condition.notify_all()
@@ -151,34 +199,39 @@ class Recorder(object):
 
     # Implementation
 
-    def _run_master_check(self):
-#        master = rosgraph.Master('rqt_bag_recorder')
+    def get_topic_names_and_types(self, include_hidden_topics=False):
+        topic_names_and_types = self._node.get_topic_names_and_types()
+        if not include_hidden_topics:
+            topic_names_and_types = [
+                (n, t) for (n, t) in topic_names_and_types
+                if not topic_or_service_is_hidden(n)]
+        return topic_names_and_types
 
+
+    def _run_master_check(self):
         try:
             while not self._stop_flag:
                 # Check for new topics
-#                for topic, datatype in master.getPublishedTopics(''):
+                for topic, msg_type_names in self.get_topic_names_and_types():
                     # Check if:
                     #    the topic is already subscribed to, or
                     #    we've failed to subscribe to it already, or
                     #    we've already reached the message limit, or
                     #    we don't want to subscribe
-#                    if topic in self._subscriber_helpers or \
-#                            topic in self._failed_topics or \
-#                            topic in self._limited_topics or \
-#                            not self._should_subscribe_to(topic):
-#                        continue
+                    for msg_type_name in msg_type_names:
+                        if topic in self._subscriber_helpers or \
+                                topic in self._failed_topics or \
+                                topic in self._limited_topics or \
+                                not self._should_subscribe_to(topic):
+                            continue
 
-#                    try:
-#                        pytype = roslib.message.get_message_class(datatype)
-
-#                        self._message_count[topic] = 0
-
-#                        self._subscriber_helpers[topic] = _SubscriberHelper(self, topic, pytype)
-#                    except Exception as ex:
-#                        print('Error subscribing to %s (ignoring): %s' %
-#                              (topic, str(ex)), file=sys.stderr)
-#                        self._failed_topics.add(topic)
+                        try:
+                            self._message_count[topic] = 0
+                            self._subscriber_helpers[topic] = _SubscriberHelper(self._node, self, topic, msg_type_name)
+                        except Exception as ex:
+                            print('Error subscribing to %s (ignoring): %s' %
+                                  (topic, str(ex)), file=sys.stderr)
+                            self._failed_topics.add(topic)
 
                 # Wait a while
                 self._stop_condition.acquire()
@@ -193,10 +246,12 @@ class Recorder(object):
 
         # Close the bag file so that the index gets written
         try:
-#            self._bag.close()
-             pass
+             # TODO(mjeronimo):
+             #self._bag.close()
+             print("Deleting rosbag_writer")
+             del self._rosbag_writer
         except Exception as ex:
-            print('Error closing bag [%s]: %s' % (self._bag.filename, str(ex)))
+            print('Error closing bag [%s]: %s' % (self._bag_filename, str(ex)))
 
     def _should_subscribe_to(self, topic):
         if self._all:
@@ -213,14 +268,15 @@ class Recorder(object):
 
     def _unsubscribe(self, topic):
         try:
-#            self._subscriber_helpers[topic].subscriber.unregister()
+             # TODO(mjeronimo):
+             # self._subscriber_helpers[topic].subscriber.unregister()
              pass
         except Exception:
             return
 
         del self._subscriber_helpers[topic]
 
-    def _record(self, topic, m):
+    def _record(self, topic, msg, msg_type_name):
         if self._paused:
             return
 
@@ -229,27 +285,35 @@ class Recorder(object):
             self._unsubscribe(topic)
             return
 
-        self._write_queue.put((topic, m, rospy.get_rostime()))
+        now = Time() # self._node._clock.now()
+        self._write_queue.put((topic, msg, msg_type_name, now))
         self._message_count[topic] += 1
 
     def _run_write(self):
         try:
+            poll_interval = 1.0
             while not self._stop_flag:
-                # Wait for a message
-                item = self._write_queue.get()
+                try:
+                    item = self._write_queue.get(block=False)
+                except Empty:
+                    time.sleep(poll_interval)
+                    continue
 
                 if item == self:
                     continue
 
-#                topic, m, t = item
+                topic, msg, msg_type_name, t = item
 
                 # Write to the bag
-#                with self._bag_lock:
-#                    self._bag.write(topic, m, t)
+                with self._bag_lock:
+                    topic_metadata = rosbag2_py.TopicMetadata(name=topic, type=msg_type_name, serialization_format=self._serialization_format)
+                    self._rosbag_writer.create_topic(topic_metadata) 
+                    serialized_msg = serialize_message(msg)
+                    self._rosbag_writer.write(topic, serialized_msg, t.nanoseconds)
 
                 # Notify listeners that a message has been recorded
-#                for listener in self._listeners:
-#                    listener(topic, m, t)
+                for listener in self._listeners:
+                    listener(topic, msg, t)
 
         except Exception as ex:
             print('Error write to bag: %s' % str(ex), file=sys.stderr)
@@ -257,11 +321,13 @@ class Recorder(object):
 
 class _SubscriberHelper(object):
 
-    def __init__(self, recorder, topic, pytype):
+    def __init__(self, node, recorder, topic, msg_type_name):
+        self.node = node
         self.recorder = recorder
         self.topic = topic
+        self.msg_type_name = msg_type_name
+        self.msg_type = get_message(msg_type_name)
+        self.subscriber = node.create_subscription(self.msg_type, topic, self.callback, qos_profile_system_default)
 
-#        self.subscriber = rospy.Subscriber(self.topic, pytype, self.callback)
-
-    def callback(self, m):
-        self.recorder._record(self.topic, m)
+    def callback(self, msg):
+        self.recorder._record(self.topic, msg, self.msg_type_name)

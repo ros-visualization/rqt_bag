@@ -248,7 +248,9 @@ class BagWidget(QWidget):
         self._timeline.zoom_in()
 
     def _handle_record_clicked(self):
+        print("handle_record_clicked")
         if self._recording:
+            print("handle_record_clicked: toggle_recording")
             self._timeline.toggle_recording()
             return
 

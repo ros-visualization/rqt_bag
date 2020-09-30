@@ -704,25 +704,23 @@ class BagTimeline(QGraphicsScene):
 
     def record_bag(self, filename, all=True, topics=[], regex=False, limit=0):
         try:
-            self._recorder = Recorder(
-                filename, bag_lock=self._bag_lock, all=all, topics=topics, regex=regex, limit=limit)
+            print("record_bag: filename: {}".format(filename))
+            self._recorder = Recorder(self._context.node, filename, bag_lock=self._bag_lock,
+                    all=all, topics=topics, regex=regex, limit=limit)
         except Exception as ex:
             qWarning('Error opening bag for recording [%s]: %s' % (filename, str(ex)))
             return
 
         self._recorder.add_listener(self._message_recorded)
-
-        #TODO: MJ: Need to have a bag to add
-        # self.add_bag(self._recorder.bag)
-
+        # TODO(mjeronimo): Need to close bag before the YAML file is written and can then open it with Rosbag2(filename)
+        self.add_bag(self._recorder._bag)
         self._recorder.start()
-
         self.wrap = False
         self._timeline_frame._index_cache_thread.period = 0.1
-
         self.update()
 
     def toggle_recording(self):
+        print("bag_timeline: toggle_recording")
         if self._recorder:
             self._recorder.toggle_paused()
             self.update()
