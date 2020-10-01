@@ -116,8 +116,7 @@ class Rosbag2:
                 return None
             topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
         search = cursor.execute(
-            "SELECT {} FROM messages WHERE timestamp<{} {}ORDER BY timestamp DESC LIMIT 1;".format(
-            #"SELECT {} FROM messages WHERE timestamp={} {}ORDER BY timestamp DESC LIMIT 1;".format(
+            "SELECT {} FROM messages WHERE timestamp<={} {}ORDER BY timestamp DESC LIMIT 1;".format(
                 columns_str, timestamp.nanoseconds, topic_str))
         entry = search.fetchone()
         cursor.close()
