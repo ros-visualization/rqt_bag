@@ -184,7 +184,8 @@ class BagTimeline(QGraphicsScene):
 
     def file_size(self):
         with self._bag_lock:
-            return sum(b.size for b in self._bags)
+            x = sum(b.size() for b in self._bags)
+            return sum(b.size() for b in self._bags)
 
     # TODO Rethink API and if these need to be visible
     def _get_start_stamp(self):

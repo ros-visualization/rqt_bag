@@ -103,14 +103,11 @@ class Recorder(object):
         self._rosbag_writer = rosbag2_py.SequentialWriter()
         self._rosbag_writer.open(storage_options, converter_options)
 
-        # with open(filename) as f:
-        #     bag_info = yaml.load(f, Loader=yaml.SafeLoader)
-        #     self._bag = Rosbag2(bag_info['rosbag2_bagfile_information'], filename)
-
         # TODO(mjeronimo):
-        # A hack here to create a metadata dictionary (usually read from the one created for the database) sufficient
-        # to create a Rosbag2 object. The rosbag_writer won't create this file until the object is destroyed. Unfortunately,
-        # the writer is kept open so that it can write out messages as they are received.
+        # A hack here to create a metadata dictionary (usually read from the one created for the
+        # database) sufficient to create a Rosbag2 object. The rosbag_writer won't create this file
+        # until the object is destroyed. Unfortunately, the writer is kept open so that it can write
+        # out messages as they are received.
         bag_info = {}
         bag_info['topics_with_message_count'] = []
         for topic, msg_type_names in self.get_topic_names_and_types():
@@ -118,7 +115,8 @@ class Recorder(object):
                 topic_info = {}
                 topic_info['topic_metadata'] = {}
                 topic_info['topic_metadata']['name'] = topic
-                topic_info['topic_metadata']['type'] = msg_type_names[0]    # TODO(mjeronimo): could have multiple type names
+                # TODO(mjeronimo): could have multiple type names
+                topic_info['topic_metadata']['type'] = msg_type_names[0]
                 topic_info['topic_metadata']['serialization_format'] = self._serialization_format
                 topic_info['topic_metadata']['offered_qos_profiles'] = ""
                 bag_info['topics_with_message_count'].append(topic_info)
@@ -173,7 +171,6 @@ class Recorder(object):
         """
         Start subscribing and recording messages to bag.
         """
-        print("Recoder: start")
         self._master_check_thread.start()
         self._write_thread.start()
 
@@ -188,14 +185,12 @@ class Recorder(object):
         self._paused = False
 
     def toggle_paused(self):
-        print("Recorder: toggle_paused")
         self._paused = not self._paused
 
     def stop(self):
         """
         Stop recording.
         """
-        print("Recoder: stop")
         with self._stop_condition:
             self._stop_flag = True
             self._stop_condition.notify_all()
@@ -270,9 +265,7 @@ class Recorder(object):
 
     def _unsubscribe(self, topic):
         try:
-             # TODO(mjeronimo):
-             # self._subscriber_helpers[topic].subscriber.unregister()
-             pass
+             self._node.destroy_subscription(self, self._subscriber_helpers[topic].subscriber)
         except Exception:
             return
 

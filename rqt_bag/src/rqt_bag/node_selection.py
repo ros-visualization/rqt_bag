@@ -78,11 +78,16 @@ class NodeSelection(QWidget):
             self.ok_button.setEnabled(False)
 
     def onButtonClicked(self):
-        #master = rosgraph.Master('rqt_bag_recorder')
-        #state = master.getSystemState()
-        #subs = [t for t, l in state[1]
-        #        if len([node_name for node_name in self.selected_nodes if node_name in l]) > 0]
-        #for topic in subs:
-        #    self.parent_widget.changeTopicCheckState(topic, Qt.Checked)
-        #    self.parent_widget.updateList(Qt.Checked, topic)
+        # Get all of the topics for the selected nodes 
+        topics = set()
+        for node_name in self.selected_nodes:
+            subscription_info_entries = self.node.get_publisher_names_and_types_by_node(node_name, '')
+            for subscription_info in subscription_info_entries:
+                topics.add(subscription_info[0])
+
+        # Select each of these in the (parent) topics dialog
+        for topic in topics:
+            self.parent_widget.changeTopicCheckState(topic, Qt.Checked)
+            self.parent_widget.updateList(Qt.Checked, topic)
+
         self.close()

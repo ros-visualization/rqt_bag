@@ -56,12 +56,23 @@ class Rosbag2:
             topic['topic_metadata']['name']: topic
             for topic in bag_info['topics_with_message_count']
         }
-        bag_dir = os.path.dirname(filename)
+        self.bag_dir = os.path.dirname(filename)
         database_relative_name = bag_info['relative_file_paths'][0]
-        self.db_name = os.path.join(bag_dir, database_relative_name)
+        self.db_name = os.path.join(self.bag_dir, database_relative_name)
 
         self.start_time = Time(nanoseconds=bag_info['starting_time']['nanoseconds_since_epoch'])
         self.duration = Duration(nanoseconds=bag_info['duration']['nanoseconds'])
+
+    def size(self):
+        total_size = 0
+        for dirpath, dirnames, filenames in os.walk(self.bag_dir):
+            for filename in filenames:
+                full_name = os.path.join(dirpath, filename)
+                # skip if it is symbolic link
+                if not os.path.islink(full_name):
+                    print(os.path.getsize(full_name))
+                    total_size += os.path.getsize(full_name)
+        return total_size
 
     def get_topics(self):
         return list(self.topics.keys())

@@ -376,10 +376,8 @@ class BagWidget(QWidget):
                 '%.3fs' % bag_helper.to_sec(self._timeline._timeline_frame.playhead -
                                             self._timeline._timeline_frame.start_stamp))
 
-            # File size
-            # TODO:
-            #self.filesize_label.setText(bag_helper.filesize_to_str(self._timeline.file_size()))
-            self.filesize_label.setText("<x> MB")
+            # Bag size
+            self.filesize_label.setText(bag_helper.filesize_to_str(self._timeline.file_size()))
 
             # Play speed
             spd = self._timeline.play_speed
