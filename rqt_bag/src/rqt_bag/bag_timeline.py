@@ -467,6 +467,8 @@ class BagTimeline(QGraphicsScene):
         update_step = max(1, total_messages / 100)
         message_num = 1
         progress = 0
+        database_topics = set()
+
         # Write out the messages
         for bag, entry in bag_entries:
             if self.background_task_cancel:
@@ -476,8 +478,11 @@ class BagTimeline(QGraphicsScene):
                 topic_metadata = rosbag2_py.TopicMetadata(name=topic_name, type=topic_type,
                                      serialization_format=serialization_format)
 
-                # TODO(mjeronimo) Check whether we've created this before
-                rosbag_writer.create_topic(topic_metadata)
+                # Add any new topics to the database
+                if not topic_name in database_topics:
+                    database_topics.add(topic_name)
+                    rosbag_writer.create_topic(topic_metadata)
+
                 rosbag_writer.write(topic_name, entry.data, entry.timestamp)
 
             except Exception as ex:
@@ -704,7 +709,6 @@ class BagTimeline(QGraphicsScene):
 
     def record_bag(self, filename, all=True, topics=[], regex=False, limit=0):
         try:
-            print("record_bag: filename: {}".format(filename))
             self._recorder = Recorder(self._context.node, filename, bag_lock=self._bag_lock,
                     all=all, topics=topics, regex=regex, limit=limit)
         except Exception as ex:
@@ -712,7 +716,6 @@ class BagTimeline(QGraphicsScene):
             return
 
         self._recorder.add_listener(self._message_recorded)
-        # TODO(mjeronimo): Need to close bag before the YAML file is written and can then open it with Rosbag2(filename)
         self.add_bag(self._recorder._bag)
         self._recorder.start()
         self.wrap = False
@@ -720,7 +723,6 @@ class BagTimeline(QGraphicsScene):
         self.update()
 
     def toggle_recording(self):
-        print("bag_timeline: toggle_recording")
         if self._recorder:
             self._recorder.toggle_paused()
             self.update()
