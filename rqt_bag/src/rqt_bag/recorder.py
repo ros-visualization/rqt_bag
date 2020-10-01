@@ -93,8 +93,9 @@ class Recorder(object):
         self._storage_id = 'sqlite3'
         self._bag_filename = filename
 
+        ################################################################
         # TODO(mjeronimo): Need to unify the direct database access of the current Rosbag2
-        # implementation and the rosbag_writer into a single Rosbag2 class 
+        # implementation and the rosbag_writer into a single Rosbag2 class
         storage_options = rosbag2_py.StorageOptions(uri=filename, storage_id=self._storage_id)
         converter_options = rosbag2_py.ConverterOptions(
             input_serialization_format=self._serialization_format,
@@ -102,11 +103,14 @@ class Recorder(object):
         self._rosbag_writer = rosbag2_py.SequentialWriter()
         self._rosbag_writer.open(storage_options, converter_options)
 
-        ################################################################
-        # TODO(mjeronimo):
         # with open(filename) as f:
         #     bag_info = yaml.load(f, Loader=yaml.SafeLoader)
         #     self._bag = Rosbag2(bag_info['rosbag2_bagfile_information'], filename)
+
+        # TODO(mjeronimo):
+        # A hack here to create a metadata dictionary (usually read from the one created for the database) sufficient
+        # to create a Rosbag2 object. The rosbag_writer won't create this file until the object is destroyed. Unfortunately,
+        # the writer is kept open so that it can write out messages as they are received.
         bag_info = {}
         bag_info['topics_with_message_count'] = []
         for topic, msg_type_names in self.get_topic_names_and_types():
@@ -114,14 +118,14 @@ class Recorder(object):
                 topic_info = {}
                 topic_info['topic_metadata'] = {}
                 topic_info['topic_metadata']['name'] = topic
-                topic_info['topic_metadata']['type'] = msg_type_names[0]    # TODO(mjeronimo): could have multiple
+                topic_info['topic_metadata']['type'] = msg_type_names[0]    # TODO(mjeronimo): could have multiple type names
                 topic_info['topic_metadata']['serialization_format'] = self._serialization_format
                 topic_info['topic_metadata']['offered_qos_profiles'] = ""
                 bag_info['topics_with_message_count'].append(topic_info)
 
                 # Add the topic to the database
                 topic_metadata = rosbag2_py.TopicMetadata(name=topic, type=msg_type_names[0], serialization_format=self._serialization_format)
-                self._rosbag_writer.create_topic(topic_metadata) 
+                self._rosbag_writer.create_topic(topic_metadata)
 
         topic_info['message_count'] = 0
         bag_info['relative_file_paths'] = []
@@ -131,7 +135,7 @@ class Recorder(object):
         now = Clock(clock_type=ClockType.SYSTEM_TIME).now()
         bag_info['starting_time']['nanoseconds_since_epoch'] = now.nanoseconds
         bag_info['duration'] = {}
-        bag_info['duration']['nanoseconds'] = 10 # TODO(mjeronimo): OK to be 0?
+        bag_info['duration']['nanoseconds'] = 0
 
         self._bag = Rosbag2(bag_info, filename + "/metadata.yaml")
         ################################################################
@@ -247,9 +251,6 @@ class Recorder(object):
 
         # Close the bag file so that the index gets written
         try:
-             # TODO(mjeronimo):
-             #self._bag.close()
-             print("Deleting rosbag_writer")
              del self._rosbag_writer
         except Exception as ex:
             print('Error closing bag [%s]: %s' % (self._bag_filename, str(ex)))
@@ -308,7 +309,7 @@ class Recorder(object):
                 # Write to the bag
                 with self._bag_lock:
                     topic_metadata = rosbag2_py.TopicMetadata(name=topic, type=msg_type_name, serialization_format=self._serialization_format)
-                    self._rosbag_writer.create_topic(topic_metadata) 
+                    self._rosbag_writer.create_topic(topic_metadata)
                     serialized_msg = serialize_message(msg)
                     self._rosbag_writer.write(topic, serialized_msg, t.nanoseconds)
 
