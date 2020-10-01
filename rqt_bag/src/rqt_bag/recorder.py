@@ -58,6 +58,7 @@ from rclpy.serialization import serialize_message
 from rclpy.duration import Duration
 from rqt_bag import bag_helper
 from rclpy.time import Time
+from rclpy.clock import Clock, ClockType
 
 
 class Recorder(object):
@@ -127,7 +128,7 @@ class Recorder(object):
         bag_name = os.path.split(filename)[1]
         bag_info['relative_file_paths'].append(bag_name + "_0.db3")
         bag_info['starting_time'] = {}
-        now = Time() # self._node._clock.now()
+        now = Clock(clock_type=ClockType.SYSTEM_TIME).now()
         bag_info['starting_time']['nanoseconds_since_epoch'] = now.nanoseconds
         bag_info['duration'] = {}
         bag_info['duration']['nanoseconds'] = 10 # TODO(mjeronimo): OK to be 0?
@@ -285,7 +286,7 @@ class Recorder(object):
             self._unsubscribe(topic)
             return
 
-        now = Time() # self._node._clock.now()
+        now = Clock(clock_type=ClockType.SYSTEM_TIME).now()
         self._write_queue.put((topic, msg, msg_type_name, now))
         self._message_count[topic] += 1
 
@@ -310,6 +311,9 @@ class Recorder(object):
                     self._rosbag_writer.create_topic(topic_metadata) 
                     serialized_msg = serialize_message(msg)
                     self._rosbag_writer.write(topic, serialized_msg, t.nanoseconds)
+
+                    duration_ns = t.nanoseconds - self._bag.start_time.nanoseconds
+                    self._bag.duration = Duration(nanoseconds=duration_ns)
 
                 # Notify listeners that a message has been recorded
                 for listener in self._listeners:
