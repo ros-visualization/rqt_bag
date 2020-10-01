@@ -54,9 +54,8 @@ def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
                 pil_img = pil_bgr2rgb(pil_img)
             pil_mode = 'RGB'
         else:
-            alpha = False
             pil_mode = 'RGB'
-            if img_msg.encoding == 'mono8':
+            if img_msg.encoding in ['mono8', '8UC1' ]:
                 mode = 'L'
             elif img_msg.encoding == 'rgb8':
                 mode = 'RGB'
@@ -78,10 +77,8 @@ def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
                     mode = 'F;16'
             elif img_msg.encoding == 'rgba8':
                 mode = 'BGR'
-                alpha = True
             elif img_msg.encoding == 'bgra8':
                 mode = 'RGB'
-                alpha = True
             else:
                 raise Exception("Unsupported image format: %s" % img_msg.encoding)
             pil_img = Image.frombuffer(
