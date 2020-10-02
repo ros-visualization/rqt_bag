@@ -75,6 +75,12 @@ def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
                     mode = 'F;16B'
                 else:
                     mode = 'F;16'
+            elif img_msg.encoding == '32FC1':
+                pil_mode = 'F'
+                if img_msg.is_bigendian:
+                    mode = 'F;32BF'
+                else:
+                    mode = 'F;32F'
             elif img_msg.encoding == 'rgba8':
                 mode = 'BGR'
             elif img_msg.encoding == 'bgra8':
@@ -87,6 +93,7 @@ def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
         # 16 bits conversion to 8 bits
         if pil_mode == 'I;16':
             pil_img = pil_img.convert('I').point(lambda i: i * (1. / 256.)).convert('L')
+
         if pil_img.mode == 'F':
             pil_img = pil_img.point(lambda i: i * (1. / 256.)).convert('L')
             pil_img = ImageOps.autocontrast(pil_img)
