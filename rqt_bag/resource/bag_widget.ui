@@ -329,7 +329,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Time Stamp of the current playhead</string>
+        <string>Timestamp of the current playhead</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
@@ -354,7 +354,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Date and time of the playhead</string>
+        <string>Date and time of the current playhead</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
@@ -385,7 +385,7 @@
         </size>
        </property>
        <property name="toolTip">
-        <string>Number of Seconds from the beginning of the current playhead</string>
+        <string>Number of seconds from the beginning for the current playhead</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
@@ -403,6 +403,9 @@
      </item>
      <item>
       <widget class="QLabel" name="playspeed_label">
+       <property name="toolTip">
+        <string>Playback speed</string>
+       </property>
        <property name="maximumSize">
         <size>
          <width>80</width>
@@ -425,6 +428,9 @@
      </item>
      <item>
       <widget class="QLabel" name="filesize_label">
+       <property name="toolTip">
+        <string>Bag size</string>
+       </property>
        <property name="maximumSize">
         <size>
          <width>80</width>
