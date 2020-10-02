@@ -80,6 +80,9 @@ class NodeSelection(QWidget):
     def onButtonClicked(self):
         # Get all of the topics for the selected nodes 
         topics = set()
+
+        # TODO(mjeronimo): handle namespaces
+        # self.selected_nodes should provide both name and namespace
         for node_name in self.selected_nodes:
             subscription_info_entries = self.node.get_publisher_names_and_types_by_node(node_name, '')
             for subscription_info in subscription_info_entries:

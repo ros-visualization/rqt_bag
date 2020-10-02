@@ -289,13 +289,13 @@ class BagWidget(QWidget):
                 self.load_bag(filename + "/metadata.yaml")
 
     def load_bag(self, filename):
-        qDebug("Loading '%s'..." % filename.encode(errors='replace'))
+        qDebug("Loading '%s' ..." % filename.encode(errors='replace'))
 
         # QProgressBar can EITHER: show text or show a bouncing loading bar,
         #  but apparently the text is hidden when the bounding loading bar is
         #  shown
         # self.progress_bar.setRange(0, 0)
-        self.set_status_text.emit("Loading '%s'..." % filename)
+        self.set_status_text.emit("Loading '%s' ..." % os.path.split(filename)[0])
         # progress_format = self.progress_bar.format()
         # progress_text_visible = self.progress_bar.isTextVisible()
         # self.progress_bar.setFormat("Loading %s" % filename)
