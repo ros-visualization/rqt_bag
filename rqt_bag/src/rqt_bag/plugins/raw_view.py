@@ -234,7 +234,8 @@ class MessageTree(QTreeWidget):
                 continue
 
             # Strip the leading underscore for display
-            subobj_name = subobj_name[1:]
+            if subobj_name[0] == '_':
+                subobj_name = subobj_name[1:]
 
             if path == '':
                 subpath = subobj_name  # root field
