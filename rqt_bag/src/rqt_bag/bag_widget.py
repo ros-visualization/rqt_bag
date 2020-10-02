@@ -257,7 +257,7 @@ class BagWidget(QWidget):
         self.topic_selection.recordSettingsSelected.connect(self._on_record_settings_selected)
 
     def _on_record_settings_selected(self, all_topics, selected_topics):
-        # Get filename to record to, prepopulating the dialog with a proposed filename
+        # Get bag name to record to, prepopulating the dialog input with the current time
         proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
         filename = QFileDialog.getSaveFileName(self, self.tr('Select name for new rosbag'), proposed_filename)
 
@@ -339,8 +339,10 @@ class BagWidget(QWidget):
         # self clear loading filename
 
     def _handle_save_clicked(self):
+        # Get the bag name to save to, prepopulating the dialog input with the current time
+        proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
         filename = \
-            QFileDialog.getSaveFileName(self, self.tr('Save selected region...'), '.')
+            QFileDialog.getSaveFileName(self, self.tr('Save selected region...'), proposed_filename)
         if filename[0] != '':
             self._timeline.copy_region_to_bag(filename[0])
 
