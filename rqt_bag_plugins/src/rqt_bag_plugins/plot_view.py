@@ -367,6 +367,7 @@ class MessageTree(QTreeWidget):
         self._msg_type = msg_type
         self._msg = None
 
+        self.keyPressEvent = self.on_key_press
         self._expanded_paths = None
         self._checked_states = set()
         self.plot_list = set()
@@ -499,6 +500,19 @@ class MessageTree(QTreeWidget):
                 subobj_type = type(subobj).__name__
 
             self._add_msg_object(item, subpath, subobj_name, subobj, subobj_type)
+
+    # Keyboard handler
+    def on_key_press(self, event):
+        key, ctrl = event.key(), event.modifiers() & Qt.ControlModifier
+        if ctrl:
+            if key == ord('C') or key == ord('c'):
+                # Ctrl-C: copy text from selected items to clipboard
+                self._copy_text_to_clipboard()
+                event.accept()
+            elif key == ord('A') or key == ord('a'):
+                # Ctrl-A: select all
+                self.expandAll()
+                self.selectAll()
 
     def handleChanged(self, item, column):
         if item.data(0, Qt.UserRole) == None:
