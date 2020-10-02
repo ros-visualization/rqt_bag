@@ -362,7 +362,7 @@ class MessageTree(QTreeWidget):
     def __init__(self, msg_type, parent):
         super(MessageTree, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.setHeaderHidden(True)
+        self.setHeaderHidden(False)
         self.itemChanged.connect(self.handleChanged)
         self._msg_type = msg_type
         self._msg = None
@@ -378,6 +378,8 @@ class MessageTree(QTreeWidget):
         return self._msg
 
     def set_message(self, msg, msg_type):
+        self.setHeaderLabel(msg_type)
+
         # Remember whether items were expanded or not before deleting
         if self._msg:
             for item in self.get_all_items():
