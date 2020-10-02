@@ -70,7 +70,6 @@ class Rosbag2:
                 full_name = os.path.join(dirpath, filename)
                 # skip if it is symbolic link
                 if not os.path.islink(full_name):
-                    print(os.path.getsize(full_name))
                     total_size += os.path.getsize(full_name)
         return total_size
 
