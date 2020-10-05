@@ -134,14 +134,9 @@ class MessageTree(QTreeWidget):
                 self._copy_text_to_clipboard()
                 event.accept()
             elif key == ord('A') or key == ord('a'):
-                # Ctrl-A: select all
-                self._select_all()
-
-    def _select_all(self):
-        for i in self.get_all_items():
-            if not i.isSelected():
-                i.setSelected(True)
-                i.setExpanded(True)
+                # Ctrl-A: expand the tree and select all items
+                self.expandAll()
+                self.selectAll()
 
     def _copy_text_to_clipboard(self):
         # Get tab indented text for all selected items
