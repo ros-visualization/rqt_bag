@@ -367,6 +367,7 @@ class MessageTree(QTreeWidget):
         self._expanded_paths = None
         self._checked_states = set()
         self.plot_list = set()
+        self.keyPressEvent = self.on_key_press
 
         # populate the tree from the message type
 
@@ -507,3 +508,15 @@ class MessageTree(QTreeWidget):
                 if path in self.plot_list:
                     self.plot_list.remove(path)
                     self.parent().parent().parent().remove_plot(path)
+
+    def on_key_press(self, event):
+        key, ctrl = event.key(), event.modifiers() & Qt.ControlModifier
+        if ctrl:
+            if key == ord('C') or key == ord('c'):
+                # Ctrl-C: copy text from selected items to clipboard
+                self._copy_text_to_clipboard()
+                event.accept()
+            elif key == ord('A') or key == ord('a'):
+                # Ctrl-A: expand the tree and select all items
+                self.expandAll()
+                self.selectAll()
