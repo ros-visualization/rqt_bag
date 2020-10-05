@@ -82,7 +82,8 @@ class MessageTree(QTreeWidget):
     def __init__(self, parent):
         super(MessageTree, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.setHeaderHidden(True)
+        self.setHeaderHidden(False)
+        self.setHeaderLabel('')
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self._msg = None
 
@@ -108,6 +109,8 @@ class MessageTree(QTreeWidget):
                     self._expanded_paths.remove(path)
             self.clear()
         if msg:
+            self.setHeaderLabel(msg._type)
+
             # Populate the tree
             self._add_msg_object(None, '', '', msg, msg._type)
 
