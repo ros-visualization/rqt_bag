@@ -2,7 +2,8 @@
   <name>rqt_bag</name>
   <version>0.4.15</version>
   <description>rqt_bag provides a GUI plugin for displaying and replaying ROS bag files.</description>
-  <maintainer email="dthomas@osrfoundation.org">Dirk Thomas</maintainer>
+  <maintainer email="mabel@openrobotics.org">Mabel Zhang</maintainer>
+  <maintainer email="michael.jeronimo@openrobotics.org">Michael Jeronimo</maintainer>
   <maintainer email="ablasdel@gmail.com">Aaron Blasdel</maintainer>
   <maintainer email="namniart@gmail.com">Austin Hendrix</maintainer>
 
