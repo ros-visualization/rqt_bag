@@ -11,6 +11,7 @@
   <author email="dthomas@osrfoundation.org">Dirk Thomas</author>
   <author email="ablasdel@gmail.com">Aaron Blasdel</author>
   <author email="namniart@gmail.com">Austin Hendrix</author>
+  <author>Tim Field</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <exec_depend version_gte="0.2.19">python_qt_binding</exec_depend>
