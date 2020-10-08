@@ -130,8 +130,8 @@ class MessageTree(QTreeWidget):
 
     # Keyboard handler
     def on_key_press(self, event):
-        key, ctrl = event.key(), event.modifiers() & Qt.ControlModifier
-        if ctrl:
+        if event.modifiers() & Qt.ControlModifier:
+            key = event.key()
             if key == ord('C') or key == ord('c'):
                 # Ctrl-C: copy text from selected items to clipboard
                 self._copy_text_to_clipboard()

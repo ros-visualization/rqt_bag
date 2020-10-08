@@ -514,8 +514,8 @@ class MessageTree(QTreeWidget):
                     self.parent().parent().parent().remove_plot(path)
 
     def on_key_press(self, event):
-        key, ctrl = event.key(), event.modifiers() & Qt.ControlModifier
-        if ctrl:
+        if event.modifiers() & Qt.ControlModifier:
+            key = event.key()
             if key == ord('C') or key == ord('c'):
                 # Ctrl-C: copy text from selected items to clipboard
                 self._copy_text_to_clipboard()
@@ -529,7 +529,7 @@ class MessageTree(QTreeWidget):
         # Get tab indented text for all selected items
         def get_distance(item, ancestor, distance=0):
             parent = item.parent()
-            if parent == None:
+            if parent is None:
                 return distance
             else:
                 return get_distance(parent, ancestor, distance + 1)
@@ -540,4 +540,3 @@ class MessageTree(QTreeWidget):
         # Copy the text to the clipboard
         clipboard = QApplication.clipboard()
         clipboard.setText(text)
-
