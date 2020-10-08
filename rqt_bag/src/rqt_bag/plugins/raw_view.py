@@ -82,7 +82,8 @@ class MessageTree(QTreeWidget):
     def __init__(self, parent):
         super(MessageTree, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.setHeaderHidden(True)
+        self.setHeaderHidden(False)
+        self.setHeaderLabel('')
         self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self._msg = None
 
@@ -108,6 +109,8 @@ class MessageTree(QTreeWidget):
                     self._expanded_paths.remove(path)
             self.clear()
         if msg:
+            self.setHeaderLabel(msg._type)
+
             # Populate the tree
             self._add_msg_object(None, '', '', msg, msg._type)
 
@@ -127,21 +130,16 @@ class MessageTree(QTreeWidget):
 
     # Keyboard handler
     def on_key_press(self, event):
-        key, ctrl = event.key(), event.modifiers() & Qt.ControlModifier
-        if ctrl:
+        if event.modifiers() & Qt.ControlModifier:
+            key = event.key()
             if key == ord('C') or key == ord('c'):
                 # Ctrl-C: copy text from selected items to clipboard
                 self._copy_text_to_clipboard()
                 event.accept()
             elif key == ord('A') or key == ord('a'):
-                # Ctrl-A: select all
-                self._select_all()
-
-    def _select_all(self):
-        for i in self.get_all_items():
-            if not i.isSelected():
-                i.setSelected(True)
-                i.setExpanded(True)
+                # Ctrl-A: expand the tree and select all items
+                self.expandAll()
+                self.selectAll()
 
     def _copy_text_to_clipboard(self):
         # Get tab indented text for all selected items

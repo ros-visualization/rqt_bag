@@ -72,7 +72,7 @@ from rqt_bag import MessageView
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning, Signal
 from python_qt_binding.QtGui import QDoubleValidator, QIcon
-from python_qt_binding.QtWidgets import QWidget, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy
+from python_qt_binding.QtWidgets import QWidget, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy, QApplication, QAbstractItemView
 
 from rqt_plot.data_plot import DataPlot
 
@@ -359,7 +359,9 @@ class MessageTree(QTreeWidget):
     def __init__(self, msg_type, parent):
         super(MessageTree, self).__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.setHeaderHidden(True)
+        self.setHeaderHidden(False)
+        self.setHeaderLabel('')
+        self.setSelectionMode(QAbstractItemView.ExtendedSelection)
         self.itemChanged.connect(self.handleChanged)
         self._msg_type = msg_type
         self._msg = None
@@ -367,6 +369,7 @@ class MessageTree(QTreeWidget):
         self._expanded_paths = None
         self._checked_states = set()
         self.plot_list = set()
+        self.keyPressEvent = self.on_key_press
 
         # populate the tree from the message type
 
@@ -389,6 +392,8 @@ class MessageTree(QTreeWidget):
                     self._checked_states.remove(path)
             self.clear()
         if msg:
+            self.setHeaderLabel(msg._type)
+
             # Populate the tree
             self._add_msg_object(None, '', '', msg, msg._type)
 
@@ -507,3 +512,31 @@ class MessageTree(QTreeWidget):
                 if path in self.plot_list:
                     self.plot_list.remove(path)
                     self.parent().parent().parent().remove_plot(path)
+
+    def on_key_press(self, event):
+        if event.modifiers() & Qt.ControlModifier:
+            key = event.key()
+            if key == ord('C') or key == ord('c'):
+                # Ctrl-C: copy text from selected items to clipboard
+                self._copy_text_to_clipboard()
+                event.accept()
+            elif key == ord('A') or key == ord('a'):
+                # Ctrl-A: expand the tree and select all items
+                self.expandAll()
+                self.selectAll()
+
+    def _copy_text_to_clipboard(self):
+        # Get tab indented text for all selected items
+        def get_distance(item, ancestor, distance=0):
+            parent = item.parent()
+            if parent is None:
+                return distance
+            else:
+                return get_distance(parent, ancestor, distance + 1)
+        text = ''
+        for i in self.get_all_items():
+            if i in self.selectedItems():
+                text += ('\t' * (get_distance(i, None))) + i.text(0) + '\n'
+        # Copy the text to the clipboard
+        clipboard = QApplication.clipboard()
+        clipboard.setText(text)
