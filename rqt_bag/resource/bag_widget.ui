@@ -324,12 +324,12 @@
       <widget class="QLabel" name="stamp_label">
        <property name="maximumSize">
         <size>
-         <width>125</width>
+         <width>185</width>
          <height>16777215</height>
         </size>
        </property>
        <property name="toolTip">
-        <string>Time Stamp of the current playhead</string>
+        <string>Timestamp of the current playhead location</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
@@ -349,12 +349,12 @@
       <widget class="QLabel" name="date_label">
        <property name="maximumSize">
         <size>
-         <width>180</width>
+         <width>185</width>
          <height>16777215</height>
         </size>
        </property>
        <property name="toolTip">
-        <string>Date and time of the playhead</string>
+        <string>Date and time of the current playhead location</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
@@ -380,12 +380,12 @@
        </property>
        <property name="maximumSize">
         <size>
-         <width>110</width>
+         <width>90</width>
          <height>16777215</height>
         </size>
        </property>
        <property name="toolTip">
-        <string>Number of Seconds from the beginning of the current playhead</string>
+        <string>Number of seconds the current playhead location is from the beginning of the bag</string>
        </property>
        <property name="frameShape">
         <enum>QFrame::Panel</enum>
@@ -403,6 +403,9 @@
      </item>
      <item>
       <widget class="QLabel" name="playspeed_label">
+       <property name="toolTip">
+        <string>Playback speed</string>
+       </property>
        <property name="maximumSize">
         <size>
          <width>80</width>
@@ -425,6 +428,9 @@
      </item>
      <item>
       <widget class="QLabel" name="filesize_label">
+       <property name="toolTip">
+        <string>Bag size</string>
+       </property>
        <property name="maximumSize">
         <size>
          <width>80</width>

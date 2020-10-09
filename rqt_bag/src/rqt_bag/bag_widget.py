@@ -339,7 +339,7 @@ class BagWidget(QWidget):
             self.progress_bar.setValue(self._timeline.background_progress)
 
             # Raw timestamp
-            self.stamp_label.setText('%.3fs' % self._timeline._timeline_frame.playhead.to_sec())
+            self.stamp_label.setText('%.9fs' % self._timeline._timeline_frame.playhead.to_sec())
 
             # Human-readable time
             self.date_label.setText(
