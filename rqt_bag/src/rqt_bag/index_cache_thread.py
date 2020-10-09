@@ -64,8 +64,7 @@ class IndexCacheThread(threading.Thread):
                 updated = False
                 for topic in self.timeline.topics:
                     if topic in self.timeline.invalidated_caches:
-                        if self.timeline._update_index_cache(topic) > 0:
-                            updated = True
+                        updated |= (self.timeline._update_index_cache(topic) > 0)
                     if topic_num % update_step == 0 or topic_num == total_topics:
                         new_progress = int(100.0 * (float(topic_num) / total_topics))
                         if new_progress != progress:
