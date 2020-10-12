@@ -249,23 +249,21 @@ class BagWidget(QWidget):
 
     def _on_record_settings_selected(self, all_topics, selected_topics):
         # TODO verify master is still running
+
+        # Get the bag name to record to, prepopulating with a file name based on the current date/time
+        proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
         filename = QFileDialog.getSaveFileName(
-            self, self.tr('Select prefix for new Bag File'), '.', self.tr('Bag files {.bag} (*.bag)'))
-        if filename[0] != '':
-            prefix = filename[0].strip()
+            self, self.tr('Select name for new bag'), proposed_filename, self.tr('Bag files {.bag} (*.bag)'))[0]
 
-            # Get filename to record to
-            record_filename = time.strftime('%Y-%m-%d-%H-%M-%S.bag', time.localtime(time.time()))
-            if prefix.endswith('.bag'):
-                prefix = prefix[:-len('.bag')]
-            if prefix:
-                record_filename = '%s_%s' % (prefix, record_filename)
+        if filename != '':
+            filename = filename.strip()
+            if not filename.endswith('.bag'):
+                filename += ".bag"
 
-            rospy.loginfo('Recording to %s.' % record_filename)
-
+            # Begin recording
             self.load_button.setEnabled(False)
             self._recording = True
-            self._timeline.record_bag(record_filename, all_topics, selected_topics)
+            self._timeline.record_bag(filename, all_topics, selected_topics)
 
     def _handle_load_clicked(self):
         filenames = QFileDialog.getOpenFileNames(
@@ -317,10 +315,17 @@ class BagWidget(QWidget):
         # self clear loading filename
 
     def _handle_save_clicked(self):
+        # Get the bag name to record to, prepopulating with a file name based on the current date/time
+        proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
         filename = QFileDialog.getSaveFileName(
-            self, self.tr('Save selected region to file...'), '.', self.tr('Bag files {.bag} (*.bag)'))
-        if filename[0] != '':
-            self._timeline.copy_region_to_bag(filename[0])
+            self, self.tr('Save selected region...'), proposed_filename, self.tr('Bag files {.bag} (*.bag)'))[0]
+        if filename != '':
+            filename = filename.strip()
+            if not filename.endswith('.bag'):
+                filename += '.bag'
+
+            # Copy the highlighted region
+            self._timeline.copy_region_to_bag(filename)
 
     def _set_status_text(self, text):
         if text:
