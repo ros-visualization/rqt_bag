@@ -357,17 +357,15 @@ class BagWidget(QWidget):
             spd = self._timeline.play_speed
             if spd != 0.0:
                 if spd > 1.0:
-                    spd_str = '>> %.0fx' % spd
+                    spd_str = '%.0fx' % spd
                 elif spd == 1.0:
-                    spd_str = '>'
+                    spd_str = '1x'
                 elif spd > 0.0:
-                    spd_str = '> 1/%.0fx' % (1.0 / spd)
+                    spd_str = '1/%.0fx' % (1.0 / spd)
                 elif spd > -1.0:
-                    spd_str = '< 1/%.0fx' % (1.0 / -spd)
-                elif spd == 1.0:
-                    spd_str = '<'
+                    spd_str = '1/%.0fx' % (1.0 / -spd)
                 else:
-                    spd_str = '<< %.0fx' % -spd
+                    spd_str = '%.0fx' % -spd
                 self.playspeed_label.setText(spd_str)
             else:
                 self.playspeed_label.setText('')
