@@ -15,9 +15,9 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    author='Aaron Blasdel, Tim Field',
-    maintainer='Dirk Thomas, Aaron Blasdel, Austin Hendrix',
-    maintainer_email='dthomas@osrfoundation.org',
+    author='Dirk Thomas, Aaron Blasdel, Austin Hendrix, Tim Field',
+    maintainer='Michael Jeronimo, Mabel Zhang',
+    maintainer_email='michael.jeronimo@openrobotics.org',
     keywords=['ROS'],
     classifiers=[
         'Intended Audience :: Developers',
@@ -26,7 +26,7 @@ setup(
         'Topic :: Software Development',
     ],
     description=(
-        'rqt_bag provides a GUI plugin for displaying and replaying ROS bag files.'
+        'rqt_bag_plugins provides GUI plugins for rqt_bag to display various message types.'
     ),
     license='BSD',
 )
