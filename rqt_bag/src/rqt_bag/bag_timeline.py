@@ -722,9 +722,6 @@ class BagTimeline(QGraphicsScene):
             self._messages_cvs[topic] = threading.Condition()
             self._message_loaders[topic] = MessageLoaderThread(self, topic)
 
-        if self._timeline_frame._stamp_left is None:
-            self.reset_zoom()
-
         # Notify the index caching thread that it has work to do
         with self._timeline_frame.index_cache_cv:
             self._timeline_frame.invalidated_caches.add(topic)
@@ -736,6 +733,10 @@ class BagTimeline(QGraphicsScene):
                     listener.timeline_changed()
                 except Exception as ex:
                     qWarning('Error calling timeline_changed on %s: %s' % (type(listener), str(ex)))
+
+        # Dynamically resize the timeline, if necessary, to make visible any new messages
+        # that might otherwise have exceeded the bounds of the window
+        self.reset_zoom()
 
     # Views / listeners
     def add_view(self, topic, frame):
