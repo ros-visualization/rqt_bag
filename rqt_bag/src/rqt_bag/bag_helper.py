@@ -34,24 +34,28 @@
 Helper functions for bag files and timestamps.
 """
 
+from decimal import Decimal
 import math
 import time
-import rospy
+
+import rclpy
+from rclpy.duration import Duration
+from rclpy.time import Time
 
 
 def stamp_to_str(t):
     """
-    Convert a rospy.Time to a human-readable string.
+    Convert a rclpy.time.Time to a human-readable string.
 
     @param t: time to convert
-    @type  t: rospy.Time
+    @type  t: rclpy.time.Time
     """
-    t_sec = t.to_sec()
-    if t < rospy.Time.from_sec(60 * 60 * 24 * 365 * 5):
+    t_sec, t_nsec = t.seconds_nanoseconds()
+    if t_sec < (60 * 60 * 24 * 365 * 5):
         # Display timestamps earlier than 1975 as seconds
         return '%.3fs' % t_sec
     else:
-        return time.strftime('%b %d %Y %H:%M:%S', time.localtime(t_sec)) + '.%03d' % (t.nsecs / 1000000)
+        return time.strftime('%b %d %Y %H:%M:%S', time.localtime(t_sec)) + '.%03d' % (t_nsec * 1e-9)
 
 
 def get_topics(bag):
@@ -61,7 +65,7 @@ def get_topics(bag):
     @return: sorted list of topics
     @rtype:  list of str
     """
-    return sorted(set([c.topic for c in bag._get_connections()]))
+    return sorted(bag.get_topics())
 
 
 def get_start_stamp(bag):
@@ -71,13 +75,9 @@ def get_start_stamp(bag):
     @param bag: bag file
     @type  bag: rosbag.Bag
     @return: earliest timestamp
-    @rtype:  rospy.Time
+    @rtype:  rclpy.time.Time
     """
-    start_stamp = None
-    for connection_start_stamp in [index[0].time for index in bag._connection_indexes.values()]:
-        if not start_stamp or connection_start_stamp < start_stamp:
-            start_stamp = connection_start_stamp
-    return start_stamp
+    return bag.start_time
 
 
 def get_end_stamp(bag):
@@ -87,14 +87,9 @@ def get_end_stamp(bag):
     @param bag: bag file
     @type  bag: rosbag.Bag
     @return: latest timestamp
-    @rtype:  rospy.Time
+    @rtype:  rclpy.time.Time
     """
-    end_stamp = None
-    for connection_end_stamp in [index[-1].time for index in bag._connection_indexes.values()]:
-        if not end_stamp or connection_end_stamp > end_stamp:
-            end_stamp = connection_end_stamp
-
-    return end_stamp
+    return bag.start_time + bag.duration
 
 
 def get_topics_by_datatype(bag):
@@ -107,8 +102,8 @@ def get_topics_by_datatype(bag):
     @rtype:  dict of str to list of str
     """
     topics_by_datatype = {}
-    for c in bag._get_connections():
-        topics_by_datatype.setdefault(c.datatype, []).append(c.topic)
+    for name, topic in bag.topics.items():
+        topics_by_datatype.setdefault(topic['topic_metadata']['type'], []).append(name)
 
     return topics_by_datatype
 
@@ -122,10 +117,9 @@ def get_datatype(bag, topic):
     @return: message typename
     @rtype:  str
     """
-    for c in bag._get_connections(topic):
-        return c.datatype
-
-    return None
+    if topic not in bag.topics:
+        return None
+    return bag.topics[topic]['topic_metadata']['type']
 
 
 def filesize_to_str(size):
@@ -136,3 +130,17 @@ def filesize_to_str(size):
     if s > 0:
         return '%s %s' % (s, size_name[i])
     return '0 B'
+
+
+def to_sec(t):
+    """
+    Convert an rclpy.time.Time or rclpy.duration.Duration to a float representing seconds
+
+    @param t:
+    @type  t: rclpy.time.Time or rclpy.duration.Duration:
+    @return: result
+    @rtype:  float
+    """
+    # 1e-9 is not exactly 1e-9 if using floating point, so doing this math with floats is imprecise
+    result = Decimal(t.nanoseconds) * Decimal('1e-9')
+    return float(result)

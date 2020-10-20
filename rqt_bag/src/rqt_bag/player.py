@@ -33,12 +33,9 @@
 """
 Player listens to messages from the timeline and publishes them to ROS.
 """
-
-import rospy
-import rosgraph_msgs
-
+from builtin_interfaces.msg import Time
 from python_qt_binding.QtCore import QObject
-
+from rclpy import logging
 CLOCK_TOPIC = "/clock"
 
 
@@ -48,15 +45,17 @@ class Player(QObject):
     This object handles publishing messages as the playhead passes over their position
     """
 
-    def __init__(self, timeline):
+    def __init__(self, node, timeline):
         super(Player, self).__init__()
+        self._node = node
+        self._logger = self._node.get_logger().get_child('rqt_bag.Player')
         self.timeline = timeline
 
         self._publishing = set()
         self._publishers = {}
 
         self._publish_clock = False
-        self._last_clock = rosgraph_msgs.msg.Clock()
+        self._last_clock = Time()
         self._resume = False
 
     def resume(self):
@@ -77,7 +76,7 @@ class Player(QObject):
         self.timeline.remove_listener(topic, self)
 
         if topic in self._publishers:
-            self._publishers[topic].unregister()
+            self._node.destroy_publisher(self._publishers[topic])
             del self._publishers[topic]
 
         self._publishing.remove(topic)
@@ -85,12 +84,12 @@ class Player(QObject):
     def start_clock_publishing(self):
         if CLOCK_TOPIC not in self._publishers:
             # Activate clock publishing only if the publisher was created successful
-            self._publish_clock = self.create_publisher(CLOCK_TOPIC, rosgraph_msgs.msg.Clock())
+            self._publish_clock = self.create_publisher(CLOCK_TOPIC, Time)
 
     def stop_clock_publishing(self):
         self._publish_clock = False
         if CLOCK_TOPIC in self._publishers:
-            self._publishers[CLOCK_TOPIC].unregister()
+            self._node.destroy_publisher(self._publishers[topic])
             del self._publishers[CLOCK_TOPIC]
 
     def stop(self):
@@ -101,14 +100,16 @@ class Player(QObject):
     def create_publisher(self, topic, msg):
         try:
             try:
-                self._publishers[topic] = rospy.Publisher(topic, type(msg), queue_size=100)
+                self._publishers[topic] = \
+                    self._node.create_publisher(type(msg), topic, queue_size=100)
             except TypeError:
-                self._publishers[topic] = rospy.Publisher(topic, type(msg))
+                self._publishers[topic] = self._node.create_publisher(type(msg), topic)
             return True
         except Exception as ex:
             # Any errors, stop listening/publishing to this topic
-            rospy.logerr('Error creating publisher on topic %s for type %s. \nError text: %s' %
-                         (topic, str(type(msg)), str(ex)))
+            self._logger.error(
+                'Error creating publisher on topic %s for type %s. \nError text: %s' %
+                (topic, str(type(msg)), str(ex)))
             if topic != CLOCK_TOPIC:
                 self.stop_publishing(topic)
             return False
@@ -130,7 +131,7 @@ class Player(QObject):
             self.create_publisher(topic, msg)
 
         if self._publish_clock:
-            time_msg = rosgraph_msgs.msg.Clock()
+            time_msg = Time()
             time_msg.clock = clock
             if self._resume or self._last_clock.clock < time_msg.clock:
                 self._resume = False
