@@ -3,7 +3,7 @@ from setuptools import setup
 package_name = 'rqt_bag_plugins'
 setup(
     name=package_name,
-    version='0.4.12',
+    version='0.4.15',
     package_dir={'': 'src'},
     packages=['rqt_bag_plugins'],
     data_files=[
@@ -21,7 +21,7 @@ setup(
     keywords=['ROS'],
     classifiers=[
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: Apache Software License',
+        'License :: OSI Approved :: BSD License',
         'Programming Language :: Python',
         'Topic :: Software Development',
     ],

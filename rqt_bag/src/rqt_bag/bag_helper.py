@@ -78,11 +78,6 @@ def get_start_stamp(bag):
     @rtype:  rclpy.time.Time
     """
     return bag.start_time
-    start_stamp = None
-    for connection_start_stamp in [index[0].time for index in bag._connection_indexes.values()]:
-        if not start_stamp or connection_start_stamp < start_stamp:
-            start_stamp = connection_start_stamp
-    return start_stamp
 
 
 def get_end_stamp(bag):
@@ -95,12 +90,6 @@ def get_end_stamp(bag):
     @rtype:  rclpy.time.Time
     """
     return bag.start_time + bag.duration
-    end_stamp = None
-    for connection_end_stamp in [index[-1].time for index in bag._connection_indexes.values()]:
-        if not end_stamp or connection_end_stamp > end_stamp:
-            end_stamp = connection_end_stamp
-
-    return end_stamp
 
 
 def get_topics_by_datatype(bag):
@@ -131,11 +120,6 @@ def get_datatype(bag, topic):
     if topic not in bag.topics:
         return None
     return bag.topics[topic]['topic_metadata']['type']
-
-    for c in bag._get_connections(topic):
-        return c.datatype
-
-    return None
 
 
 def filesize_to_str(size):

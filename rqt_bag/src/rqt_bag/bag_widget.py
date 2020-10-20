@@ -330,9 +330,10 @@ class BagWidget(QWidget):
         # self clear loading filename
 
     def _handle_save_clicked(self):
-        filename = \
-            QFileDialog.getSaveFileName(self, self.tr('Save selected region to file...'), '.',
-                                        self.tr('Bag files {.bag} (*.bag)'))
+        filename = QFileDialog.getSaveFileName(
+            self, self.tr('Save selected region to file...'), '.',
+            self.tr('Bag files {.bag} (*.bag)'))
+
         if filename[0] != '':
             self._timeline.copy_region_to_bag(filename[0])
 
@@ -344,8 +345,8 @@ class BagWidget(QWidget):
             self.progress_bar.setTextVisible(False)
 
     def _update_status_bar(self):
-        if self._timeline._timeline_frame.playhead is None or \
-                self._timeline._timeline_frame.start_stamp is None:
+        if (self._timeline._timeline_frame.playhead is None or \
+                self._timeline._timeline_frame.start_stamp is None):
             return
         # TODO Figure out why this function is causing a "RuntimeError: wrapped
         # C/C++ object of %S has been deleted" on close if the playhead is moving
