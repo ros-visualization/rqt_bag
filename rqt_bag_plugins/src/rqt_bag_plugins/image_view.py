@@ -83,20 +83,16 @@ class ImageView(TopicMessageView):
             0, 0, self._image_view.size().width() - 2, self._image_view.size().height() - 2)
         self.put_image_into_scene()
 
-    def message_viewed(self, bag, msg_details):
+    def message_viewed(self, bag, entry, ros_message, msg_type_name, topic):
         """
         refreshes the image
         """
-        TopicMessageView.message_viewed(self, bag, msg_details)
-        topic, msg, t = msg_details[:3]
-        if not msg:
-            self.set_image(None, topic, 'no message')
-        else:
-            self.set_image(msg, topic, msg.header.stamp)
+        TopicMessageView.message_viewed(self, bag, entry, ros_message, msg_type_name, topic)
+        self.set_image(ros_message, msg_type_name, topic, ros_message.header.stamp)
 
     def message_cleared(self):
         TopicMessageView.message_cleared(self)
-        self.set_image(None, None, None)
+        self.set_image(None, None, None, None)
 
     # End MessageView implementation
     def put_image_into_scene(self):
@@ -114,12 +110,10 @@ class ImageView(TopicMessageView):
             self._scene.clear()
             self._scene.addPixmap(pixmap)
 
-    def set_image(self, image_msg, image_topic, image_stamp):
-        self._image_msg = image_msg
-        if image_msg:
-            self._image = image_helper.imgmsg_to_pil(image_msg)
-        else:
-            self._image = None
-        self._image_topic = image_topic
-        self._image_stamp = image_stamp
-        self.put_image_into_scene()
+    def set_image(self, image_msg, image_type, image_topic, image_stamp):
+        if image_type == "sensor_msgs/msg/Image" or image_type == "sensor_msgs/msg/CompressedImage":
+            self._image_msg = image_msg
+            self._image = image_helper.imgmsg_to_pil(image_msg, image_type)
+            self._image_topic = image_topic
+            self._image_stamp = image_stamp
+            self.put_image_into_scene()
