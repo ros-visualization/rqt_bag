@@ -208,7 +208,7 @@ class MessageTree(QTreeWidget):
 
         elif type(obj) in [str, bool, int, long, float, complex, Time]:
             # Ignore any binary data
-            obj_repr = str(obj)
+            obj_repr = codecs.utf_8_decode(str(obj).decode(), 'ignore')[0]
 
             # Truncate long representations
             if len(obj_repr) >= 50:
