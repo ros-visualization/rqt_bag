@@ -78,10 +78,10 @@ class TopicPopupWidget(QWidget):
                 self._timeline.remove_listener(self._topic, self._viewer)
                 self._viewer = None
 
-            # clean out the layout
-            while self.layout().count() > 0:
-                item = self.layout().itemAt(0)
-                self.layout().removeItem(item)
+            # Clean out the layout. Loop backwards since removing
+            # from the beginning shifts items and changes the order
+            for i in reversed(range(self.layout().count())):
+                self.layout().itemAt(i).widget().setParent(None)
 
             # create a new viewer
             self._viewer = self._viewer_type(self._timeline, self, self._topic)
