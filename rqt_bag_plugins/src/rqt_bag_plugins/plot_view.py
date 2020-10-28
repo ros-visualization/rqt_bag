@@ -102,7 +102,7 @@ class PlotView(MessageView):
 
         parent.layout().addWidget(self.plot_widget)
 
-    def message_viewed(self, bag, entry, ros_message, msg_type_name, topic):
+    def message_viewed(self, *, entry, ros_message, msg_type_name, **kwargs):
         """
         refreshes the plot
         """
