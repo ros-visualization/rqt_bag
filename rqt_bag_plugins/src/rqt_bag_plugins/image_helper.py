@@ -94,6 +94,7 @@ def imgmsg_to_pil(img_msg, rgba=True):
         if pil_img.mode == 'F':
             pil_img = pil_img.point(lambda i: i * (1. / 256.)).convert('L')
             pil_img = ImageOps.autocontrast(pil_img)
+            pil_img = ImageOps.invert(pil_img)
 
         if rgba and pil_img.mode != 'RGBA':
             pil_img = pil_img.convert('RGBA')
