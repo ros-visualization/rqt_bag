@@ -40,13 +40,18 @@ from collections import namedtuple
 from python_qt_binding.QtCore import qDebug
 from rclpy.duration import Duration
 from rclpy.time import Time
+from rclpy.serialization import deserialize_message
+from rosidl_runtime_py.utilities import get_message
 
 import sqlite3
 import os
+import pathlib
 
 SQL_COLUMNS = ['id', 'topic_id', 'timestamp', 'data']
 
 
+# TODO(mjeronimo): When refactoring this, move generally useful methods to the rosbag2_py
+# module and make this class obsolete.
 class Rosbag2:
     def __init__(self, bag_info, filename):
         self.filename = filename
@@ -54,12 +59,15 @@ class Rosbag2:
             topic['topic_metadata']['name']: topic
             for topic in bag_info['topics_with_message_count']
         }
-        bag_dir = os.path.dirname(filename)
+        self.bag_dir = os.path.dirname(filename)
         database_relative_name = bag_info['relative_file_paths'][0]
-        self.db_name = os.path.join(bag_dir, database_relative_name)
+        self.db_name = os.path.join(self.bag_dir, database_relative_name)
 
         self.start_time = Time(nanoseconds=bag_info['starting_time']['nanoseconds_since_epoch'])
         self.duration = Duration(nanoseconds=bag_info['duration']['nanoseconds'])
+
+    def size(self):
+        return sum(f.stat().st_size for f in pathlib.Path(self.bag_dir).glob('**/*') if f.is_file())
 
     def get_topics(self):
         return list(self.topics.keys())
@@ -84,16 +92,37 @@ class Rosbag2:
             return None
         return entry[0]
 
+    def get_topic_info(self, topic_id):
+        db = sqlite3.connect(self.db_name)
+        cursor = db.cursor()
+        search = cursor.execute(
+            'SELECT name, type FROM topics WHERE id="{}";'.format(topic_id))
+        entry = search.fetchone()
+        cursor.close()
+        db.close()
+        if entry is None:
+            return None
+        return (entry[0], entry[1])
+
+    def convert_entry_to_ros_message(self, entry):
+        (topic, msg_type_name) = self.get_topic_info(entry.topic_id)
+        msg_type = get_message(msg_type_name)
+        ros_message = deserialize_message(entry.data, msg_type)
+        return (ros_message, msg_type_name, topic)
+
     def _get_entry(self, timestamp, topic=None):
         qDebug("Getting entry at {} for topic {}".format(timestamp, topic))
         db = sqlite3.connect(self.db_name)
         columns_str = ", ".join(SQL_COLUMNS)
         cursor = db.cursor()
         topic_str = ''
-        if topic is not None and topic in self.topics:
+        if topic is not None:
+            # The requested topic may not be in this database
+            if topic not in self.topics:
+                return None
             topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
         search = cursor.execute(
-            "SELECT {} FROM messages WHERE timestamp<{} {}ORDER BY timestamp DESC LIMIT 1;".format(
+            "SELECT {} FROM messages WHERE timestamp<={} {}ORDER BY timestamp DESC LIMIT 1;".format(
                 columns_str, timestamp.nanoseconds, topic_str))
         entry = search.fetchone()
         cursor.close()
@@ -111,8 +140,11 @@ class Rosbag2:
         columns_str = ", ".join(SQL_COLUMNS)
         cursor = db.cursor()
         topic_str = ''
-        if topic is not None and topic in self.topics:
-            topic_str = 'AND topic_id={} '.format(get_topic_id(topic))
+        if topic is not None:
+            # The requested topic may not be in this database
+            if topic not in self.topics:
+                return None
+            topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
         search = cursor.execute(
             "SELECT {} FROM messages WHERE timestamp>{} {}LIMIT 1;".format(
                 columns_str, timestamp.nanoseconds, topic_str))
@@ -131,10 +163,13 @@ class Rosbag2:
         columns_str = ", ".join(SQL_COLUMNS)
         cursor = db.cursor()
         topic_str = ''
-        if topic is not None and topic in self.topics:
-            topic_str = 'AND topic_id={} '.format(get_topic_id(topic))
+        if topic is not None:
+            # The requested topic may not be in this database
+            if topic not in self.topics:
+                return None
+            topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
         search = cursor.execute(
-            "SELECT {} FROM messages WHERE timestamp>={} AND timestamp <{} {};".format(
+            "SELECT {} FROM messages WHERE timestamp>={} AND timestamp <={} {};".format(
                 columns_str, t_start.nanoseconds, t_end.nanoseconds, topic_str))
         entries = search.fetchall()
         cursor.close()
