@@ -83,11 +83,11 @@ class ImageView(TopicMessageView):
             0, 0, self._image_view.size().width() - 2, self._image_view.size().height() - 2)
         self.put_image_into_scene()
 
-    def message_viewed(self, bag, entry, ros_message, msg_type_name, topic):
+    def message_viewed(self, *, bag, entry, ros_message, msg_type_name, topic, **kwargs):
         """
         refreshes the image
         """
-        TopicMessageView.message_viewed(self, bag, entry, ros_message, msg_type_name, topic)
+        TopicMessageView.message_viewed(self, bag=bag, entry=entry, ros_message=ros_message, msg_type_name=msg_type_name)
         self.set_image(ros_message, msg_type_name, topic, ros_message.header.stamp)
 
     def message_cleared(self):

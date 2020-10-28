@@ -39,6 +39,8 @@ except ImportError:
 import threading
 import time
 
+from rqt_bag import bag_helper
+
 
 class TimelineCache(threading.Thread):
 
@@ -96,11 +98,11 @@ class TimelineCache(threading.Thread):
                 self.items[topic] = []
             topic_cache = self.items[topic]
 
-            cache_entry = (t.to_sec(), item)
+            cache_entry = (bag_helper.to_sec(t), item)
             cache_index = bisect.bisect_right(topic_cache, cache_entry)
             topic_cache.insert(cache_index, cache_entry)
 
-            self._update_last_accessed(topic, t.to_sec())
+            self._update_last_accessed(topic, bag_helper.to_sec(t))
 
             self._limit_cache()
 
