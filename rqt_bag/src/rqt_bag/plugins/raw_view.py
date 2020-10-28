@@ -228,8 +228,11 @@ class MessageTree(QTreeWidget):
             if subobj is None:
                 continue
 
-            # Strip the leading underscore for display
-            if subobj_name[0] == '_':
+            # Strip the leading underscore for display. In ROS2, the Python IDL generator
+            # adds a leading underscore for each name in __slots__, whereas the name of
+            # the field does not have a leading underscore.
+            if hasattr(obj, '__slots__') and subobj_name[0] == '_':
+                print("Stripping")
                 subobj_name = subobj_name[1:]
 
             if path == '':
