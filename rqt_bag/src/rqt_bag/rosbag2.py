@@ -45,10 +45,13 @@ from rosidl_runtime_py.utilities import get_message
 
 import sqlite3
 import os
+import pathlib
 
 SQL_COLUMNS = ['id', 'topic_id', 'timestamp', 'data']
 
 
+# TODO(mjeronimo): When refactoring this, move generally useful methods to the rosbag2_py
+# module and make this class obsolete.
 class Rosbag2:
     def __init__(self, bag_info, filename):
         self.filename = filename
@@ -64,14 +67,7 @@ class Rosbag2:
         self.duration = Duration(nanoseconds=bag_info['duration']['nanoseconds'])
 
     def size(self):
-        total_size = 0
-        for dirpath, dirnames, filenames in os.walk(self.bag_dir):
-            for filename in filenames:
-                full_name = os.path.join(dirpath, filename)
-                # skip if it is symbolic link
-                if not os.path.islink(full_name):
-                    total_size += os.path.getsize(full_name)
-        return total_size
+        return sum(f.stat().st_size for f in pathlib.Path(self.bag_dir).glob('**/*') if f.is_file())
 
     def get_topics(self):
         return list(self.topics.keys())
