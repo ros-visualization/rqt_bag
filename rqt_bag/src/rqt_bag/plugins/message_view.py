@@ -33,6 +33,8 @@
 
 from python_qt_binding.QtCore import QObject
 
+import rosbag2_py
+
 
 class MessageView(QObject):
 
@@ -47,19 +49,20 @@ class MessageView(QObject):
         self.timeline = timeline
         self.topic = topic
 
-    def message_viewed(self, bag, msg_details):
+    def message_viewed(self, *, bag, entry, ros_message, msg_type_name, topic):
         """
         View the message.
 
         @param bag: the bag file the message is contained in
         @type  bag: rosbag.Bag
-        @param msg_details: the details of the message to be viewed
-        @type msg_details: tuple (topic, msg, time)
-            @param topic: the message topic
-            @type  topic: str
-            @param msg: the message
-            @param t: the message timestamp
-            @type  t: rospy.Time
+        @param entry: the bag entry of the message to be viewed
+        @type entry: tuple (id, topic_id, timestamp, data)
+        @param ros_message: the (deserialized) ROS message
+        @type msg: ROS message
+        @param msg_type_name: the name of the message type
+        @type string
+        @param topic: the topic on which the message was recorded
+        @type topic: string
         """
         pass
 
@@ -88,9 +91,10 @@ class MessageView(QObject):
         This function will be called to process events posted by post_event
         it will call message_cleared or message_viewed with the relevant data
         """
-        bag, msg_data = event.data
-        if msg_data:
-            self.message_viewed(bag, msg_data)
+        bag, entry = event.data
+        if entry:
+            (ros_message, msg_type_name, topic) = bag.convert_entry_to_ros_message(entry)
+            self.message_viewed(bag=bag, entry=entry, ros_message=ros_message, msg_type_name=msg_type_name, topic=topic)
         else:
             self.message_cleared()
         return True
