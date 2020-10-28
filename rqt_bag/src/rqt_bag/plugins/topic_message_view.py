@@ -74,7 +74,7 @@ class TopicMessageView(MessageView):
 
     # MessageView implementation
 
-    def message_viewed(self, bag, entry, ros_message, msg_type_name, topic):
+    def message_viewed(self, *, entry, **kwargs):
         self._stamp = entry.timestamp
 
     # Events

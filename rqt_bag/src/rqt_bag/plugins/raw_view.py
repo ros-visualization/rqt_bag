@@ -66,8 +66,8 @@ class RawView(TopicMessageView):
         # This will automatically resize the message_tree to the windowsize
         parent.layout().addWidget(self.message_tree)
 
-    def message_viewed(self, bag, entry, ros_message, msg_type_name, topic):
-        super(RawView, self).message_viewed(bag, entry, ros_message, msg_type_name, topic)
+    def message_viewed(self, *, entry, ros_message, msg_type_name, **kwargs):
+        super(RawView, self).message_viewed(entry=entry, ros_message=ros_message, msg_type_name=msg_type_name)
         if ros_message is None:
             self.message_cleared()
         else:
@@ -232,7 +232,6 @@ class MessageTree(QTreeWidget):
             # adds a leading underscore for each name in __slots__, whereas the name of
             # the field does not have a leading underscore.
             if hasattr(obj, '__slots__') and subobj_name[0] == '_':
-                print("Stripping")
                 subobj_name = subobj_name[1:]
 
             if path == '':

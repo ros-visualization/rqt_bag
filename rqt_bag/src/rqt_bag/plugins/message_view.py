@@ -49,7 +49,7 @@ class MessageView(QObject):
         self.timeline = timeline
         self.topic = topic
 
-    def message_viewed(self, bag, entry, ros_message, msg_type_name, topic):
+    def message_viewed(self, *, bag, entry, ros_message, msg_type_name, topic):
         """
         View the message.
 
@@ -94,7 +94,7 @@ class MessageView(QObject):
         bag, entry = event.data
         if entry:
             (ros_message, msg_type_name, topic) = bag.convert_entry_to_ros_message(entry)
-            self.message_viewed(bag, entry, ros_message, msg_type_name, topic)
+            self.message_viewed(bag=bag, entry=entry, ros_message=ros_message, msg_type_name=msg_type_name, topic=topic)
         else:
             self.message_cleared()
         return True
