@@ -39,7 +39,7 @@ from rclpy import logging
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import qDebug, QFileInfo, Qt, qWarning, Signal
-from python_qt_binding.QtGui import QIcon
+from python_qt_binding.QtGui import QIcon, QResizeEvent
 from python_qt_binding.QtWidgets import QFileDialog, QGraphicsView, QWidget
 
 from rosbag2_transport import rosbag2_transport_py
@@ -281,6 +281,12 @@ class BagWidget(QWidget):
             self, self.tr('Load from Files'), '.', self.tr('Rosbag2 Metadata File {.yaml} (*.yaml)'))
         for filename in filenames[0]:
             self.load_bag(filename)
+
+        # After loading bag(s), force a resize event on the bag widget so that
+        # it can take the new height of the timeline into account (and show
+        # the scroll bar if necessary)
+        self._timeline._timeline_frame._layout()
+        self._resizeEvent(QResizeEvent(self.size(), self.size()))
 
     def load_bag(self, filename):
         qDebug("Loading '%s'..." % filename.encode(errors='replace'))
