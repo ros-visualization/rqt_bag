@@ -519,7 +519,7 @@ class MessageTree(QTreeWidget):
             pass
         else:
             # Strip the leading underscore from each of the path segments
-            segments = [segment[1:] for segment in self.get_item_path(item).split('.')]
+            segments = [segment[1:] if segment[0] == '_' else segment for segment in self.get_item_path(item).split('.')]
             path  = '.'.join(segments)
 
             if item.checkState(column) == Qt.Checked:
