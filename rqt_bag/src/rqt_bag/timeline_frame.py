@@ -147,12 +147,10 @@ class TimelineFrame(QGraphicsItem):
         self._default_pen = QPen(Qt.black)
         self._default_datatype_color = QColor(0, 0, 102, 204)
         self._datatype_colors = {
-            'sensor_msgs/CameraInfo': QColor(0, 0, 77, 204),
-            'sensor_msgs/Image': QColor(0, 77, 77, 204),
-            'sensor_msgs/LaserScan': QColor(153, 0, 0, 204),
-            'pr2_msgs/LaserScannerSignal': QColor(153, 0, 0, 204),
-            'pr2_mechanism_msgs/MechanismState': QColor(0, 153, 0, 204),
-            'tf/tfMessage': QColor(0, 153, 0, 204),
+            'sensor_msgs/msg/CameraInfo': QColor(0, 0, 77, 204),
+            'sensor_msgs/msg/Image': QColor(0, 77, 77, 204),
+            'sensor_msgs/msg/LaserScan': QColor(153, 0, 0, 204),
+            'tf2_msgs/msg/TFMessage': QColor(0, 153, 0, 204),
         }
         # minimum number of pixels allowed between two bag messages before they are combined
         self._default_msg_combine_px = 1.0
@@ -406,7 +404,7 @@ class TimelineFrame(QGraphicsItem):
 
     def _draw_topic_history(self, painter, topic):
         """
-        Draw boxes corrisponding to message regions on the timeline.
+        Draw boxes corresponding to message regions on the timeline.
         :param painter: allows access to paint functions,''QPainter''
         :param topic: the topic for which message boxes should be drawn, ''str''
         """
@@ -837,7 +835,7 @@ class TimelineFrame(QGraphicsItem):
 
         topic_cache_len = len(topic_cache)
 
-        for entry in self.scene().get_entries(topic, start_time, end_time):
+        for entry in self.scene().get_entries([topic], start_time, end_time):
             topic_cache.append(bag_helper.to_sec(Time(nanoseconds=entry.timestamp)))
 
         if topic in self.invalidated_caches:
