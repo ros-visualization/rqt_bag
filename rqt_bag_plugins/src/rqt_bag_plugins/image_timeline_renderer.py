@@ -54,7 +54,7 @@ from python_qt_binding.QtGui import QBrush, QPen, QPixmap
 class ImageTimelineRenderer(TimelineRenderer):
 
     """
-    Draws thumbnails of sensor_msgs/Image or sensor_msgs/CompressedImage in the timeline.
+    Draws thumbnails of sensor_msgs/msg/Image or sensor_msgs/msg/CompressedImage in the timeline.
     """
 
     def __init__(self, timeline, thumbnail_height=160):
@@ -159,16 +159,12 @@ class ImageTimelineRenderer(TimelineRenderer):
         bag, entry = self.timeline.scene().get_entry(t, topic)
         if not entry:
             return None, None
-        pos = entry.position
 
-        # Not in the cache; load from the bag file
-
-        with self.timeline.scene()._bag_lock:
-            msg_topic, msg, msg_stamp = bag._read_message(pos)
+        (ros_message, msg_type, topic) = bag.convert_entry_to_ros_message(entry)
 
         # Convert from ROS image to PIL image
         try:
-            pil_image = image_helper.imgmsg_to_pil(msg)
+            pil_image = image_helper.imgmsg_to_pil(ros_message, msg_type)
         except Exception as ex:
             print('Error loading image on topic %s: %s' % (topic, str(ex)), file=sys.stderr)
             pil_image = None
@@ -186,7 +182,7 @@ class ImageTimelineRenderer(TimelineRenderer):
             # Scale to thumbnail size
             thumbnail = pil_image.resize((thumbnail_width, thumbnail_height), self.quality)
 
-            return msg_stamp, thumbnail
+            return t, thumbnail
 
         except Exception as ex:
             print('Error loading image on topic %s: %s' % (topic, str(ex)), file=sys.stderr)

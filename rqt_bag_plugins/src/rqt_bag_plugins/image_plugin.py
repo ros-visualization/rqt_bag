@@ -48,4 +48,4 @@ class ImagePlugin(Plugin):
         return ImageTimelineRenderer
 
     def get_message_types(self):
-        return ['sensor_msgs/Image', 'sensor_msgs/CompressedImage']
+        return ['sensor_msgs/msg/Image', 'sensor_msgs/msg/CompressedImage']

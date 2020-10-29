@@ -46,17 +46,16 @@ except ImportError:
     import cairocffi as cairo
 
 
-def imgmsg_to_pil(img_msg, rgba=True):
+def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
     try:
-        if img_msg._type == 'sensor_msgs/CompressedImage':
+        if msg_type_name == 'sensor_msgs/msg/CompressedImage':
             pil_img = Image.open(StringIO(img_msg.data))
             if pil_img.mode != 'L':
                 pil_img = pil_bgr2rgb(pil_img)
             pil_mode = 'RGB'
         else:
-            alpha = False
             pil_mode = 'RGB'
-            if img_msg.encoding == 'mono8':
+            if img_msg.encoding in ['mono8', '8UC1' ]:
                 mode = 'L'
             elif img_msg.encoding == 'rgb8':
                 mode = 'RGB'
@@ -76,20 +75,25 @@ def imgmsg_to_pil(img_msg, rgba=True):
                     mode = 'F;16B'
                 else:
                     mode = 'F;16'
+            elif img_msg.encoding == '32FC1':
+                pil_mode = 'F'
+                if img_msg.is_bigendian:
+                    mode = 'F;32BF'
+                else:
+                    mode = 'F;32F'
             elif img_msg.encoding == 'rgba8':
                 mode = 'BGR'
-                alpha = True
             elif img_msg.encoding == 'bgra8':
                 mode = 'RGB'
-                alpha = True
             else:
                 raise Exception("Unsupported image format: %s" % img_msg.encoding)
             pil_img = Image.frombuffer(
-                pil_mode, (img_msg.width, img_msg.height), img_msg.data, 'raw', mode, 0, 1)
+                pil_mode, (img_msg.width, img_msg.height), img_msg.data.tobytes(), 'raw', mode, 0, 1)
 
         # 16 bits conversion to 8 bits
         if pil_mode == 'I;16':
             pil_img = pil_img.convert('I').point(lambda i: i * (1. / 256.)).convert('L')
+
         if pil_img.mode == 'F':
             pil_img = pil_img.point(lambda i: i * (1. / 256.)).convert('L')
             pil_img = ImageOps.autocontrast(pil_img)
