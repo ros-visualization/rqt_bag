@@ -13,7 +13,7 @@
 #    copyright notice, this list of conditions and the following
 #    disclaimer in the documentation and/or other materials provided
 #    with the distribution.
-#  * Neither the name of Willow Garage, Inc. nor the names of its
+#  * Neither the name of the copyright holder nor the names of its
 #    contributors may be used to endorse or promote products derived
 #    from this software without specific prior written permission.
 #
@@ -45,26 +45,26 @@ from rclpy.time import Time
 
 def duration_to_node(duration):
     node = {}
-    node["sec"] = int(math.floor(duration.nanoseconds / 1e9))
-    node["nsec"] = duration.nanoseconds % (1000 * 1000 * 1000)
+    node['sec'] = int(math.floor(duration.nanoseconds / 1e9))
+    node['nsec'] = duration.nanoseconds % (1000 * 1000 * 1000)
     return node
 
 
 def node_to_duration(node):
-    return Duration(seconds=int(node["sec"]), nanoseconds=int(node["nsec"]))
+    return Duration(seconds=int(node['sec']), nanoseconds=int(node['nsec']))
 
 
 def qos_profile_to_yaml(qos_profile):
     qos = {}
-    qos["history"] = int(qos_profile.history)
-    qos["depth"] = int(qos_profile.depth)
-    qos["reliability"] = int(qos_profile.reliability)
-    qos["durability"] = int(qos_profile.durability)
-    qos["lifespan"] = duration_to_node(qos_profile.lifespan)
-    qos["deadline"] = duration_to_node(qos_profile.deadline)
-    qos["liveliness"] = int(qos_profile.liveliness)
-    qos["liveliness_lease_duration"] = duration_to_node(qos_profile.liveliness_lease_duration)
-    qos["avoid_ros_namespace_conventions"] = qos_profile.avoid_ros_namespace_conventions
+    qos['history'] = int(qos_profile.history)
+    qos['depth'] = int(qos_profile.depth)
+    qos['reliability'] = int(qos_profile.reliability)
+    qos['durability'] = int(qos_profile.durability)
+    qos['lifespan'] = duration_to_node(qos_profile.lifespan)
+    qos['deadline'] = duration_to_node(qos_profile.deadline)
+    qos['liveliness'] = int(qos_profile.liveliness)
+    qos['liveliness_lease_duration'] = duration_to_node(qos_profile.liveliness_lease_duration)
+    qos['avoid_ros_namespace_conventions'] = qos_profile.avoid_ros_namespace_conventions
     return yaml.dump([qos], sort_keys=False)
 
 
@@ -72,12 +72,12 @@ def yaml_to_qos_profile(qos_profile_yaml):
     qos_profiles = []
     nodes = yaml.safe_load(qos_profile_yaml)
     for node in nodes:
-      qos_profile = QoSProfile(depth=int(node["depth"]))
+      qos_profile = QoSProfile(depth=int(node['depth']))
       qos_profile.history = rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT
-      qos_profile.reliability = int(node["reliability"])
-      qos_profile.durability = int(node["durability"])
-      qos_profile.liveliness = int(node["liveliness"])
-      qos_profile.avoid_ros_namespace_conventions = node["avoid_ros_namespace_conventions"]
+      qos_profile.reliability = int(node['reliability'])
+      qos_profile.durability = int(node['durability'])
+      qos_profile.liveliness = int(node['liveliness'])
+      qos_profile.avoid_ros_namespace_conventions = node['avoid_ros_namespace_conventions']
       qos_profiles.append(qos_profile)
 
     return qos_profiles
