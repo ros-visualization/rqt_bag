@@ -575,7 +575,7 @@ class BagTimeline(QGraphicsScene):
     def _create_player(self):
         if not self._player:
             try:
-                self._player = Player(self)
+                self._player = Player(self._context.node, self)
                 if self._publish_clock:
                     self._player.start_clock_publishing()
             except Exception as ex:
