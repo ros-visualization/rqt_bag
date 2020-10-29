@@ -257,18 +257,14 @@ class BagWidget(QWidget):
         self.topic_selection.recordSettingsSelected.connect(self._on_record_settings_selected)
 
     def _on_record_settings_selected(self, all_topics, selected_topics):
-        filename = \
-            QFileDialog.getSaveFileName(self, self.tr('Select prefix for new Bag File'), '.',
-                                        self.tr('Bag files {.bag} (*.bag)'))
-        if filename[0] != '':
-            prefix = filename[0].strip()
+        # Get bag name to record to, prepopulating the dialog input with the current time
+        proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+        filename = QFileDialog.getSaveFileName(self, self.tr('Select name for new rosbag'), proposed_filename)
 
-            # Get filename to record to
-            record_filename = time.strftime('%Y-%m-%d-%H-%M-%S.bag', time.localtime(time.time()))
-            if prefix.endswith('.bag'):
-                prefix = prefix[:-len('.bag')]
-            if prefix:
-                record_filename = '%s_%s' % (prefix, record_filename)
+        if filename[0] != '':
+            record_filename = filename[0].strip()
+            if record_filename.endswith('.bag'):
+                record_filename = record_filename[:-len('.bag')]
 
             self._logger.info('Recording to %s.' % record_filename)
 
@@ -277,10 +273,18 @@ class BagWidget(QWidget):
             self._timeline.record_bag(record_filename, all_topics, selected_topics)
 
     def _handle_load_clicked(self):
-        filenames = QFileDialog.getOpenFileNames(
-            self, self.tr('Load from Files'), '.', self.tr('Rosbag2 Metadata File {.yaml} (*.yaml)'))
-        for filename in filenames[0]:
-            self.load_bag(filename)
+        # Create a dialog explicitly so that we can set options on it. We're currently using
+        # a native dialog which is not able to multi-select directories
+        dialog = QFileDialog(self)
+        dialog.setFileMode(QFileDialog.Directory)
+        dialog.setOption(QFileDialog.ShowDirsOnly, True)
+
+        if dialog.exec():
+            filenames = dialog.selectedFiles()
+            if filenames:
+                self.last_open_dir = filenames[0]
+            for filename in filenames:
+                self.load_bag(filename + "/metadata.yaml")
 
         # After loading bag(s), force a resize event on the bag widget so that
         # it can take the new height of the timeline into account (and show
@@ -289,13 +293,13 @@ class BagWidget(QWidget):
         self._resizeEvent(QResizeEvent(self.size(), self.size()))
 
     def load_bag(self, filename):
-        qDebug("Loading '%s'..." % filename.encode(errors='replace'))
+        qDebug("Loading '%s' ..." % filename.encode(errors='replace'))
 
         # QProgressBar can EITHER: show text or show a bouncing loading bar,
         #  but apparently the text is hidden when the bounding loading bar is
         #  shown
         # self.progress_bar.setRange(0, 0)
-        self.set_status_text.emit("Loading '%s'..." % filename)
+        self.set_status_text.emit("Loading '%s' ..." % os.path.split(filename)[0])
         # progress_format = self.progress_bar.format()
         # progress_text_visible = self.progress_bar.isTextVisible()
         # self.progress_bar.setFormat("Loading %s" % filename)
@@ -303,7 +307,7 @@ class BagWidget(QWidget):
 
         try:
             with open(filename) as f:
-                bag_info = yaml.load(f)
+                bag_info = yaml.safe_load(f)
                 bag = Rosbag2(bag_info['rosbag2_bagfile_information'], filename)
         except Exception as e:
             qWarning("Loading '%s' failed due to: %s" % (filename.encode(errors='replace'), e))
@@ -336,10 +340,10 @@ class BagWidget(QWidget):
         # self clear loading filename
 
     def _handle_save_clicked(self):
-        filename = QFileDialog.getSaveFileName(
-            self, self.tr('Save selected region to file...'), '.',
-            self.tr('Bag files {.bag} (*.bag)'))
-
+        # Get the bag name to save to, prepopulating the dialog input with the current time
+        proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
+        filename = \
+            QFileDialog.getSaveFileName(self, self.tr('Save selected region...'), proposed_filename)
         if filename[0] != '':
             self._timeline.copy_region_to_bag(filename[0])
 
