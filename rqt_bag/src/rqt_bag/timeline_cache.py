@@ -109,7 +109,7 @@ class TimelineCache(threading.Thread):
             # Attempt to get a item from the cache that's within time_threshold secs from stamp
             topic_cache = self.items.get(topic)
             if topic_cache:
-                cache_index = max(0, bisect.bisect_right(topic_cache, (stamp, None)) - 1)
+                cache_index = max(0, bisect.bisect_right(topic_cache, (stamp, )) - 1)
 
                 if cache_index <= len(topic_cache) - 1:
                     # Get cache entry before (or at) timestamp, and entry after
@@ -155,7 +155,7 @@ class TimelineCache(threading.Thread):
             if stamp in topic_item_access:
                 last_access = topic_item_access[stamp]
 
-                index = bisect.bisect_left(topic_last_accessed, (last_access, None))
+                index = bisect.bisect_left(topic_last_accessed, (last_access, ))
                 assert(topic_last_accessed[index][1] == stamp)
 
                 del topic_last_accessed[index]
@@ -172,7 +172,7 @@ class TimelineCache(threading.Thread):
                 while len(topic_cache) > self.max_cache_size:
                     lru_stamp = self.last_accessed[topic][0][1]
 
-                    cache_index = bisect.bisect_left(topic_cache, (lru_stamp, None))
+                    cache_index = bisect.bisect_left(topic_cache, (lru_stamp, ))
                     assert(topic_cache[cache_index][0] == lru_stamp)
 
                     del topic_cache[cache_index]
