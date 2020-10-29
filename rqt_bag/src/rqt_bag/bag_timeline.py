@@ -477,9 +477,10 @@ class BagTimeline(QGraphicsScene):
             if self.background_task_cancel:
                 break
             try:
-                (topic_name, topic_type) = bag.get_topic_info(entry.topic_id)
+                (topic_name, topic_type, serialization_format, offered_qos_profiles) = bag.get_topic_info(entry.topic_id)
                 topic_metadata = rosbag2_py.TopicMetadata(name=topic_name, type=topic_type,
-                                                          serialization_format=serialization_format)
+                                                          serialization_format=serialization_format,
+                                                          offered_qos_profiles=offered_qos_profiles)
 
                 # Add any new topics to the database
                 if not topic_name in database_topics:
