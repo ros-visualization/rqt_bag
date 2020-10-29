@@ -253,7 +253,7 @@ class BagWidget(QWidget):
             return
 
         # TODO Implement limiting by regex and by number of messages per topic
-        self.topic_selection = TopicSelection()
+        self.topic_selection = TopicSelection(self._timeline._context.node)
         self.topic_selection.recordSettingsSelected.connect(self._on_record_settings_selected)
 
     def _on_record_settings_selected(self, all_topics, selected_topics):

@@ -32,7 +32,7 @@
 
 from python_qt_binding.QtCore import Qt, Signal
 from python_qt_binding.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QScrollArea, QPushButton
-#from .node_selection import NodeSelection
+from .node_selection import NodeSelection
 
 
 class TopicSelection(QWidget):
@@ -58,17 +58,17 @@ class TopicSelection(QWidget):
         self.from_nodes_button = QPushButton("From Nodes", self)
         self.from_nodes_button.clicked.connect(self.onFromNodesButtonClicked)
 
-        self.main_vlayout = QVBoxLayout(self)
+        self.main_vlayout = QVBoxLayout()
         self.main_vlayout.addWidget(self.area)
         self.main_vlayout.addWidget(self.ok_button)
         self.main_vlayout.addWidget(self.from_nodes_button)
         self.setLayout(self.main_vlayout)
 
-        self.selection_vlayout = QVBoxLayout(self)
+        self.selection_vlayout = QVBoxLayout()
         self.item_all = QCheckBox("All", self)
         self.item_all.stateChanged.connect(self.updateList)
         self.selection_vlayout.addWidget(self.item_all)
-        topic_data_list = self._node.get_topics_and_topic_types()
+        topic_data_list = self._node.get_topic_names_and_types()
         topic_data_list.sort()
         for topic, datatype in topic_data_list:
             self.addCheckBox(topic)
@@ -122,4 +122,4 @@ class TopicSelection(QWidget):
             self.item_all.checkState() == Qt.Checked, self.selected_topics)
 
     def onFromNodesButtonClicked(self):
-        self.node_selection = NodeSelection(self)
+        self.node_selection = NodeSelection(self, self._node)
