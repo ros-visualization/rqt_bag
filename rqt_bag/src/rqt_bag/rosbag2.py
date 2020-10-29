@@ -96,16 +96,16 @@ class Rosbag2:
         db = sqlite3.connect(self.db_name)
         cursor = db.cursor()
         search = cursor.execute(
-            'SELECT name, type FROM topics WHERE id="{}";'.format(topic_id))
+            'SELECT name, type, serialization_format, offered_qos_profiles FROM topics WHERE id="{}";'.format(topic_id))
         entry = search.fetchone()
         cursor.close()
         db.close()
         if entry is None:
             return None
-        return (entry[0], entry[1])
+        return (entry[0], entry[1], entry[2], entry[3])
 
     def convert_entry_to_ros_message(self, entry):
-        (topic, msg_type_name) = self.get_topic_info(entry.topic_id)
+        (topic, msg_type_name, _, _) = self.get_topic_info(entry.topic_id)
         msg_type = get_message(msg_type_name)
         ros_message = deserialize_message(entry.data, msg_type)
         return (ros_message, msg_type_name, topic)
