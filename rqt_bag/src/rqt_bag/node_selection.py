@@ -63,7 +63,7 @@ class NodeSelection(QWidget):
     def addCheckBox(self, node):
         node_name = node[0]
         node_namespace = node[1]
-        name = node_namespace + node_name if (node_namespace == '/') else node_namespace + '/' + node_name
+        name = node_namespace + node_name if (node_namespace[-1] == '/') else node_namespace + '/' + node_name
         item = QCheckBox(name, self)
         item.stateChanged.connect(lambda x: self.updateNode(x, node))
         self.selection_vlayout.addWidget(item)
