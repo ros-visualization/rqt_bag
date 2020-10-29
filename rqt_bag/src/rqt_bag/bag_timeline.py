@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import rclpy
+import rosbag2_py
 import time
 import threading
 
@@ -113,6 +114,10 @@ class BagTimeline(QGraphicsScene):
 
         self.background_progress = 0
         self.__closed = False
+
+        # Database settings
+        self.serialization_format = 'cdr'
+        self.storage_id = 'sqlite3'
 
     def get_context(self):
         """
@@ -426,9 +431,16 @@ class BagTimeline(QGraphicsScene):
             self.stop_background_task()
             return
 
-        # Open the path for writing
+        # Export the messages in the selected region
         try:
-            export_bag = rosbag.Bag(path, 'w')
+            storage_options = rosbag2_py.StorageOptions(uri=path, storage_id=self.storage_id)
+
+            converter_options = rosbag2_py.ConverterOptions(
+                input_serialization_format=self.serialization_format,
+                output_serialization_format=self.serialization_format)
+
+            rosbag_writer = rosbag2_py.SequentialWriter()
+            rosbag_writer.open(storage_options, converter_options)
         except Exception:
             QMessageBox(QMessageBox.Warning, 'rqt_bag',
                         'Error opening bag file [%s] for writing' % path, QMessageBox.Ok).exec_()
@@ -438,10 +450,10 @@ class BagTimeline(QGraphicsScene):
         # Run copying in a background thread
         self._export_thread = threading.Thread(
             target=self._run_export_region,
-            args=(export_bag, topics, start_stamp, end_stamp, bag_entries))
+            args=(rosbag_writer, topics, start_stamp, end_stamp, bag_entries, path, self.serialization_format))
         self._export_thread.start()
 
-    def _run_export_region(self, export_bag, topics, start_stamp, end_stamp, bag_entries):
+    def _run_export_region(self, rosbag_writer, topics, start_stamp, end_stamp, bag_entries, export_filename, serialization_format):
         """
         Threaded function that saves the current selection to a new bag file
         :param export_bag: bagfile to write to, ''rosbag.bag''
@@ -453,17 +465,28 @@ class BagTimeline(QGraphicsScene):
         update_step = max(1, total_messages / 100)
         message_num = 1
         progress = 0
+        database_topics = set()
+
         # Write out the messages
         for bag, entry in bag_entries:
             if self.background_task_cancel:
                 break
             try:
-                topic, msg, t = self.read_message(bag, entry.position)
-                export_bag.write(topic, msg, t)
+                (topic_name, topic_type, serialization_format, offered_qos_profiles) = bag.get_topic_info(entry.topic_id)
+                topic_metadata = rosbag2_py.TopicMetadata(name=topic_name, type=topic_type,
+                                                          serialization_format=serialization_format,
+                                                          offered_qos_profiles=offered_qos_profiles)
+
+                # Add any topics we haven't see yet to the database
+                if not topic_name in database_topics:
+                    database_topics.add(topic_name)
+                    rosbag_writer.create_topic(topic_metadata)
+
+                rosbag_writer.write(topic_name, entry.data, entry.timestamp)
+
             except Exception as ex:
                 qWarning('Error exporting message at position %s: %s' %
-                         (str(entry.position), str(ex)))
-                export_bag.close()
+                         (str(entry.timestamp), str(ex)))
                 self.stop_background_task()
                 return
 
@@ -481,10 +504,9 @@ class BagTimeline(QGraphicsScene):
         try:
             self.background_progress = 0
             self.status_bar_changed_signal.emit()
-            export_bag.close()
         except Exception as ex:
             QMessageBox(QMessageBox.Warning, 'rqt_bag', 'Error closing bag file [%s]: %s' % (
-                export_bag.filename, str(ex)), QMessageBox.Ok).exec_()
+                export_filename, str(ex)), QMessageBox.Ok).exec_()
         self.stop_background_task()
 
     def read_message(self, bag, position):
