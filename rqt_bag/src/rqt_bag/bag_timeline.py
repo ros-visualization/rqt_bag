@@ -491,7 +491,6 @@ class BagTimeline(QGraphicsScene):
             except Exception as ex:
                 qWarning('Error exporting message at position %s: %s' %
                          (str(entry.timestamp), str(ex)))
-                del rosbag_writer
                 self.stop_background_task()
                 return
 
@@ -509,7 +508,6 @@ class BagTimeline(QGraphicsScene):
         try:
             self.background_progress = 0
             self.status_bar_changed_signal.emit()
-            del rosbag_writer
         except Exception as ex:
             QMessageBox(QMessageBox.Warning, 'rqt_bag', 'Error closing bag file [%s]: %s' % (
                 export_filename, str(ex)), QMessageBox.Ok).exec_()
