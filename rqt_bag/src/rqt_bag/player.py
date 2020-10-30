@@ -40,7 +40,7 @@ from builtin_interfaces.msg import Time
 from python_qt_binding.QtCore import QObject
 from rclpy import logging
 from rclpy.qos import QoSProfile
-from .qos import yaml_to_qos_profiles
+from .qos import yaml_to_qos_profiles, adapt_offer_to_recorded_offers
 
 CLOCK_TOPIC = "/clock"
 
