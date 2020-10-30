@@ -54,30 +54,51 @@ def node_to_duration(node):
     return Duration(seconds=int(node['sec']), nanoseconds=int(node['nsec']))
 
 
-def qos_profile_to_yaml(qos_profile):
-    qos = {}
-    qos['history'] = int(qos_profile.history)
-    qos['depth'] = int(qos_profile.depth)
-    qos['reliability'] = int(qos_profile.reliability)
-    qos['durability'] = int(qos_profile.durability)
-    qos['lifespan'] = duration_to_node(qos_profile.lifespan)
-    qos['deadline'] = duration_to_node(qos_profile.deadline)
-    qos['liveliness'] = int(qos_profile.liveliness)
-    qos['liveliness_lease_duration'] = duration_to_node(qos_profile.liveliness_lease_duration)
-    qos['avoid_ros_namespace_conventions'] = qos_profile.avoid_ros_namespace_conventions
-    return yaml.dump([qos], sort_keys=False)
+def qos_profiles_to_yaml(qos_profiles):
+    yaml_result = ""
+    for qos_profile in qos_profiles:
+        qos = {}
+        qos['history'] = int(qos_profile.history)
+        qos['depth'] = int(qos_profile.depth)
+        qos['reliability'] = int(qos_profile.reliability)
+        qos['durability'] = int(qos_profile.durability)
+        qos['lifespan'] = duration_to_node(qos_profile.lifespan)
+        qos['deadline'] = duration_to_node(qos_profile.deadline)
+        qos['liveliness'] = int(qos_profile.liveliness)
+        qos['liveliness_lease_duration'] = duration_to_node(qos_profile.liveliness_lease_duration)
+        qos['avoid_ros_namespace_conventions'] = qos_profile.avoid_ros_namespace_conventions
+        yaml_result += yaml.dump([qos], sort_keys=False)
+
+    return yaml_result
 
 
-def yaml_to_qos_profile(qos_profile_yaml):
+def yaml_to_qos_profiles(profiles_yaml):
     qos_profiles = []
-    nodes = yaml.safe_load(qos_profile_yaml)
+    nodes = yaml.safe_load(profiles_yaml)
     for node in nodes:
       qos_profile = QoSProfile(depth=int(node['depth']))
-      qos_profile.history = rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT
+      qos_profile.history = int(node['history'])
       qos_profile.reliability = int(node['reliability'])
       qos_profile.durability = int(node['durability'])
+      qos_profile.lifespan = node_to_duration(node['lifespan'])
+      qos_profile.deadline = node_to_duration(node['deadline'])
       qos_profile.liveliness = int(node['liveliness'])
+      qos_profile.liveliness_lease_duration = node_to_duration(node['liveliness_lease_duration'])
       qos_profile.avoid_ros_namespace_conventions = node['avoid_ros_namespace_conventions']
       qos_profiles.append(qos_profile)
 
     return qos_profiles
+
+
+def adapt_offer_to_recorded_offers(qos_profiles):
+    if not qos_profiles:
+        return QoSProfile(depth=10)
+
+    # Simply use the first one (should have a more sophisticated strategy)
+    result = qos_profiles[0]
+    result.history = rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT
+    result.lifespan = Duration(seconds=0, nanoseconds=0)
+    result.deadline = Duration(seconds=0, nanoseconds=0)
+    result.liveliness_lease_duration = Duration(seconds=0, nanoseconds=0)
+
+    return result
