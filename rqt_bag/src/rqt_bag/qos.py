@@ -98,7 +98,7 @@ def gen_publisher_qos_profile(qos_profiles):
     # Simply use the first one (should have a more sophisticated strategy)
     result = qos_profiles[0]
 
-    # HISTORY_UNKNOWN isn't a QoS history policy for a publisher for some RMW implementations
+    # HISTORY_UNKNOWN isn't a valid QoS history policy for a publisher for some RMW implementations
     if result.history == rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_UNKNOWN:
         result.history = rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT
         result.depth = 10
