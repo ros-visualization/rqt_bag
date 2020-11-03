@@ -33,9 +33,15 @@
 """
 Player listens to messages from the timeline and publishes them to ROS.
 """
+
+import rclpy.qos
+
 from builtin_interfaces.msg import Time
 from python_qt_binding.QtCore import QObject
 from rclpy import logging
+from rclpy.qos import QoSProfile
+from .qos import yaml_to_qos_profiles, gen_publisher_qos_profile
+
 CLOCK_TOPIC = "/clock"
 
 
@@ -97,47 +103,49 @@ class Player(QObject):
             self.stop_publishing(topic)
         self.stop_clock_publishing()
 
-    def create_publisher(self, topic, msg):
+    def create_publisher(self, topic, ros_message, offered_qos_profiles = ""):
         try:
-            try:
-                self._publishers[topic] = \
-                    self._node.create_publisher(type(msg), topic, queue_size=100)
-            except TypeError:
-                self._publishers[topic] = self._node.create_publisher(type(msg), topic)
+            # Publish based on the original recorded QoS settings
+            qos_profiles = yaml_to_qos_profiles(offered_qos_profiles)
+            profile_to_use = gen_publisher_qos_profile(qos_profiles)
+            self._publishers[topic] = self._node.create_publisher(type(ros_message), topic, qos_profile=profile_to_use)
             return True
         except Exception as ex:
             # Any errors, stop listening/publishing to this topic
             self._logger.error(
                 'Error creating publisher on topic %s for type %s. \nError text: %s' %
-                (topic, str(type(msg)), str(ex)))
+                (topic, str(type(ros_message)), str(ex)))
             if topic != CLOCK_TOPIC:
                 self.stop_publishing(topic)
             return False
 
-    def message_viewed(self, bag, msg_data):
+    def message_viewed(self, bag, entry):
         """
         When a message is viewed publish it
         :param bag: the bag the message is in, ''rosbag.bag''
-        :param msg_data: tuple of the message data and topic info, ''(str, msg)''
+        :param entry: the bag entry
         """
         # Don't publish unless the playhead is moving.
         if self.timeline.play_speed <= 0.0:
             return
 
-        topic, msg, clock = msg_data
+        (ros_message, _, topic) = bag.convert_entry_to_ros_message(entry)
 
         # Create publisher if this is the first message on the topic
         if topic not in self._publishers:
-            self.create_publisher(topic, msg)
+            topic_id = bag.get_topic_id(topic)
+            (topic_name, topic_type, serialization_format, offered_qos_profiles) = bag.get_topic_info(topic_id)
+            self.create_publisher(topic, ros_message, offered_qos_profiles)
 
         if self._publish_clock:
             time_msg = Time()
-            time_msg.clock = clock
+            time_msg.clock = entry.timestamp
             if self._resume or self._last_clock.clock < time_msg.clock:
                 self._resume = False
                 self._last_clock = time_msg
                 self._publishers[CLOCK_TOPIC].publish(time_msg)
-        self._publishers[topic].publish(msg)
+
+        self._publishers[topic].publish(ros_message)
 
     def message_cleared(self):
         pass
@@ -147,9 +155,9 @@ class Player(QObject):
         This function will be called to process events posted by post_event
         it will call message_cleared or message_viewed with the relevant data
         """
-        bag, msg_data = event.data
-        if msg_data:
-            self.message_viewed(bag, msg_data)
+        bag, entry = event.data
+        if entry:
+            self.message_viewed(bag, entry)
         else:
             self.message_cleared()
         return True
