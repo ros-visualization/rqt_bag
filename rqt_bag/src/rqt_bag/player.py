@@ -40,7 +40,7 @@ from builtin_interfaces.msg import Time
 from python_qt_binding.QtCore import QObject
 from rclpy import logging
 from rclpy.qos import QoSProfile
-from .qos import yaml_to_qos_profiles, adapt_offer_to_recorded_offers
+from .qos import yaml_to_qos_profiles, gen_publisher_qos_profile
 
 CLOCK_TOPIC = "/clock"
 
@@ -107,7 +107,7 @@ class Player(QObject):
         try:
             # Publish based on the original recorded QoS settings
             qos_profiles = yaml_to_qos_profiles(offered_qos_profiles)
-            profile_to_use = adapt_offer_to_recorded_offers(qos_profiles)
+            profile_to_use = gen_publisher_qos_profile(qos_profiles)
             self._publishers[topic] = self._node.create_publisher(type(ros_message), topic, qos_profile=profile_to_use)
             return True
         except Exception as ex:

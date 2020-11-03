@@ -37,6 +37,7 @@ QoS-related utility functions
 import yaml
 import math
 import rclpy.qos
+import builtin_interfaces.msg
 
 from rclpy.qos import QoSProfile
 from rclpy.duration import Duration
@@ -44,9 +45,9 @@ from rclpy.time import Time
 
 
 def duration_to_node(duration):
+    t = Time(nanoseconds=duration.nanoseconds)
     node = {}
-    node['sec'] = int(math.floor(duration.nanoseconds / 1e9))
-    node['nsec'] = duration.nanoseconds % (1000 * 1000 * 1000)
+    (sec, nsec) = t.seconds_nanoseconds()
     return node
 
 
@@ -90,15 +91,16 @@ def yaml_to_qos_profiles(profiles_yaml):
     return qos_profiles
 
 
-def adapt_offer_to_recorded_offers(qos_profiles):
+def gen_publisher_qos_profile(qos_profiles):
     if not qos_profiles:
         return QoSProfile(depth=10)
 
     # Simply use the first one (should have a more sophisticated strategy)
     result = qos_profiles[0]
-    result.history = rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT
-    result.lifespan = Duration(seconds=0, nanoseconds=0)
-    result.deadline = Duration(seconds=0, nanoseconds=0)
-    result.liveliness_lease_duration = Duration(seconds=0, nanoseconds=0)
+
+    # HISTORY_UNKNOWN isn't a QoS history policy for a publisher for some RMW implementations
+    if result.history == rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_UNKNOWN:
+        result.history = rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT
+        result.depth = 10
 
     return result
