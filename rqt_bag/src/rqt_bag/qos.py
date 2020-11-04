@@ -47,7 +47,7 @@ from rclpy.time import Time
 def duration_to_node(duration):
     t = Time(nanoseconds=duration.nanoseconds)
     node = {}
-    (node["sec"], node["nsec"]) = t.seconds_nanoseconds()
+    (node['sec'], node['nsec']) = t.seconds_nanoseconds()
     return node
 
 

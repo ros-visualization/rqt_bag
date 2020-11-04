@@ -45,21 +45,22 @@ import re
 import threading
 import time
 import sys
-import rosbag2_py
 import yaml
 import os
 
+import rosbag2_py
+
 from rosbag2_transport import rosbag2_transport_py
-from .rosbag2 import Rosbag2
-from rclpy.qos import qos_profile_system_default
-from rclpy.topic_or_service_is_hidden import topic_or_service_is_hidden
 from rosidl_runtime_py.utilities import get_message
 from rclpy.serialization import serialize_message
 from rclpy.duration import Duration
-from rqt_bag import bag_helper
+from rclpy.qos import qos_profile_system_default
+from rclpy.topic_or_service_is_hidden import topic_or_service_is_hidden
 from rclpy.time import Time
 from rclpy.clock import Clock, ClockType
 from rclpy.qos import QoSHistoryPolicy, QoSDurabilityPolicy, QoSReliabilityPolicy, QoSLivelinessPolicy
+from rqt_bag import bag_helper
+from .rosbag2 import Rosbag2
 from .qos import get_qos_profiles_for_topic, gen_subscriber_qos_profile, qos_profiles_to_yaml
 
 
@@ -303,9 +304,8 @@ class Recorder(object):
             poll_interval = 1.0
             while not self._stop_flag:
                 try:
-                    item = self._write_queue.get(block=False)
+                    item = self._write_queue.get(block=False, timeout=poll_interval)
                 except Empty:
-                    time.sleep(poll_interval)
                     continue
 
                 if item == self:
