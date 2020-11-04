@@ -47,7 +47,7 @@ from rclpy.time import Time
 def duration_to_node(duration):
     t = Time(nanoseconds=duration.nanoseconds)
     node = {}
-    (sec, nsec) = t.seconds_nanoseconds()
+    (node["sec"], node["nsec"]) = t.seconds_nanoseconds()
     return node
 
 
@@ -56,7 +56,7 @@ def node_to_duration(node):
 
 
 def qos_profiles_to_yaml(qos_profiles):
-    yaml_result = ""
+    profiles_list = []
     for qos_profile in qos_profiles:
         qos = {}
         qos['history'] = int(qos_profile.history)
@@ -68,39 +68,72 @@ def qos_profiles_to_yaml(qos_profiles):
         qos['liveliness'] = int(qos_profile.liveliness)
         qos['liveliness_lease_duration'] = duration_to_node(qos_profile.liveliness_lease_duration)
         qos['avoid_ros_namespace_conventions'] = qos_profile.avoid_ros_namespace_conventions
-        yaml_result += yaml.dump([qos], sort_keys=False)
+        profiles_list.append(qos)
 
-    return yaml_result
+    return yaml.dump(profiles_list, sort_keys=False)
 
 
 def yaml_to_qos_profiles(profiles_yaml):
     qos_profiles = []
     nodes = yaml.safe_load(profiles_yaml)
     for node in nodes:
-      qos_profile = QoSProfile(depth=int(node['depth']))
-      qos_profile.history = int(node['history'])
-      qos_profile.reliability = int(node['reliability'])
-      qos_profile.durability = int(node['durability'])
-      qos_profile.lifespan = node_to_duration(node['lifespan'])
-      qos_profile.deadline = node_to_duration(node['deadline'])
-      qos_profile.liveliness = int(node['liveliness'])
-      qos_profile.liveliness_lease_duration = node_to_duration(node['liveliness_lease_duration'])
-      qos_profile.avoid_ros_namespace_conventions = node['avoid_ros_namespace_conventions']
-      qos_profiles.append(qos_profile)
+        qos_profile = QoSProfile(depth=int(node['depth']))
+        qos_profile.history = int(node['history'])
+        qos_profile.reliability = int(node['reliability'])
+        qos_profile.durability = int(node['durability'])
+        qos_profile.lifespan = node_to_duration(node['lifespan'])
+        qos_profile.deadline = node_to_duration(node['deadline'])
+        qos_profile.liveliness = int(node['liveliness'])
+        qos_profile.liveliness_lease_duration = node_to_duration(node['liveliness_lease_duration'])
+        qos_profile.avoid_ros_namespace_conventions = node['avoid_ros_namespace_conventions']
+        qos_profiles.append(qos_profile)
 
     return qos_profiles
 
 
 def gen_publisher_qos_profile(qos_profiles):
+    """Generate a single QoS profile for a publisher from a set of QoS profiles (typically
+       read from the offered_qos_profiles in the rosbag, which records the QoS settings used
+       by the various publishers on that topic)."""
     if not qos_profiles:
         return QoSProfile(depth=10)
 
     # Simply use the first one (should have a more sophisticated strategy)
     result = qos_profiles[0]
 
-    # HISTORY_UNKNOWN isn't a valid QoS history policy for a publisher for some RMW implementations
+    # HISTORY_UNKNOWN isn't a valid QoS history policy for a publisher
     if result.history == rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_UNKNOWN:
         result.history = rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT
         result.depth = 10
 
     return result
+
+
+def gen_subscriber_qos_profile(qos_profiles):
+    """Generate a single QoS profile for a subscriber from a set of QoS profiles (typically
+       acquired from an active set of publishers for a particular topic)."""
+    if not qos_profiles:
+        return QoSProfile(depth=10)
+
+    # Simply use the first one (should have a more sophisticated strategy)
+    result = qos_profiles[0]
+
+    # HISTORY_UNKNOWN isn't a valid QoS history policy for a subscriber
+    if result.history == rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_UNKNOWN:
+        result.history = rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT
+        result.depth = 10
+
+    return result
+
+
+def get_qos_profiles_for_topic(node, topic):
+    """Get the QoS profiles used by current publishers on a specific topic"""
+    publishers_info = node.get_publishers_info_by_topic(topic)
+    if publishers_info:
+        # Get the QoS info for each of the current publishers on this topic
+        qos_profiles = []
+        for pinfo in publishers_info:
+            qos_profiles.append(pinfo.qos_profile)
+        return qos_profiles
+
+    return None

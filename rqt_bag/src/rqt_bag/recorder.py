@@ -60,6 +60,7 @@ from rqt_bag import bag_helper
 from rclpy.time import Time
 from rclpy.clock import Clock, ClockType
 from rclpy.qos import QoSHistoryPolicy, QoSDurabilityPolicy, QoSReliabilityPolicy, QoSLivelinessPolicy
+from .qos import get_qos_profiles_for_topic, gen_subscriber_qos_profile, qos_profiles_to_yaml
 
 
 class Recorder(object):
@@ -90,60 +91,20 @@ class Recorder(object):
         self._regex = regex
         self._limit = limit
         self._master_check_interval = master_check_interval
-        self._serialization_format='cdr'
+        self._serialization_format = 'cdr'
         self._storage_id = 'sqlite3'
         self._bag_filename = filename
 
-        ################################################################
-        # TODO(mjeronimo): Need to unify the direct database access of the current Rosbag2
-        # implementation and the rosbag_writer into a single Rosbag2 class
         storage_options = rosbag2_py.StorageOptions(uri=filename, storage_id=self._storage_id)
         converter_options = rosbag2_py.ConverterOptions(
             input_serialization_format=self._serialization_format,
             output_serialization_format=self._serialization_format)
         self._rosbag_writer = rosbag2_py.SequentialWriter()
+
+        # TODO(mjeronimo): Should update the rosbag2_py.SequentialWriter to add any
+        # required functionality and get rid of Rosbag2 and its direct SQL access
         self._rosbag_writer.open(storage_options, converter_options)
-
-        # TODO(mjeronimo):
-        # A hack here to create a metadata dictionary (usually read from the one created for the
-        # database) sufficient to create a Rosbag2 object. The rosbag_writer won't create this file
-        # until the object is destroyed. Unfortunately, the writer is kept open so that it can write
-        # out messages as they are received.
-        bag_info = {}
-        bag_info['topics_with_message_count'] = []
-        for topic, msg_type_names in self.get_topic_names_and_types():
-            if topic in topics:
-                topic_info = {}
-                topic_info['topic_metadata'] = {}
-                topic_info['topic_metadata']['name'] = topic
-
-                # TODO(mjeronimo): could have multiple type names
-                topic_info['topic_metadata']['type'] = msg_type_names[0]
-                topic_info['topic_metadata']['serialization_format'] = self._serialization_format
-
-                # TODO(mjeronimo): add the offered_qos_profiles
-                topic_info['topic_metadata']['offered_qos_profiles'] = ""
-                bag_info['topics_with_message_count'].append(topic_info)
-
-                # Add the topic to the database
-                # TODO(mjeronimo): need qos info here when creating the topic
-                topic_metadata = rosbag2_py.TopicMetadata(name=topic, type=msg_type_names[0],
-                                                          serialization_format=self._serialization_format)
-
-                self._rosbag_writer.create_topic(topic_metadata)
-
-        topic_info['message_count'] = 0
-        bag_info['relative_file_paths'] = []
-        bag_name = os.path.split(filename)[1]
-        bag_info['relative_file_paths'].append(bag_name + "_0.db3")
-        bag_info['starting_time'] = {}
-        now = Clock(clock_type=ClockType.SYSTEM_TIME).now()
-        bag_info['starting_time']['nanoseconds_since_epoch'] = now.nanoseconds
-        bag_info['duration'] = {}
-        bag_info['duration']['nanoseconds'] = 0
-
-        self._bag = Rosbag2(bag_info, filename + "/metadata.yaml")
-        ################################################################
+        self._bag = self._create_initial_rosbag(filename, topics)
 
         self._bag_lock = bag_lock if bag_lock else threading.Lock()
         self._listeners = []
@@ -165,6 +126,49 @@ class Recorder(object):
         self._message_count = {}  # topic -> int (track number of messages recorded on each topic)
         self._master_check_thread = threading.Thread(target=self._run_master_check)
         self._write_thread = threading.Thread(target=self._run_write)
+
+    def _create_initial_rosbag(self, filename, topics):
+        bag_info = {}
+        bag_info['topics_with_message_count'] = []
+
+        for topic, msg_type_names in self.get_topic_names_and_types():
+            if topic in topics:
+                topic_info = {}
+                topic_info['topic_metadata'] = {}
+                topic_info['topic_metadata']['name'] = topic
+
+                # Could potentially have multiple types associated with this topic name,
+                # but just use the first
+                topic_info['topic_metadata']['type'] = msg_type_names[0]
+                topic_info['topic_metadata']['serialization_format'] = self._serialization_format
+
+                # Add the offered_qos_profiles
+                offered_qos_profiles = ""
+                qos_profiles = get_qos_profiles_for_topic(self._node, topic)
+                if qos_profiles:
+                    offered_qos_profiles = qos_profiles_to_yaml(qos_profiles)
+                topic_info['topic_metadata']['offered_qos_profiles'] = offered_qos_profiles
+                bag_info['topics_with_message_count'].append(topic_info)
+
+                # Create the topic in the database
+                topic_metadata = rosbag2_py.TopicMetadata(name=topic, type=msg_type_names[0],
+                                                          serialization_format=self._serialization_format,
+                                                          offered_qos_profiles=offered_qos_profiles)
+                self._rosbag_writer.create_topic(topic_metadata)
+
+        # Create a metadata dictionary sufficient to create a Rosbag2 object. The rosbag_writer
+        # doesn't create this file until it is destroyed.
+        topic_info['message_count'] = 0
+        bag_info['relative_file_paths'] = []
+        bag_name = os.path.split(filename)[1]
+        bag_info['relative_file_paths'].append(bag_name + "_0.db3")
+        bag_info['starting_time'] = {}
+        now = Clock(clock_type=ClockType.SYSTEM_TIME).now()
+        bag_info['starting_time']['nanoseconds_since_epoch'] = now.nanoseconds
+        bag_info['duration'] = {}
+        bag_info['duration']['nanoseconds'] = 0
+
+        return Rosbag2(bag_info, filename + "/metadata.yaml")
 
     def add_listener(self, listener):
         """
@@ -214,7 +218,6 @@ class Recorder(object):
                 if not topic_or_service_is_hidden(n)]
         return topic_names_and_types
 
-
     def _run_master_check(self):
         try:
             while not self._stop_flag:
@@ -231,7 +234,6 @@ class Recorder(object):
                                 topic in self._limited_topics or \
                                 not self._should_subscribe_to(topic):
                             continue
-
                         try:
                             self._message_count[topic] = 0
                             self._subscriber_helpers[topic] = _SubscriberHelper(self._node, self, topic, msg_type_name)
@@ -266,7 +268,7 @@ class Recorder(object):
 
     def _unsubscribe(self, topic):
         try:
-             self._node.destroy_subscription(self, self._subscriber_helpers[topic].subscriber)
+            self._node.destroy_subscription(self, self._subscriber_helpers[topic].subscriber)
         except Exception:
             return
 
@@ -302,30 +304,10 @@ class Recorder(object):
 
                 # Write to the bag
                 with self._bag_lock:
-                    # HERE:
                     helper = self._subscriber_helpers[topic]
-                    #print(str(helper.qos_profile))
+                    self._rosbag_writer.write(topic, serialize_message(msg), t.nanoseconds)
 
-                    qos_dict = {}
-                    qos_dict["history"] = 0 # helper.qos_profile.history
-                    qos_dict["depth"] = helper.qos_profile.depth
-                    qos_dict["reliability"] = 1 # helper.qos_profile.reliability
-                    qos_dict["durability"] = 1 # helper.qos_profile.durability
-                    qos_dict["lifespan"] = 0 # helper.qos_profile.lifespan
-                    qos_dict["deadline"] = 0 # helper.qos_profile.deadline
-                    qos_dict["liveliness"] = 1 # helper.qos_profile.liveliness
-                    qos_dict["liveliness_lease_duration"] = 0 # helper.qos_profile.liveliness_lease_duration
-                    qos_dict["avoid_ros_namespace_conventions"] = helper.qos_profile.avoid_ros_namespace_conventions
-
-                    print(qos_dict)
-                    qos_profile_yaml = yaml.dump([qos_dict], sort_keys=False)
-
-                    topic_metadata = rosbag2_py.TopicMetadata(name=topic, type=msg_type_name, serialization_format=self._serialization_format, offered_qos_profiles=qos_profile_yaml)
-                    self._rosbag_writer.create_topic(topic_metadata)
-
-                    serialized_msg = serialize_message(msg)
-                    self._rosbag_writer.write(topic, serialized_msg, t.nanoseconds)
-
+                    # Update the overall duration for this bag
                     duration_ns = t.nanoseconds - self._bag.start_time.nanoseconds
                     self._bag.duration = Duration(nanoseconds=duration_ns)
 
@@ -338,7 +320,6 @@ class Recorder(object):
 
 
 class _SubscriberHelper(object):
-
     def __init__(self, node, recorder, topic, msg_type_name):
         self.node = node
         self.recorder = recorder
@@ -346,53 +327,10 @@ class _SubscriberHelper(object):
         self.msg_type_name = msg_type_name
         self.msg_type = get_message(msg_type_name)
 
-        # Attempt to use the same QoS settings as the publisher (?)
-        info = node.get_publishers_info_by_topic(topic)
-        if info:
-            self.qos_profile = info[0].qos_profile
-
-            self.qos_profile.history = QoSHistoryPolicy.RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT
-            self.qos_profile.depth = 0
-            #self.qos_profile.reliability = QoSReliabilityPolicy.RMW_QOS_POLICY_RELIABILITY_SYSTEM_DEFAULT
-            #self.qos_profile.durability = QoSDurabilityPolicy.RMW_QOS_POLICY_DURABILITY_SYSTEM_DEFAULT
-            self.qos_profile.lifespan = Duration(nanoseconds=0)
-            self.qos_profile.deadline = Duration(nanoseconds=0)
-            #self.qos_profile.liveliness = QoSLivelinessPolicy.RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT
-            self.qos_profile.liveliness_lease_duration = Duration(nanoseconds=0)
-            #self.qos_profile.avoid_ros_namespace_conventions = False
-
+        qos_profiles = get_qos_profiles_for_topic(self.node, self.topic)
+        if qos_profiles:
+            self.qos_profile = gen_subscriber_qos_profile(qos_profiles)
             self.subscriber = node.create_subscription(self.msg_type, topic, self.callback, self.qos_profile)
-
 
     def callback(self, msg):
         self.recorder._record(self.topic, msg, self.msg_type_name)
-
-
-
-#print("topic: {}".format(topic))
-#print(" my qos")
-#print(self.qos_profile)
-#print("\n")
-#print(" system_default:")
-#print(qos_profile_system_default)
-
-#
-# std::string Recorder::serialized_offered_qos_profiles_for_topic(const std::string & topic_name)
-# {
-#   YAML::Node offered_qos_profiles;
-#   auto endpoints = node_->get_publishers_info_by_topic(topic_name);
-#   for (const auto & info : endpoints) {
-#     offered_qos_profiles.push_back(Rosbag2QoS(info.qos_profile()));
-#   }
-#   return YAML::Dump(offered_qos_profiles);
-# }
-# 
-# rclcpp::QoS Recorder::subscription_qos_for_topic(const std::string & topic_name) const
-# {
-#   if (topic_qos_profile_overrides_.count(topic_name)) {
-#     return topic_qos_profile_overrides_.at(topic_name);
-#   }
-#   return Rosbag2QoS::adapt_request_to_offers(
-#     topic_name, node_->get_publishers_info_by_topic(topic_name));
-# }
-# 
