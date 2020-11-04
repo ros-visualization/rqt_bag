@@ -253,6 +253,13 @@ class Recorder(object):
         for topic in list(self._subscriber_helpers.keys()):
             self._unsubscribe(topic)
 
+        # Explicitly delete the rosbag writer so that the database is properly closed
+        # and the metadata.yaml file is written
+        try:
+            del self._rosbag_writer
+        except Exception as ex:
+            print('Error closing bag [%s]: %s' % (self._bag.filename, str(ex)))
+
     def _should_subscribe_to(self, topic):
         if self._all:
             return True
