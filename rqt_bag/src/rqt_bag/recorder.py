@@ -156,8 +156,12 @@ class Recorder(object):
                                                           offered_qos_profiles=offered_qos_profiles)
                 self._rosbag_writer.create_topic(topic_metadata)
 
-        # Create a metadata dictionary sufficient to create a Rosbag2 object. The rosbag_writer
-        # doesn't create this file until it is destroyed.
+        # Create a metadata dictionary (bag_info) sufficient to create a Rosbag2 object. Normally,
+        # Rosbag2 is used to open an existing database, but in this case, it's a new database
+        # that hasn't been populated yet and we don't yet have a metadata.yaml file to use (the
+        # metadata.yaml file is created when the rosbag_writer is closed). We could also close
+        # the rosbag_writer and then open it again, but this works for now; the code is going
+        # to be refactored anyway to combine rosbag_writer/Rosbag2 functionality.
         topic_info['message_count'] = 0
         bag_info['relative_file_paths'] = []
         bag_name = os.path.split(filename)[1]
