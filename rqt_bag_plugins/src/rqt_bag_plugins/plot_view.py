@@ -180,7 +180,7 @@ class PlotWidget(QWidget):
                 start_time = Time(nanoseconds=entry.timestamp)
 
         self.bag = bag
-        (ros_message, msg_type, topic) = self.bag.convert_entry_to_ros_message(entry)
+        (ros_message, msg_type, topic) = bag_helper.convert_entry_to_ros_message(self.bag, entry)
         self.message_tree.set_message(ros_message, msg_type)
 
         # state used by threaded resampling
@@ -252,7 +252,7 @@ class PlotWidget(QWidget):
                 if not self.resampling_active:
                     return
 
-                (ros_message, _, _) = self.bag.convert_entry_to_ros_message(entry)
+                (ros_message, _, _) = bag_helper.convert_entry_to_ros_message(self.bag, entry)
                 timestamp = Time(nanoseconds=entry.timestamp)
 
                 for path in self.resample_fields:

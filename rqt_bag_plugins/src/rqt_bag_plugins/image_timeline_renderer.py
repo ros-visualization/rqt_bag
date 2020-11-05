@@ -50,6 +50,8 @@ from rqt_bag_plugins import image_helper
 from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtGui import QBrush, QPen, QPixmap
 
+from rqt_bag import bag_helper
+
 
 class ImageTimelineRenderer(TimelineRenderer):
 
@@ -160,7 +162,7 @@ class ImageTimelineRenderer(TimelineRenderer):
         if not entry:
             return None, None
 
-        (ros_message, msg_type, topic) = bag.convert_entry_to_ros_message(entry)
+        (ros_message, msg_type, topic) = bag_helper.convert_entry_to_ros_message(bag, entry)
 
         # Convert from ROS image to PIL image
         try:

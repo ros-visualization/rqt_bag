@@ -35,6 +35,8 @@ from python_qt_binding.QtCore import QObject
 
 import rosbag2_py
 
+from rqt_bag import bag_helper
+
 
 class MessageView(QObject):
 
@@ -93,7 +95,7 @@ class MessageView(QObject):
         """
         bag, entry = event.data
         if entry:
-            (ros_message, msg_type_name, topic) = bag.convert_entry_to_ros_message(entry)
+            (ros_message, msg_type_name, topic) = bag_helper.convert_entry_to_ros_message(bag, entry)
             self.message_viewed(bag=bag, entry=entry, ros_message=ros_message, msg_type_name=msg_type_name, topic=topic)
         else:
             self.message_cleared()

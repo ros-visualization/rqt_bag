@@ -40,8 +40,6 @@ from collections import namedtuple
 from python_qt_binding.QtCore import qDebug
 from rclpy.duration import Duration
 from rclpy.time import Time
-from rclpy.serialization import deserialize_message
-from rosidl_runtime_py.utilities import get_message
 
 import sqlite3
 import os
@@ -72,11 +70,6 @@ class Rosbag2:
     def get_topics(self):
         return list(self.topics.keys())
 
-    def _get_connections(self, topic_name=None):
-        if topic_name is not None:
-            return self.topics(topic_name)
-        return dict(self.topics)
-
     def close(self):
         pass
 
@@ -104,12 +97,6 @@ class Rosbag2:
             return None
         return (entry[0], entry[1], entry[2], entry[3])
 
-    def convert_entry_to_ros_message(self, entry):
-        (topic, msg_type_name, _, _) = self.get_topic_info(entry.topic_id)
-        msg_type = get_message(msg_type_name)
-        ros_message = deserialize_message(entry.data, msg_type)
-        return (ros_message, msg_type_name, topic)
-
     def _get_entry(self, timestamp, topic=None):
         qDebug("Getting entry at {} for topic {}".format(timestamp, topic))
         db = sqlite3.connect(self.db_name)
@@ -132,6 +119,9 @@ class Rosbag2:
 
         Entry = namedtuple('Entry', SQL_COLUMNS)
         return Entry(*entry)
+
+    def _read_message(self, position):
+        return self._get_entry(Time(nanoseconds=position))
 
     def _get_entry_after(self, timestamp, topic=None):
         qDebug("Getting entry after {} for topic {}".format(timestamp, topic))
@@ -178,5 +168,3 @@ class Rosbag2:
         Entry = namedtuple('Entry', SQL_COLUMNS)
         return [Entry(*entry) for entry in entries]
 
-    def _read_message(self, position):
-        return self._get_entry(Time(nanoseconds=position))

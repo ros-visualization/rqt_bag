@@ -41,6 +41,8 @@ import time
 import rclpy
 from rclpy.duration import Duration
 from rclpy.time import Time
+from rclpy.serialization import deserialize_message
+from rosidl_runtime_py.utilities import get_message
 
 
 def stamp_to_str(t):
@@ -144,3 +146,10 @@ def to_sec(t):
     # 1e-9 is not exactly 1e-9 if using floating point, so doing this math with floats is imprecise
     result = Decimal(t.nanoseconds) * Decimal('1e-9')
     return float(result)
+
+
+def convert_entry_to_ros_message(bag, entry):
+    (topic, msg_type_name, _, _) = bag.get_topic_info(entry.topic_id)
+    msg_type = get_message(msg_type_name)
+    ros_message = deserialize_message(entry.data, msg_type)
+    return (ros_message, msg_type_name, topic)

@@ -40,6 +40,7 @@ from builtin_interfaces.msg import Time
 from python_qt_binding.QtCore import QObject
 from rclpy import logging
 from rclpy.qos import QoSProfile
+from rqt_bag import bag_helper
 from .qos import yaml_to_qos_profiles, gen_publisher_qos_profile
 
 CLOCK_TOPIC = "/clock"
@@ -129,7 +130,7 @@ class Player(QObject):
         if self.timeline.play_speed <= 0.0:
             return
 
-        (ros_message, _, topic) = bag.convert_entry_to_ros_message(entry)
+        (ros_message, _, topic) = bag_helper.convert_entry_to_ros_message(bag, entry)
 
         # Create publisher if this is the first message on the topic
         if topic not in self._publishers:
