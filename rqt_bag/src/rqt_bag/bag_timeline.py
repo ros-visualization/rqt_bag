@@ -711,16 +711,14 @@ class BagTimeline(QGraphicsScene):
 
     def record_bag(self, filename, all=True, topics=[], regex=False, limit=0):
         try:
-            self._recorder = Recorder(
-                filename, bag_lock=self._bag_lock, all=all, topics=topics, regex=regex, limit=limit)
+            self._recorder = Recorder(self._context.node, filename, bag_lock=self._bag_lock,
+                    all=all, topics=topics, regex=regex, limit=limit)
         except Exception as ex:
             qWarning('Error opening bag for recording [%s]: %s' % (filename, str(ex)))
             return
 
         self._recorder.add_listener(self._message_recorded)
-
-        self.add_bag(self._recorder.bag)
-
+        self.add_bag(self._recorder._bag)
         self._recorder.start()
 
         self.wrap = False
