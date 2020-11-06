@@ -37,55 +37,85 @@ implementation.
 
 from collections import namedtuple
 
-from python_qt_binding.QtCore import qDebug
 from rclpy.duration import Duration
 from rclpy.time import Time
 
 import sqlite3
 import os
 import pathlib
+import yaml
+import rosbag2_py
+
+from rclpy.serialization import deserialize_message
+from rosidl_runtime_py.utilities import get_message
 
 SQL_COLUMNS = ['id', 'topic_id', 'timestamp', 'data']
 
 
-# TODO(mjeronimo): When refactoring this, move generally useful methods to the rosbag2_py
-# module and make this class obsolete.
 class Rosbag2:
-    def __init__(self, bag_info, filename):
-        self.filename = filename
-        self.topics = {
-            topic['topic_metadata']['name']: topic
-            for topic in bag_info['topics_with_message_count']
-        }
-        self.bag_dir = os.path.dirname(filename)
-        database_relative_name = bag_info['relative_file_paths'][0]
-        self.db_name = os.path.join(self.bag_dir, database_relative_name)
+    def __init__(self, bag_path, serialization_format = 'cdr', storage_id = 'sqlite3'):
+        self.bag_path = bag_path
 
-        self.start_time = Time(nanoseconds=bag_info['starting_time']['nanoseconds_since_epoch'])
-        self.duration = Duration(nanoseconds=bag_info['duration']['nanoseconds'])
+        with open(bag_path + '/metadata.yaml') as f:
+            full_bag_info  = yaml.safe_load(f)
+            bag_info = full_bag_info['rosbag2_bagfile_information']
 
-    def size(self):
-        return sum(f.stat().st_size for f in pathlib.Path(self.bag_dir).glob('**/*') if f.is_file())
+            self.topics = {
+                topic['topic_metadata']['name']: topic
+                for topic in bag_info['topics_with_message_count']
+            }
 
-    def get_topics(self):
-        return list(self.topics.keys())
+            database_relative_name = bag_info['relative_file_paths'][0]
+            self.db_name = os.path.join(self.bag_path, database_relative_name)
+
+            self.start_time = Time(nanoseconds=bag_info['starting_time']['nanoseconds_since_epoch'])
+            self.duration = Duration(nanoseconds=bag_info['duration']['nanoseconds'])
+
+        self.serialization_format = serialization_format
+        self.storage_id = storage_id
+        storage_options = rosbag2_py.StorageOptions(uri=self.bag_path, storage_id=self.storage_id)
+
+        converter_options = rosbag2_py.ConverterOptions(
+            input_serialization_format=self.serialization_format,
+            output_serialization_format=self.serialization_format)
+
+        self.reader = rosbag2_py.SequentialReader()
+        self.reader.open(storage_options, converter_options)
+
+        self.topic_types = self.reader.get_all_topics_and_types()
+
+        # Create maps for quicker lookup
+        self.topic_type_map = {self.topic_types[i].name: self.topic_types[i].type for i in range(len(self.topic_types))}
+        self.topic_metadata_map = {self.topic_types[i].name: self.topic_types[i] for i in range(len(self.topic_types))}
+
+        #print(self.topic_type_map)
+
+        #for topic_metadata in self.topic_types:
+        #    print("name: {}".format(topic_metadata.name))
+        #    print("type: {}".format(topic_metadata.type))
+        #    print("serialization_format: {}".format(topic_metadata.serialization_format))
+        #    print("offered_qos_profiles: {}".format(topic_metadata.offered_qos_profiles))
+
+#########################################
 
     def close(self):
         pass
 
-    def get_topic_id(self, topic):
-        db = sqlite3.connect(self.db_name)
-        cursor = db.cursor()
-        search = cursor.execute(
-            'SELECT id FROM topics WHERE name="{}";'.format(topic))
-        entry = search.fetchone()
-        cursor.close()
-        db.close()
-        if entry is None:
-            return None
-        return entry[0]
+    def size(self):
+        return sum(f.stat().st_size for f in pathlib.Path(self.bag_path).glob('**/*') if f.is_file())
 
-    def get_topic_info(self, topic_id):
+    def get_topics(self):
+        return list(self.topics.keys())
+
+    def get_topic_type(self, topic):
+        return self.topic_type_map[topic]
+
+#########################################
+
+    def get_topic_metadata2(self, topic):
+        return self.topic_metadata_map[topic]
+
+    def get_topic_metadata(self, topic_id):
         db = sqlite3.connect(self.db_name)
         cursor = db.cursor()
         search = cursor.execute(
@@ -97,34 +127,46 @@ class Rosbag2:
             return None
         return (entry[0], entry[1], entry[2], entry[3])
 
+#########################################
+
     def _get_entry(self, timestamp, topic=None):
-        qDebug("Getting entry at {} for topic {}".format(timestamp, topic))
         db = sqlite3.connect(self.db_name)
-        columns_str = ", ".join(SQL_COLUMNS)
         cursor = db.cursor()
         topic_str = ''
         if topic is not None:
             # The requested topic may not be in this database
             if topic not in self.topics:
                 return None
-            topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
+            topic_str = 'AND topic_id={} '.format(self._get_topic_id(topic))
+
         search = cursor.execute(
-            "SELECT {} FROM messages WHERE timestamp<={} {}ORDER BY timestamp DESC LIMIT 1;".format(
-                columns_str, timestamp.nanoseconds, topic_str))
+            "SELECT messages.id, topic_id, timestamp, data, topics.name FROM messages INNER JOIN topics ON messages.topic_id=topics.id WHERE timestamp<={} {}ORDER BY timestamp DESC LIMIT 1;".format(timestamp.nanoseconds, topic_str))
         entry = search.fetchone()
         cursor.close()
         db.close()
         if entry is None:
             return None
 
-        Entry = namedtuple('Entry', SQL_COLUMNS)
-        return Entry(*entry)
+        Entry = namedtuple('Entry', ['id', 'topic_id', 'timestamp', 'data', 'name'])
+        foobar = Entry(*entry)
+        
+        # TODO: change 'name' to 'topic'
+        FullEntry = namedtuple('FullEntry', ['id', 'topic_id', 'timestamp', 'data', 'name', 'ros_message'])
 
-    def _read_message(self, position):
-        return self._get_entry(Time(nanoseconds=position))
+        #(topic, msg_type_name, _, _) = bag.get_topic_metadata(entry.topic_id)
+
+        #print("foobar.name: {}".format(foobar.name))
+        #print("foobar.type: {}".format(self.topic_type_map[foobar.name]))
+
+        msg_type = get_message(self.topic_type_map[foobar.name])
+        ros_message = deserialize_message(foobar.data, msg_type)
+
+        # TODO: change 'name' to 'topic'
+        # TODO: remove conversion to 'ros_message' 
+        # rosbag_reader returns: (topic(name), data, timestamp) and can then get msg_type and msg)
+        return FullEntry(foobar.id, foobar.topic_id, foobar.timestamp, foobar.data, foobar.name, ros_message)
 
     def _get_entry_after(self, timestamp, topic=None):
-        qDebug("Getting entry after {} for topic {}".format(timestamp, topic))
         db = sqlite3.connect(self.db_name)
 
         columns_str = ", ".join(SQL_COLUMNS)
@@ -134,7 +176,7 @@ class Rosbag2:
             # The requested topic may not be in this database
             if topic not in self.topics:
                 return None
-            topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
+            topic_str = 'AND topic_id={} '.format(self._get_topic_id(topic))
         search = cursor.execute(
             "SELECT {} FROM messages WHERE timestamp>{} {}LIMIT 1;".format(
                 columns_str, timestamp.nanoseconds, topic_str))
@@ -148,7 +190,6 @@ class Rosbag2:
         return Entry(*entry)
 
     def _get_entries(self, t_start, t_end, topic=None):
-        qDebug("Getting entries from {} to {} for topic {}".format(t_start, t_end, topic))
         db = sqlite3.connect(self.db_name)
         columns_str = ", ".join(SQL_COLUMNS)
         cursor = db.cursor()
@@ -157,7 +198,7 @@ class Rosbag2:
             # The requested topic may not be in this database
             if topic not in self.topics:
                 return None
-            topic_str = 'AND topic_id={} '.format(self.get_topic_id(topic))
+            topic_str = 'AND topic_id={} '.format(self._get_topic_id(topic))
         search = cursor.execute(
             "SELECT {} FROM messages WHERE timestamp>={} AND timestamp <={} {};".format(
                 columns_str, t_start.nanoseconds, t_end.nanoseconds, topic_str))
@@ -167,4 +208,16 @@ class Rosbag2:
 
         Entry = namedtuple('Entry', SQL_COLUMNS)
         return [Entry(*entry) for entry in entries]
+
+    def _get_topic_id(self, topic):
+        db = sqlite3.connect(self.db_name)
+        cursor = db.cursor()
+        search = cursor.execute(
+            'SELECT id FROM topics WHERE name="{}";'.format(topic))
+        entry = search.fetchone()
+        cursor.close()
+        db.close()
+        if entry is None:
+            return None
+        return entry[0]
 

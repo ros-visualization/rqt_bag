@@ -254,6 +254,10 @@ class BagTimeline(QGraphicsScene):
                     datatype = bag_datatype
             return datatype
 
+
+
+
+
     def get_entries(self, topics, start_stamp, end_stamp):
         """
         generator function for bag entries
@@ -309,6 +313,9 @@ class BagTimeline(QGraphicsScene):
             for bag, entry in sorted(bag_entries, key=lambda item: item[1].timestamp):
                 yield bag, entry
 
+
+
+
     def get_entry(self, t, topic):
         """
         Access a bag entry
@@ -355,6 +362,7 @@ class BagTimeline(QGraphicsScene):
 
             return entry_bag, entry
 
+
     def get_next_message_time(self):
         """
         :return: time of the next message after the current playhead position,''rclpy.time.Time''
@@ -380,6 +388,9 @@ class BagTimeline(QGraphicsScene):
             return self._timeline_frame._end_stamp
 
         return Time(nanoseconds=entry.timestamp)
+
+
+
 
     def resume(self):
         if (self._player):
@@ -477,10 +488,11 @@ class BagTimeline(QGraphicsScene):
             if self.background_task_cancel:
                 break
             try:
-                (topic_name, topic_type, serialization_format, offered_qos_profiles) = bag.get_topic_info(entry.topic_id)
-                topic_metadata = rosbag2_py.TopicMetadata(name=topic_name, type=topic_type,
-                                                          serialization_format=serialization_format,
-                                                          offered_qos_profiles=offered_qos_profiles)
+                #(topic_name, topic_type, serialization_format, offered_qos_profiles) = bag.get_topic_metadata(entry.topic_id)
+                #topic_metadata = rosbag2_py.TopicMetadata(name=topic_name, type=topic_type,
+                #                                          serialization_format=serialization_format,
+                #                                          offered_qos_profiles=offered_qos_profiles)
+                topic_metadata = bag.get_topic_metadata2(entry.topic_id)
 
                 # Add any new topics to the database
                 if not topic_name in database_topics:
@@ -516,7 +528,7 @@ class BagTimeline(QGraphicsScene):
 
     def read_message(self, bag, position):
         with self._bag_lock:
-            return bag._read_message(position)
+            return bag._get_entry(Time(nanoseconds=position))
 
     # Mouse events
     def on_mouse_down(self, event):

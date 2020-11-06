@@ -93,7 +93,7 @@ class MessageLoaderThread(threading.Thread):
                 messages_cv.notify_all()      # notify all views that a message is loaded
 
     def _get_message(self, bag, position):
-        key = '%s%s' % (bag.filename, str(position))
+        key = '%s%s' % (bag.bag_path, str(position))
         if key in self._message_cache:
             return self._message_cache[key]
 

@@ -134,9 +134,8 @@ class Player(QObject):
 
         # Create publisher if this is the first message on the topic
         if topic not in self._publishers:
-            topic_id = bag.get_topic_id(topic)
-            (topic_name, topic_type, serialization_format, offered_qos_profiles) = bag.get_topic_info(topic_id)
-            self.create_publisher(topic, ros_message, offered_qos_profiles)
+            topic_metadata = bag.get_topic_metadata2(topic)
+            self.create_publisher(topic, ros_message, topic_metadata.offered_qos_profiles)
 
         if self._publish_clock:
             time_msg = Time()

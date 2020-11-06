@@ -284,7 +284,7 @@ class BagWidget(QWidget):
             if filenames:
                 self.last_open_dir = filenames[0]
             for filename in filenames:
-                self.load_bag(filename + "/metadata.yaml")
+                self.load_bag(filename)
 
         # After loading bag(s), force a resize event on the bag widget so that
         # it can take the new height of the timeline into account (and show
@@ -306,15 +306,10 @@ class BagWidget(QWidget):
         # self.progress_bar.setTextVisible(True)
 
         try:
-            with open(filename) as f:
-                bag_info = yaml.safe_load(f)
-                bag = Rosbag2(bag_info['rosbag2_bagfile_information'], filename)
+            bag = Rosbag2(filename)
         except Exception as e:
-            qWarning("Loading '%s' failed due to: %s" % (filename.encode(errors='replace'), e))
             self.set_status_text.emit("Loading '%s' failed due to: %s" % (filename, e))
             return
-
-        qDebug('Loading bag from metadata file "{}" Succeeded'.format(filename))
 
         self.play_button.setEnabled(True)
         self.thumbs_button.setEnabled(True)

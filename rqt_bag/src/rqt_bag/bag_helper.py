@@ -149,7 +149,10 @@ def to_sec(t):
 
 
 def convert_entry_to_ros_message(bag, entry):
-    (topic, msg_type_name, _, _) = bag.get_topic_info(entry.topic_id)
+    (topic, msg_type_name, _, _) = bag.get_topic_metadata(entry.topic_id)
+    #print("msg_type_name: {}".format(msg_type_name))
     msg_type = get_message(msg_type_name)
+    #msg_type = bag.get_topic_type(entry.topic_id)
     ros_message = deserialize_message(entry.data, msg_type)
+    
     return (ros_message, msg_type_name, topic)
