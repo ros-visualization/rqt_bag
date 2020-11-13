@@ -2,6 +2,20 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix a few minor issues in image_helper (`#68 <https://github.com/ros-visualization/rqt_bag/issues/68>`_)
+* Clean up widgets in plot_view layout correctly (`#69 <https://github.com/ros-visualization/rqt_bag/issues/69>`_)
+* Fix tuples for bisect calls (`#67 <https://github.com/ros-visualization/rqt_bag/issues/67>`_)
+* Make the save and record dialogs work the same way (`#64 <https://github.com/ros-visualization/rqt_bag/issues/64>`_)
+* Fix issue: no vertical scroll bar until window is resized (`#63 <https://github.com/ros-visualization/rqt_bag/issues/63>`_)
+* Dynamically resize the timeline when recording (`#66 <https://github.com/ros-visualization/rqt_bag/issues/66>`_)
+* Fix a bug with the status line progress bar (`#62 <https://github.com/ros-visualization/rqt_bag/issues/62>`_)
+* Update a few minor status bar-related items (`#61 <https://github.com/ros-visualization/rqt_bag/issues/61>`_)
+* Make the tree controls in the Raw View and Plot View consistent (`#57 <https://github.com/ros-visualization/rqt_bag/issues/57>`_)
+* Update the package.xml files with the latest maintainers (`#58 <https://github.com/ros-visualization/rqt_bag/issues/58>`_)
+* Contributors: Michael Jeronimo
+
 0.4.15 (2020-08-21)
 -------------------
 * fix Python 3 issue: long/int (`#52 <https://github.com/ros-visualization/rqt_bag/issues/52>`_)
