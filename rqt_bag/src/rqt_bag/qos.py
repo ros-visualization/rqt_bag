@@ -101,9 +101,9 @@ def gen_publisher_qos_profile(qos_profiles):
     # Simply use the first one (should have a more sophisticated strategy)
     result = qos_profiles[0]
 
-    # HISTORY_UNKNOWN isn't a valid QoS history policy for a publisher
-    if result.history == rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_UNKNOWN:
-        result.history = rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT
+    # UNKNOWN isn't a valid QoS history policy for a publisher
+    if result.history == rclpy.qos.HistoryPolicy.UNKNOWN:
+        result.history = rclpy.qos.HistoryPolicy.SYSTEM_DEFAULT
         result.depth = 10
 
     return result
@@ -118,9 +118,9 @@ def gen_subscriber_qos_profile(qos_profiles):
     # Simply use the first one (should have a more sophisticated strategy)
     result = qos_profiles[0]
 
-    # HISTORY_UNKNOWN isn't a valid QoS history policy for a subscriber
-    if result.history == rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_UNKNOWN:
-        result.history = rclpy.qos.HistoryPolicy.RMW_QOS_POLICY_HISTORY_SYSTEM_DEFAULT
+    # UNKNOWN isn't a valid QoS history policy for a subscriber
+    if result.history == rclpy.qos.HistoryPolicy.UNKNOWN:
+        result.history = rclpy.qos.HistoryPolicy.SYSTEM_DEFAULT
         result.depth = 10
 
     return result
