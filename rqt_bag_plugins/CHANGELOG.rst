@@ -2,6 +2,16 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Port the plot view to ROS2 (`#79 <https://github.com/ros-visualization/rqt_bag/issues/79>`_)
+* Port the image_view plugin to ROS2 (`#78 <https://github.com/ros-visualization/rqt_bag/issues/78>`_)
+* Starting point for resuming the ROS2 port (`#70 <https://github.com/ros-visualization/rqt_bag/issues/70>`_)
+* Make the tree controls in the Raw View and Plot View consistent (`#57 <https://github.com/ros-visualization/rqt_bag/issues/57>`_)
+* Update the package.xml files with the latest Open Robotics maintainers (`#58 <https://github.com/ros-visualization/rqt_bag/issues/58>`_)
+* initialize pil_mode when image is compressed (`#54 <https://github.com/ros-visualization/rqt_bag/issues/54>`_)
+* Contributors: John Stechschulte, Michael Jeronimo
+
 0.4.15 (2020-08-21)
 -------------------
 

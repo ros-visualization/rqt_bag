@@ -2,6 +2,30 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Use updated HistoryPolicy values to avoid deprecation warnings (`#88 <https://github.com/ros-visualization/rqt_bag/issues/88>`_)
+* Enable recording for ROS2 (`#87 <https://github.com/ros-visualization/rqt_bag/issues/87>`_)
+* Enable the playback functionality for ROS2 (`#85 <https://github.com/ros-visualization/rqt_bag/issues/85>`_)
+* Port the topic and node selection dialogs to ROS2 (`#86 <https://github.com/ros-visualization/rqt_bag/issues/86>`_)
+* Save the serialization format and offered_qos_profiles when exporting (`#84 <https://github.com/ros-visualization/rqt_bag/issues/84>`_)
+* Enable the export/save bag functionality for ROS2 (`#82 <https://github.com/ros-visualization/rqt_bag/issues/82>`_)
+* Update known message types and associated colors (`#81 <https://github.com/ros-visualization/rqt_bag/issues/81>`_)
+* Open the bag directory instead of a single file (`#80 <https://github.com/ros-visualization/rqt_bag/issues/80>`_)
+* Port the image_view plugin to ROS2 (`#78 <https://github.com/ros-visualization/rqt_bag/issues/78>`_)
+* Clean up widgets in plot_view layout correctly (`#69 <https://github.com/ros-visualization/rqt_bag/issues/69>`_) (`#77 <https://github.com/ros-visualization/rqt_bag/issues/77>`_)
+* Fix tuples for bisect calls (`#67 <https://github.com/ros-visualization/rqt_bag/issues/67>`_) (`#76 <https://github.com/ros-visualization/rqt_bag/issues/76>`_)
+* Fix issue: no vertical scroll bar until window is resized (`#63 <https://github.com/ros-visualization/rqt_bag/issues/63>`_) (`#75 <https://github.com/ros-visualization/rqt_bag/issues/75>`_)
+* Update the basic plugins for ROS2 (`#72 <https://github.com/ros-visualization/rqt_bag/issues/72>`_)
+* Update the rosbag2 python module (`#71 <https://github.com/ros-visualization/rqt_bag/issues/71>`_)
+* Dynamically resize the timeline when recording (`#66 <https://github.com/ros-visualization/rqt_bag/issues/66>`_)
+* Starting point for resuming the ROS2 port (`#70 <https://github.com/ros-visualization/rqt_bag/issues/70>`_)
+* Fix a bug with the status line progress bar (`#62 <https://github.com/ros-visualization/rqt_bag/issues/62>`_)
+* Update a few minor status bar-related items (`#61 <https://github.com/ros-visualization/rqt_bag/issues/61>`_)
+* Make the tree controls in the Raw View and Plot View consistent (`#57 <https://github.com/ros-visualization/rqt_bag/issues/57>`_)
+* Update the package.xml files with the latest Open Robotics maintainers (`#58 <https://github.com/ros-visualization/rqt_bag/issues/58>`_)
+* Contributors: Michael Jeronimo
+
 0.4.15 (2020-08-21)
 -------------------
 * fix Python 3 issue: long/int (`#52 <https://github.com/ros-visualization/rqt_bag/issues/52>`_)
