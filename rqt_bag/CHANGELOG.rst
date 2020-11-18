@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2020-11-17)
+------------------
 * Use updated HistoryPolicy values to avoid deprecation warnings (`#88 <https://github.com/ros-visualization/rqt_bag/issues/88>`_)
 * Enable recording for ROS2 (`#87 <https://github.com/ros-visualization/rqt_bag/issues/87>`_)
 * Enable the playback functionality for ROS2 (`#85 <https://github.com/ros-visualization/rqt_bag/issues/85>`_)

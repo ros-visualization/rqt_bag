@@ -2,8 +2,8 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.0 (2020-11-17)
+------------------
 * Port the plot view to ROS2 (`#79 <https://github.com/ros-visualization/rqt_bag/issues/79>`_)
 * Port the image_view plugin to ROS2 (`#78 <https://github.com/ros-visualization/rqt_bag/issues/78>`_)
 * Starting point for resuming the ROS2 port (`#70 <https://github.com/ros-visualization/rqt_bag/issues/70>`_)
