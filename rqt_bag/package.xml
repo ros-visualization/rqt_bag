@@ -16,7 +16,7 @@
   <exec_depend version_gte="0.2.19">python_qt_binding</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>rosbag2_py</exec_depend>
-  <exec_depend>rosbag2_transport_py</exec_depend>
+  <exec_depend>rosbag2_transport</exec_depend>
   <exec_depend version_gte="0.2.12">rqt_gui</exec_depend>
   <exec_depend>rqt_gui_py</exec_depend>
 
