@@ -3,7 +3,7 @@ from setuptools import setup
 package_name = 'rqt_bag'
 setup(
     name=package_name,
-    version='0.4.15',
+    version='1.0.0',
     package_dir={'': 'src'},
     packages=['rqt_bag', 'rqt_bag.plugins'],
     data_files=[
