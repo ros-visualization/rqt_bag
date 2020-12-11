@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from python_qt_binding.QtCore import qDebug
-from python_qt_binding.QtWidgets import QVBoxLayout, QMenu, QWidget, QDockWidget
+from python_qt_binding.QtWidgets import QDockWidget, QMenu, QVBoxLayout, QWidget
 
 
 class TopicPopupWidget(QWidget):
@@ -63,9 +63,9 @@ class TopicPopupWidget(QWidget):
         super(TopicPopupWidget, self).showEvent(event)
 
     def show(self, context):
-        """
-        Make this topic popup visible, if necessary. This includes setting up
-        the proper close button hacks
+        """Make this topic popup visible, if necessary.
+
+        This includes setting up the proper close button hacks.
         """
         if not self.parent():
             context.add_widget(self)
@@ -96,10 +96,7 @@ class TopicPopupWidget(QWidget):
 
 
 class TimelinePopupMenu(QMenu):
-
-    """
-    Custom popup menu displayed on rightclick from timeline
-    """
+    """Custom popup menu displayed on rightclick from timeline."""
 
     def __init__(self, timeline, event, menu_topic):
         super(TimelinePopupMenu, self).__init__()
@@ -141,7 +138,7 @@ class TimelinePopupMenu(QMenu):
             self._thumbnail_hide_action = None
             for topic, renderer in self._renderers:
                 if menu_topic == topic:
-                    self._thumbnail_actions.append(self.addAction("Thumbnail"))
+                    self._thumbnail_actions.append(self.addAction('Thumbnail'))
                     self._thumbnail_actions[-1].setCheckable(True)
                     self._thumbnail_actions[-1].setChecked(
                         self.timeline._timeline_frame.is_renderer_active(topic))
@@ -185,7 +182,7 @@ class TimelinePopupMenu(QMenu):
                     datatype_menu.addMenu(topic_menu)
                 view_type_menu.addMenu(datatype_menu)
         else:
-            view_menu = self.addMenu("View")
+            view_menu = self.addMenu('View')
             datatype = self.timeline.get_datatype(menu_topic)
 
             viewer_types = self.timeline._timeline_frame.get_viewer_types(datatype)
@@ -211,7 +208,7 @@ class TimelinePopupMenu(QMenu):
                 self._publish_actions[-1].setCheckable(True)
                 self._publish_actions[-1].setChecked(self.timeline.is_publishing(topic))
         else:
-            self._publish_actions.append(self.addAction("Publish"))
+            self._publish_actions.append(self.addAction('Publish'))
             self._publish_actions[-1].setCheckable(True)
             self._publish_actions[-1].setChecked(self.timeline.is_publishing(menu_topic))
             self._publish_all = None
@@ -222,11 +219,11 @@ class TimelinePopupMenu(QMenu):
             self.process(action)
 
     def process(self, action):
-        """
+        """Process the selected action.
+
         :param action: action to execute, ''QAction''
         :raises: when it doesn't recognice the action passed in, ''Exception''
         """
-        qDebug('TimelinePopupMenu process action {}'.format(action))
         if action == self._reset_timeline:
             self.timeline._timeline_frame.reset_timeline()
         elif action == self._play_all:

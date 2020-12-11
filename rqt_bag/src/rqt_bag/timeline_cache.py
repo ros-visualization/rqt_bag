@@ -30,7 +30,6 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
 import bisect
 try:
     from queue import Queue
@@ -43,10 +42,7 @@ from rqt_bag import bag_helper
 
 
 class TimelineCache(threading.Thread):
-
-    """
-    Caches items for timeline renderers
-    """
+    """Cache items for timeline renderers."""
 
     def __init__(self, loader, listener=None, max_cache_size=100):
         threading.Thread.__init__(self)
@@ -82,11 +78,6 @@ class TimelineCache(threading.Thread):
 
                     if self.listener:
                         self.listener(topic, msg_stamp, item)
-#                else:
-#                    try:
-#                        qWarning('Failed to load:%s' % entry)
-#                    except:
-#                        qWarning('Failed to load cache item')
             self.queue.task_done()
 
     def enqueue(self, entry):
@@ -97,13 +88,10 @@ class TimelineCache(threading.Thread):
             if topic not in self.items:
                 self.items[topic] = []
             topic_cache = self.items[topic]
-
             cache_entry = (bag_helper.to_sec(t), item)
             cache_index = bisect.bisect_right(topic_cache, cache_entry)
             topic_cache.insert(cache_index, cache_entry)
-
             self._update_last_accessed(topic, bag_helper.to_sec(t))
-
             self._limit_cache()
 
     def get_item(self, topic, stamp, time_threshold):
@@ -140,9 +128,7 @@ class TimelineCache(threading.Thread):
             return None
 
     def _update_last_accessed(self, topic, stamp):
-        """
-        Maintains a sorted list of cache accesses by timestamp for each topic.
-        """
+        """Maintain  a sorted list of cache accesses by timestamp for each topic."""
         with self.lock:
             access_time = time.time()
 
@@ -166,9 +152,7 @@ class TimelineCache(threading.Thread):
             topic_item_access[stamp] = access_time
 
     def _limit_cache(self):
-        """
-        Removes LRU's from cache until size of each topic's cache is <= max_cache_size.
-        """
+        """Remove LRU's from cache until size of each topic's cache is <= max_cache_size."""
         with self.lock:
             for topic, topic_cache in self.items.items():
                 while len(topic_cache) > self.max_cache_size:

@@ -30,32 +30,17 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""
-QoS-related utility functions
-"""
+"""QoS-related utility functions."""
 
-import yaml
-import math
-import rclpy.qos
-import builtin_interfaces.msg
-
-from rclpy.qos import QoSProfile
 from rclpy.duration import Duration
+import rclpy.qos
+from rclpy.qos import QoSProfile
 from rclpy.time import Time
-
-
-def duration_to_node(duration):
-    t = Time(nanoseconds=duration.nanoseconds)
-    node = {}
-    (node['sec'], node['nsec']) = t.seconds_nanoseconds()
-    return node
-
-
-def node_to_duration(node):
-    return Duration(seconds=int(node['sec']), nanoseconds=int(node['nsec']))
+import yaml
 
 
 def qos_profiles_to_yaml(qos_profiles):
+    """Convert a set of QoS profiles to a corresponding yaml representation."""
     profiles_list = []
     for qos_profile in qos_profiles:
         qos = {}
@@ -63,10 +48,11 @@ def qos_profiles_to_yaml(qos_profiles):
         qos['depth'] = int(qos_profile.depth)
         qos['reliability'] = int(qos_profile.reliability)
         qos['durability'] = int(qos_profile.durability)
-        qos['lifespan'] = duration_to_node(qos_profile.lifespan)
-        qos['deadline'] = duration_to_node(qos_profile.deadline)
+        qos['lifespan'] = _duration_to_yaml_node(qos_profile.lifespan)
+        qos['deadline'] = _duration_to_yaml_node(qos_profile.deadline)
         qos['liveliness'] = int(qos_profile.liveliness)
-        qos['liveliness_lease_duration'] = duration_to_node(qos_profile.liveliness_lease_duration)
+        qos['liveliness_lease_duration'] = \
+            _duration_to_yaml_node(qos_profile.liveliness_lease_duration)
         qos['avoid_ros_namespace_conventions'] = qos_profile.avoid_ros_namespace_conventions
         profiles_list.append(qos)
 
@@ -74,6 +60,7 @@ def qos_profiles_to_yaml(qos_profiles):
 
 
 def yaml_to_qos_profiles(profiles_yaml):
+    """Convert a yaml representation of a set of QoS profiles to a QoSProfile list."""
     qos_profiles = []
     nodes = yaml.safe_load(profiles_yaml)
     for node in nodes:
@@ -81,10 +68,11 @@ def yaml_to_qos_profiles(profiles_yaml):
         qos_profile.history = int(node['history'])
         qos_profile.reliability = int(node['reliability'])
         qos_profile.durability = int(node['durability'])
-        qos_profile.lifespan = node_to_duration(node['lifespan'])
-        qos_profile.deadline = node_to_duration(node['deadline'])
+        qos_profile.lifespan = _yaml_node_to_duration(node['lifespan'])
+        qos_profile.deadline = _yaml_node_to_duration(node['deadline'])
         qos_profile.liveliness = int(node['liveliness'])
-        qos_profile.liveliness_lease_duration = node_to_duration(node['liveliness_lease_duration'])
+        qos_profile.liveliness_lease_duration = \
+            _yaml_node_to_duration(node['liveliness_lease_duration'])
         qos_profile.avoid_ros_namespace_conventions = node['avoid_ros_namespace_conventions']
         qos_profiles.append(qos_profile)
 
@@ -92,9 +80,13 @@ def yaml_to_qos_profiles(profiles_yaml):
 
 
 def gen_publisher_qos_profile(qos_profiles):
-    """Generate a single QoS profile for a publisher from a set of QoS profiles (typically
-       read from the offered_qos_profiles in the rosbag, which records the QoS settings used
-       by the various publishers on that topic)."""
+    """Generate a single QoS profile for a publisher from a set of QoS profiles.
+
+    Select a QoSProfile to use when creating the publisher for a topic. The incoming
+    QoSProfiles typically come from the offered_qos_profiles in the rosbag,
+    which records the QoS settings used by the various publishers on that topic when
+    the bag was recorded.
+    """
     if not qos_profiles:
         return QoSProfile(depth=10)
 
@@ -110,8 +102,11 @@ def gen_publisher_qos_profile(qos_profiles):
 
 
 def gen_subscriber_qos_profile(qos_profiles):
-    """Generate a single QoS profile for a subscriber from a set of QoS profiles (typically
-       acquired from an active set of publishers for a particular topic)."""
+    """Generate a single QoS profile for a subscriber from a set of QoS profiles.
+
+    When subscribing to a topic, there can be a set of active publishers for the
+    topic. This method is used to generate a single QoSProfile to use.
+    """
     if not qos_profiles:
         return QoSProfile(depth=10)
 
@@ -127,7 +122,7 @@ def gen_subscriber_qos_profile(qos_profiles):
 
 
 def get_qos_profiles_for_topic(node, topic):
-    """Get the QoS profiles used by current publishers on a specific topic"""
+    """Get the QoS profiles used by current publishers on a specific topic."""
     publishers_info = node.get_publishers_info_by_topic(topic)
     if publishers_info:
         # Get the QoS info for each of the current publishers on this topic
@@ -137,3 +132,16 @@ def get_qos_profiles_for_topic(node, topic):
         return qos_profiles
 
     return None
+
+
+def _duration_to_yaml_node(duration):
+    """Convert a Duration to its corresponding yaml representation."""
+    t = Time(nanoseconds=duration.nanoseconds)
+    node = {}
+    (node['sec'], node['nsec']) = t.seconds_nanoseconds()
+    return node
+
+
+def _yaml_node_to_duration(node):
+    """Convert a yaml node with seconcds and nanoseconds to a Duration type."""
+    return Duration(seconds=int(node['sec']), nanoseconds=int(node['nsec']))

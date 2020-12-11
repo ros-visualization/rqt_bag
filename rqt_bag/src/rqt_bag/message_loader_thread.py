@@ -34,11 +34,11 @@ import threading
 
 
 class MessageLoaderThread(threading.Thread):
-    """
-    Waits for a new playhead position on the given topic, then loads the message at that position
-    and notifies the view threads.
+    """The message loader thread.
 
-    One thread per topic.  Maintains a cache of recently loaded messages.
+    There is one MessageLoaderThread per topic. Each thread waits for a new playhead position
+    on the given topic, then loads the message at that position and notifies the view threads.
+    The MessageLoaderThread maintains a cache of recently loaded messages.
     """
 
     def __init__(self, timeline, topic):

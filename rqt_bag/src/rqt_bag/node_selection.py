@@ -31,7 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtWidgets import QWidget, QVBoxLayout, QCheckBox, QScrollArea, QPushButton
+from python_qt_binding.QtWidgets import QCheckBox, QPushButton, QScrollArea, QVBoxLayout, QWidget
 
 
 class NodeSelection(QWidget):
@@ -41,11 +41,11 @@ class NodeSelection(QWidget):
         self.parent_widget = parent
         self.node = node
         self.selected_nodes = []
-        self.setWindowTitle("Select the nodes you want to record")
+        self.setWindowTitle('Select the nodes you want to record')
         self.resize(500, 700)
         self.area = QScrollArea(self)
         self.main_widget = QWidget(self.area)
-        self.ok_button = QPushButton("Done", self)
+        self.ok_button = QPushButton('Done', self)
         self.ok_button.clicked.connect(self.onButtonClicked)
         self.ok_button.setEnabled(False)
         self.main_vlayout = QVBoxLayout()
@@ -63,7 +63,8 @@ class NodeSelection(QWidget):
     def addCheckBox(self, node):
         node_name = node[0]
         node_namespace = node[1]
-        name = node_namespace + node_name if (node_namespace[-1] == '/') else node_namespace + '/' + node_name
+        name = node_namespace + node_name \
+            if (node_namespace[-1] == '/') else node_namespace + '/' + node_name
         item = QCheckBox(name, self)
         item.stateChanged.connect(lambda x: self.updateNode(x, node))
         self.selection_vlayout.addWidget(item)
@@ -79,11 +80,12 @@ class NodeSelection(QWidget):
             self.ok_button.setEnabled(False)
 
     def onButtonClicked(self):
-        # Get all of the topics for the selected nodes 
         topics = set()
 
+        # Get all of the topics for the selected nodes
         for node in self.selected_nodes:
-            subscription_info_entries = self.node.get_publisher_names_and_types_by_node(node[0], node[1])
+            subscription_info_entries = \
+                self.node.get_publisher_names_and_types_by_node(node[0], node[1])
             for subscription_info in subscription_info_entries:
                 topics.add(subscription_info[0])
 

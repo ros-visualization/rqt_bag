@@ -30,24 +30,21 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import math
 import os
 import time
 
-
 from ament_index_python import get_resource
-from rclpy import logging
-
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import qDebug, QFileInfo, Qt, qWarning, Signal
+from python_qt_binding.QtCore import qDebug, Qt, Signal
 from python_qt_binding.QtGui import QIcon, QResizeEvent
 from python_qt_binding.QtWidgets import QFileDialog, QGraphicsView, QWidget
-
-from rosbag2_transport import rosbag2_transport_py
+from rclpy import logging
 from rqt_bag import bag_helper
+
 from .bag_timeline import BagTimeline
-from .topic_selection import TopicSelection
 from .rosbag2 import Rosbag2
-import yaml
+from .topic_selection import TopicSelection
 
 
 class BagGraphicsView(QGraphicsView):
@@ -57,9 +54,7 @@ class BagGraphicsView(QGraphicsView):
 
 
 class BagWidget(QWidget):
-
-    """
-    Widget for use with Bag class to display and replay bag files.
+    """Widget for use with Bag class to display and replay bag files.
 
     Handles all widget callbacks and contains the instance of BagTimeline for storing visualizing
     bag data
@@ -69,7 +64,8 @@ class BagWidget(QWidget):
     set_status_text = Signal(str)
 
     def __init__(self, context, publish_clock):
-        """
+        """Initialize the BagWidget object.
+
         :param context: plugin context hook to enable adding widgets as a ROS_GUI pane,
             ''PluginContext''
         """
@@ -259,15 +255,15 @@ class BagWidget(QWidget):
     def _on_record_settings_selected(self, all_topics, selected_topics):
         # Get bag name to record to, prepopulating the dialog input with the current time
         proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-        filename = QFileDialog.getSaveFileName(self, self.tr('Select name for new rosbag'), proposed_filename)
+        filename = QFileDialog.getSaveFileName(self, self.tr('Select name for new rosbag'),
+                                               proposed_filename)
 
         if filename[0] != '':
             record_filename = filename[0].strip()
             if record_filename.endswith('.bag'):
                 record_filename = record_filename[:-len('.bag')]
 
-            self._logger.info('Recording to %s.' % record_filename)
-
+            self._logger.info('Recording to %s' % record_filename)
             self.load_button.setEnabled(False)
             self._recording = True
             self._timeline.record_bag(record_filename, all_topics, selected_topics)
@@ -308,11 +304,8 @@ class BagWidget(QWidget):
         try:
             bag = Rosbag2(filename)
         except Exception as e:
-            qWarning("Loading '%s' failed due to: %s" % (filename.encode(errors='replace'), e))
             self.set_status_text.emit("Loading '%s' failed due to: %s" % (filename, e))
             return
-
-        qDebug('Loading bag from metadata file "{}" Succeeded'.format(filename))
 
         self.play_button.setEnabled(True)
         self.thumbs_button.setEnabled(True)
@@ -330,7 +323,7 @@ class BagWidget(QWidget):
         self._timeline.add_bag(bag)
         qDebug("Done loading '%s'" % filename.encode(errors='replace'))
         # put the progress bar back the way it was
-        self.set_status_text.emit("")
+        self.set_status_text.emit('')
 
         # self.progress_bar.setFormat(progress_format)
         # self.progress_bar.setTextVisible(progress_text_visible) # causes a segfault :(
@@ -340,8 +333,8 @@ class BagWidget(QWidget):
     def _handle_save_clicked(self):
         # Get the bag name to save to, prepopulating the dialog input with the current time
         proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-        filename = \
-            QFileDialog.getSaveFileName(self, self.tr('Save selected region...'), proposed_filename)
+        filename = QFileDialog.getSaveFileName(self, self.tr('Save selected region...'),
+                                               proposed_filename)
         if filename[0] != '':
             self._timeline.copy_region_to_bag(filename[0])
 
@@ -376,7 +369,7 @@ class BagWidget(QWidget):
                                  time.localtime(t_sec)) + '.%03d' % (t_nsec * 1e-9)
 
     def _update_status_bar(self):
-        if (self._timeline._timeline_frame.playhead is None or \
+        if (self._timeline._timeline_frame.playhead is None or
                 self._timeline._timeline_frame.start_stamp is None):
             return
         # TODO Figure out why this function is causing a "RuntimeError: wrapped
@@ -386,7 +379,8 @@ class BagWidget(QWidget):
             self.progress_bar.setValue(self._timeline.background_progress)
 
             # Raw timestamp
-            self.stamp_label.setText('%.9fs' % bag_helper.to_sec(self._timeline._timeline_frame.playhead))
+            self.stamp_label.setText('%.9fs' % bag_helper.to_sec(
+                                     self._timeline._timeline_frame.playhead))
 
             # Human-readable time
             self.date_label.setText(
@@ -418,9 +412,9 @@ class BagWidget(QWidget):
                 self.playspeed_label.setText(spd_str)
             else:
                 self.playspeed_label.setText('')
-        except Exception as e:
+        except Exception:
             return
-    # Shutdown all members
 
+    # Shutdown all members
     def shutdown_all(self):
         self._timeline.handle_close()
