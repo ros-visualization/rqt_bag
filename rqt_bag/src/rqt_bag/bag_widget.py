@@ -284,7 +284,7 @@ class BagWidget(QWidget):
             if filenames:
                 self.last_open_dir = filenames[0]
             for filename in filenames:
-                self.load_bag(filename + "/metadata.yaml")
+                self.load_bag(filename)
 
         # After loading bag(s), force a resize event on the bag widget so that
         # it can take the new height of the timeline into account (and show
@@ -306,9 +306,7 @@ class BagWidget(QWidget):
         # self.progress_bar.setTextVisible(True)
 
         try:
-            with open(filename) as f:
-                bag_info = yaml.safe_load(f)
-                bag = Rosbag2(bag_info['rosbag2_bagfile_information'], filename)
+            bag = Rosbag2(filename)
         except Exception as e:
             qWarning("Loading '%s' failed due to: %s" % (filename.encode(errors='replace'), e))
             self.set_status_text.emit("Loading '%s' failed due to: %s" % (filename, e))
@@ -354,6 +352,29 @@ class BagWidget(QWidget):
         else:
             self.progress_bar.setTextVisible(False)
 
+    def _filesize_to_str(self, size):
+        size_name = ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
+        i = int(math.floor(math.log(size, 1024)))
+        p = math.pow(1024, i)
+        s = round(size / p, 2)
+        if s > 0:
+            return '%s %s' % (s, size_name[i])
+        return '0 B'
+
+    def _stamp_to_str(self, t):
+        """Convert a rclpy.time.Time to a human-readable string.
+
+        @param t: time to convert
+        @type  t: rclpy.time.Time
+        """
+        t_sec, t_nsec = t.seconds_nanoseconds()
+        if t_sec < (60 * 60 * 24 * 365 * 5):
+            # Display timestamps earlier than 1975 as seconds
+            return '%.3fs' % t_sec
+        else:
+            return time.strftime('%b %d %Y %H:%M:%S',
+                                 time.localtime(t_sec)) + '.%03d' % (t_nsec * 1e-9)
+
     def _update_status_bar(self):
         if (self._timeline._timeline_frame.playhead is None or \
                 self._timeline._timeline_frame.start_stamp is None):
@@ -369,7 +390,7 @@ class BagWidget(QWidget):
 
             # Human-readable time
             self.date_label.setText(
-                bag_helper.stamp_to_str(self._timeline._timeline_frame.playhead))
+                self._stamp_to_str(self._timeline._timeline_frame.playhead))
 
             # Elapsed time (in seconds)
             self.seconds_label.setText(
@@ -377,7 +398,7 @@ class BagWidget(QWidget):
                                             self._timeline._timeline_frame.start_stamp))
 
             # File size
-            self.filesize_label.setText(bag_helper.filesize_to_str(self._timeline.file_size()))
+            self.filesize_label.setText(self._filesize_to_str(self._timeline.file_size()))
 
             # Play speed
             spd = self._timeline.play_speed

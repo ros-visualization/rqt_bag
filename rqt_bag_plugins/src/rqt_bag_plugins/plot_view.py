@@ -180,7 +180,7 @@ class PlotWidget(QWidget):
                 start_time = Time(nanoseconds=entry.timestamp)
 
         self.bag = bag
-        (ros_message, msg_type, topic) = self.bag.convert_entry_to_ros_message(entry)
+        (ros_message, msg_type, topic) = self.bag.deserialize_entry(entry)
         self.message_tree.set_message(ros_message, msg_type)
 
         # state used by threaded resampling
@@ -206,9 +206,9 @@ class PlotWidget(QWidget):
 
     def load_data(self):
         """get a generator for the specified time range on our bag"""
-        return self.bag._get_entries(self.start_stamp + Duration(seconds=self.limits[0]),
-                                     self.start_stamp + Duration(seconds=self.limits[1]),
-                                     self.msgtopic)
+        return self.bag.get_entries_in_range(self.start_stamp + Duration(seconds=self.limits[0]),
+                                             self.start_stamp + Duration(seconds=self.limits[1]),
+                                             self.msgtopic)
 
     def resample_data(self, fields):
         if self.resample_thread:
@@ -252,7 +252,7 @@ class PlotWidget(QWidget):
                 if not self.resampling_active:
                     return
 
-                (ros_message, _, _) = self.bag.convert_entry_to_ros_message(entry)
+                (ros_message, _, _) = self.bag.deserialize_entry(entry)
                 timestamp = Time(nanoseconds=entry.timestamp)
 
                 for path in self.resample_fields:

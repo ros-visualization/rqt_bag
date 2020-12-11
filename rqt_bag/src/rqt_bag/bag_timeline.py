@@ -144,8 +144,6 @@ class BagTimeline(QGraphicsScene):
         if self.background_task is not None:
             self.background_task_cancel = True
         self._timeline_frame.handle_close()
-        for bag in self._bags:
-            bag.close()
         for frame in self._views:
             if frame.parent():
                 self._context.remove_widget(frame)
@@ -159,7 +157,7 @@ class BagTimeline(QGraphicsScene):
         """
         self._bags.append(bag)
 
-        bag_topics = bag_helper.get_topics(bag)
+        bag_topics = bag.get_topics()
         qDebug('Topics from this bag: {}'.format(bag_topics))
 
         new_topics = set(bag_topics) - set(self._timeline_frame.topics)
@@ -198,7 +196,7 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             start_stamp = None
             for bag in self._bags:
-                bag_start_stamp = bag_helper.get_start_stamp(bag)
+                bag_start_stamp = bag.get_earliest_timestamp()
                 if bag_start_stamp is not None and \
                         (start_stamp is None or bag_start_stamp < start_stamp):
                     start_stamp = bag_start_stamp
@@ -211,7 +209,7 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             end_stamp = None
             for bag in self._bags:
-                bag_end_stamp = bag_helper.get_end_stamp(bag)
+                bag_end_stamp = bag.get_latest_timestamp()
                 if bag_end_stamp is not None and (end_stamp is None or bag_end_stamp > end_stamp):
                     end_stamp = bag_end_stamp
             return end_stamp
@@ -223,7 +221,7 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             topics = set()
             for bag in self._bags:
-                for topic in bag_helper.get_topics(bag):
+                for topic in bag.get_topics():
                     topics.add(topic)
             return sorted(topics)
 
@@ -234,7 +232,7 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             topics_by_datatype = {}
             for bag in self._bags:
-                for datatype, topics in bag_helper.get_topics_by_datatype(bag).items():
+                for datatype, topics in bag.get_topics_by_type().items():
                     topics_by_datatype.setdefault(datatype, []).extend(topics)
             return topics_by_datatype
 
@@ -246,7 +244,7 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             datatype = None
             for bag in self._bags:
-                bag_datatype = bag_helper.get_datatype(bag, topic)
+                bag_datatype = bag.get_topic_type(topic)
                 if datatype and bag_datatype and (bag_datatype != datatype):
                     raise Exception('topic %s has multiple datatypes: %s and %s' %
                                     (topic, datatype, bag_datatype))
@@ -265,18 +263,18 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             bag_entries = []
             for b in self._bags:
-                bag_start_time = bag_helper.get_start_stamp(b)
+                bag_start_time = b.get_earliest_timestamp()
                 if bag_start_time is not None and bag_start_time > end_stamp:
                     continue
 
-                bag_end_time = bag_helper.get_end_stamp(b)
+                bag_end_time = b.get_latest_timestamp()
                 if bag_end_time is not None and bag_end_time < start_stamp:
                     continue
 
                 # Get all of the entries for each topic. When opening multiple
                 # bags, the requested topic may not be in a given bag database
                 for topic in topics:
-                    entries = b._get_entries(start_stamp, end_stamp, topic)
+                    entries = b.get_entries_in_range(start_stamp, end_stamp, topic)
                     if entries is not None:
                         bag_entries.extend(entries)
 
@@ -295,15 +293,15 @@ class BagTimeline(QGraphicsScene):
             bag_entries = []
             bag_by_iter = {}
             for b in self._bags:
-                bag_start_time = bag_helper.get_start_stamp(b)
+                bag_start_time = b.get_earliest_timestamp()
                 if bag_start_time is not None and bag_start_time > end_stamp:
                     continue
 
-                bag_end_time = bag_helper.get_end_stamp(b)
+                bag_end_time = b.get_latest_timestamp()
                 if bag_end_time is not None and bag_end_time < start_stamp:
                     continue
 
-                for entry in b._get_entries(start_stamp, end_stamp):
+                for entry in b.get_entries_in_range(start_stamp, end_stamp):
                     bag_entries.append((b, entry))
 
             for bag, entry in sorted(bag_entries, key=lambda item: item[1].timestamp):
@@ -319,7 +317,7 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             entry_bag, entry = None, None
             for bag in self._bags:
-                bag_entry = bag._get_entry(t, topic)
+                bag_entry = bag.get_entry(t, topic)
                 if bag_entry and (not entry or bag_entry.timestamp > entry.timestamp):
                     entry_bag, entry = bag, bag_entry
 
@@ -334,7 +332,7 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             entry_bag, entry = None, None
             for bag in self._bags:
-                bag_entry = bag._get_entry(t - Duration(nanoseconds=1))
+                bag_entry = bag.get_entry(t - Duration(nanoseconds=1))
                 if bag_entry and (not entry or bag_entry.timestamp < entry.timestamp):
                     entry_bag, entry = bag, bag_entry
 
@@ -349,7 +347,7 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             entry_bag, entry = None, None
             for bag in self._bags:
-                bag_entry = bag._get_entry_after(t, topic)
+                bag_entry = bag.get_entry_after(t, topic)
                 if bag_entry and (not entry or bag_entry.timestamp < entry.timestamp):
                     entry_bag, entry = bag, bag_entry
 
@@ -477,18 +475,14 @@ class BagTimeline(QGraphicsScene):
             if self.background_task_cancel:
                 break
             try:
-                (topic_name, topic_type, serialization_format, offered_qos_profiles) = bag.get_topic_info(entry.topic_id)
-                topic_metadata = rosbag2_py.TopicMetadata(name=topic_name, type=topic_type,
-                                                          serialization_format=serialization_format,
-                                                          offered_qos_profiles=offered_qos_profiles)
-
                 # Add any new topics to the database
-                if not topic_name in database_topics:
-                    database_topics.add(topic_name)
+                if entry.topic not in database_topics:
+                    topic_metadata = bag.get_topic_metadata(entry.topic)
                     rosbag_writer.create_topic(topic_metadata)
+                    database_topics.add(entry.topic)
 
-                rosbag_writer.write(topic_name, entry.data, entry.timestamp)
-
+                # Then write it out
+                rosbag_writer.write(entry.topic, entry.data, entry.timestamp)
             except Exception as ex:
                 qWarning('Error exporting message at position %s: %s' %
                          (str(entry.timestamp), str(ex)))
@@ -516,7 +510,7 @@ class BagTimeline(QGraphicsScene):
 
     def read_message(self, bag, position):
         with self._bag_lock:
-            return bag._read_message(position)
+            return bag.get_entry(Time(nanoseconds=position))
 
     # Mouse events
     def on_mouse_down(self, event):
@@ -709,10 +703,11 @@ class BagTimeline(QGraphicsScene):
 
     # Recording
 
-    def record_bag(self, filename, all=True, topics=[], regex=False, limit=0):
+    def record_bag(self, filename, all_topics=True, topics=[], regex=False, limit=0):
         try:
             self._recorder = Recorder(self._context.node, filename, bag_lock=self._bag_lock,
-                    all=all, topics=topics, regex=regex, limit=limit)
+                                      all_topics=all_topics, topics=topics,
+                                      regex=regex, limit=limit)
         except Exception as ex:
             qWarning('Error opening bag for recording [%s]: %s' % (filename, str(ex)))
             return
