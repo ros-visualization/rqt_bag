@@ -88,7 +88,7 @@ class TopicPopupWidget(QWidget):
             self._viewer = self._viewer_type(self._timeline, self, self._topic)
             if not self._is_listening:
                 qDebug('Adding listener to topic {} of type {}'.format(
-                        self._topic, type(self._viewer)))
+                    self._topic, type(self._viewer)))
                 self._timeline.add_listener(self._topic, self._viewer)
                 self._is_listening = True
 

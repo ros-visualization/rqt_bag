@@ -487,17 +487,17 @@ class TimelineFrame(QGraphicsItem):
         painter.setPen(self._default_pen)
 
     def _draw_bag_ends(self, painter):
-        """Draw markers to indicate the area the bag file represents within the current visible area.
+        """Draw markers to indicate the bag file area.
 
         :param painter: allows access to paint functions,''QPainter''
         """
         x_start = self.map_stamp_to_x(bag_helper.to_sec(self._start_stamp))
         x_end = self.map_stamp_to_x(bag_helper.to_sec(self._end_stamp))
         painter.setBrush(QBrush(self._bag_end_color))
-        painter.drawRect(self._history_left, self._history_top, x_start -
-                         self._history_left, self._history_bottom - self._history_top)
-        painter.drawRect(x_end, self._history_top, self._history_left +
-                         self._history_width - x_end, self._history_bottom - self._history_top)
+        painter.drawRect(self._history_left, self._history_top, x_start - (
+                         self._history_left), self._history_bottom - self._history_top)
+        painter.drawRect(x_end, self._history_top, self._history_left + (
+                         self._history_width) - x_end, self._history_bottom - self._history_top)
         painter.setBrush(self._default_brush)
         painter.setPen(self._default_pen)
 
@@ -1187,9 +1187,9 @@ class TimelineFrame(QGraphicsItem):
 
                 if dx_drag != 0:
                     self.translate_timeline(-self.map_dx_to_dstamp(dx_drag))
-                if (dx_drag == 0 and abs(dy_drag) > 0) or \
-                        (dx_drag != 0 and abs(float(dy_drag) /
-                         dx_drag) > 0.2 and abs(dy_drag) > 1):
+                if (dx_drag == 0 and abs(dy_drag) > 0) \
+                        or (dx_drag != 0 and abs(float(dy_drag) / dx_drag) > 0.2 and (
+                            abs(dy_drag) > 1)):
                     zoom = min(
                         self._max_zoom_speed,
                         max(self._min_zoom_speed, 1.0 + self._zoom_sensitivity * dy_drag))

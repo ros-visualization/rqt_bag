@@ -369,8 +369,8 @@ class BagWidget(QWidget):
                                  time.localtime(t_sec)) + '.%03d' % (t_nsec * 1e-9)
 
     def _update_status_bar(self):
-        if (self._timeline._timeline_frame.playhead is None or
-                self._timeline._timeline_frame.start_stamp is None):
+        start_stamp = self._timeline._timeline_frame.start_stamp
+        if (self._timeline._timeline_frame.playhead is None or start_stamp is None):
             return
         # TODO Figure out why this function is causing a "RuntimeError: wrapped
         # C/C++ object of %S has been deleted" on close if the playhead is moving
@@ -388,8 +388,8 @@ class BagWidget(QWidget):
 
             # Elapsed time (in seconds)
             self.seconds_label.setText(
-                '%.3fs' % bag_helper.to_sec(self._timeline._timeline_frame.playhead -
-                                            self._timeline._timeline_frame.start_stamp))
+                '%.3fs' % bag_helper.to_sec(self._timeline._timeline_frame.playhead - (
+                                            self._timeline._timeline_frame.start_stamp)))
 
             # File size
             self.filesize_label.setText(self._filesize_to_str(self._timeline.file_size()))

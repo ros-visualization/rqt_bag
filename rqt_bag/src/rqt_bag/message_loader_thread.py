@@ -66,9 +66,9 @@ class MessageLoaderThread(threading.Thread):
             # Wait for a new entry
             cv = self.timeline._playhead_positions_cvs[self.topic]
             with cv:
-                while (self.topic not in self.timeline._playhead_positions) or \
-                        (self.bag_playhead_position ==
-                            self.timeline._playhead_positions[self.topic]):
+                while (self.topic not in self.timeline._playhead_positions) \
+                        or self.bag_playhead_position \
+                        == self.timeline._playhead_positions[self.topic]:
                     cv.wait()
                     if self._stop_flag:
                         return
