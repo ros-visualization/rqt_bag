@@ -43,10 +43,7 @@ from rqt_bag import bag_helper
 
 
 class TimelineCache(threading.Thread):
-
-    """
-    Caches items for timeline renderers
-    """
+    """Caches items for timeline renderers."""
 
     def __init__(self, loader, listener=None, max_cache_size=100):
         threading.Thread.__init__(self)
@@ -140,9 +137,7 @@ class TimelineCache(threading.Thread):
             return None
 
     def _update_last_accessed(self, topic, stamp):
-        """
-        Maintains a sorted list of cache accesses by timestamp for each topic.
-        """
+        """Maintains a sorted list of cache accesses by timestamp for each topic."""
         with self.lock:
             access_time = time.time()
 
@@ -166,9 +161,7 @@ class TimelineCache(threading.Thread):
             topic_item_access[stamp] = access_time
 
     def _limit_cache(self):
-        """
-        Removes LRU's from cache until size of each topic's cache is <= max_cache_size.
-        """
+        """Removes LRU's from cache until size of each topic's cache is <= max_cache_size."""
         with self.lock:
             for topic, topic_cache in self.items.items():
                 while len(topic_cache) > self.max_cache_size:

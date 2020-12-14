@@ -34,7 +34,6 @@ from python_qt_binding.QtCore import QObject
 
 
 class TimelineRenderer(QObject):
-
     """
     A custom renderer for interval of time of a topic on the timeline.
 
@@ -77,7 +76,5 @@ class TimelineRenderer(QObject):
         return False
 
     def close(self):
-        """
-        Close the renderer, releasing any resources.
-        """
+        """Close the renderer, releasing any resources."""
         pass

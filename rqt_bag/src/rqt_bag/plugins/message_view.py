@@ -33,15 +33,14 @@
 
 from python_qt_binding.QtCore import QObject
 
-import rosbag2_py
-
 
 class MessageView(QObject):
+    """A message details renderer.
 
+    When registered with rqt_bag, a MessageView is called whenever the timeline
+    playhead moves.
     """
-    A message details renderer. When registered with rqt_bag, a MessageView is called
-    whenever the timeline playhead moves.
-    """
+
     name = 'Untitled'
 
     def __init__(self, timeline, topic):
@@ -50,8 +49,7 @@ class MessageView(QObject):
         self.topic = topic
 
     def message_viewed(self, *, bag, entry, ros_message, msg_type_name, topic):
-        """
-        View the message.
+        """View the message.
 
         @param bag: the bag file the message is contained in
         @type  bag: rosbag.Bag
@@ -67,34 +65,32 @@ class MessageView(QObject):
         pass
 
     def message_cleared(self):
-        """
-        Clear the currently viewed message (if any).
-        """
+        """Clear the currently viewed message (if any)."""
         pass
 
     def timeline_changed(self):
-        """
-        Called when the messages in a timeline change, e.g. if a new message is recorded, or
-        a bag file is added
+        """Notify that the timeline has changed.
+
+        This function is called when the messages in a timeline change.
+        E.g. if a new message is recorded, or a bag file is added.
         """
         pass
 
     def close(self):
-        """
-        Close the message view, releasing any resources.
-        """
+        """Close the message view, releasing any resources."""
         pass
 
 # NOTE: event function should not be changed in subclasses
     def event(self, event):
-        """
-        This function will be called to process events posted by post_event
-        it will call message_cleared or message_viewed with the relevant data
+        """Process events posted by post_event.
+
+        This function will call message_cleared or message_viewed with the relevant data.
         """
         bag, entry = event.data
         if entry:
             (ros_message, msg_type_name, topic) = bag.convert_entry_to_ros_message(entry)
-            self.message_viewed(bag=bag, entry=entry, ros_message=ros_message, msg_type_name=msg_type_name, topic=topic)
+            self.message_viewed(bag=bag, entry=entry, ros_message=ros_message,
+                                msg_type_name=msg_type_name, topic=topic)
         else:
             self.message_cleared()
         return True

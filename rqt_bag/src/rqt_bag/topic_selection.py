@@ -42,7 +42,7 @@ class TopicSelection(QWidget):
     def __init__(self, node):
         super(TopicSelection, self).__init__()
         self._node = node
-        self.setWindowTitle("Select the topics you want to record")
+        self.setWindowTitle('Select the topics you want to record')
         self.resize(500, 700)
 
         self.topic_list = []
@@ -51,11 +51,11 @@ class TopicSelection(QWidget):
 
         self.area = QScrollArea(self)
         self.main_widget = QWidget(self.area)
-        self.ok_button = QPushButton("Record", self)
+        self.ok_button = QPushButton('Record', self)
         self.ok_button.clicked.connect(self.onButtonClicked)
         self.ok_button.setEnabled(False)
 
-        self.from_nodes_button = QPushButton("From Nodes", self)
+        self.from_nodes_button = QPushButton('From Nodes', self)
         self.from_nodes_button.clicked.connect(self.onFromNodesButtonClicked)
 
         self.main_vlayout = QVBoxLayout()
@@ -65,7 +65,7 @@ class TopicSelection(QWidget):
         self.setLayout(self.main_vlayout)
 
         self.selection_vlayout = QVBoxLayout()
-        self.item_all = QCheckBox("All", self)
+        self.item_all = QCheckBox('All', self)
         self.item_all.stateChanged.connect(self.updateList)
         self.selection_vlayout.addWidget(self.item_all)
         topic_data_list = self._node.get_topic_names_and_types()

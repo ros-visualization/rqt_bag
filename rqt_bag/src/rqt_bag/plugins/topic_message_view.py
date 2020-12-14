@@ -29,18 +29,16 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-from .message_view import MessageView
 
 from python_qt_binding.QtGui import QIcon
 from python_qt_binding.QtWidgets import QAction, QToolBar
 from rclpy.time import Time
 
+from .message_view import MessageView
+
 
 class TopicMessageView(MessageView):
-
-    """
-    A message view with a toolbar for navigating messages in a single topic.
-    """
+    """A message view with a toolbar for navigating messages in a single topic."""
 
     def __init__(self, timeline, parent, topic):
         MessageView.__init__(self, timeline, topic)
