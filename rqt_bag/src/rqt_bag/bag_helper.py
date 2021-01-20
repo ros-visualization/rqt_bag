@@ -30,111 +30,13 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""
-Helper functions for bag files and timestamps.
-"""
+"""Helper functions for bag files and timestamps."""
 
 from decimal import Decimal
-import math
-import time
-
-import rclpy
-from rclpy.duration import Duration
-from rclpy.time import Time
-
-
-def stamp_to_str(t):
-    """
-    Convert a rclpy.time.Time to a human-readable string.
-
-    @param t: time to convert
-    @type  t: rclpy.time.Time
-    """
-    t_sec, t_nsec = t.seconds_nanoseconds()
-    if t_sec < (60 * 60 * 24 * 365 * 5):
-        # Display timestamps earlier than 1975 as seconds
-        return '%.3fs' % t_sec
-    else:
-        return time.strftime('%b %d %Y %H:%M:%S', time.localtime(t_sec)) + '.%03d' % (t_nsec * 1e-9)
-
-
-def get_topics(bag):
-    """
-    Get an alphabetical list of all the unique topics in the bag.
-
-    @return: sorted list of topics
-    @rtype:  list of str
-    """
-    return sorted(bag.get_topics())
-
-
-def get_start_stamp(bag):
-    """
-    Get the earliest timestamp in the bag.
-
-    @param bag: bag file
-    @type  bag: rosbag.Bag
-    @return: earliest timestamp
-    @rtype:  rclpy.time.Time
-    """
-    return bag.start_time
-
-
-def get_end_stamp(bag):
-    """
-    Get the latest timestamp in the bag.
-
-    @param bag: bag file
-    @type  bag: rosbag.Bag
-    @return: latest timestamp
-    @rtype:  rclpy.time.Time
-    """
-    return bag.start_time + bag.duration
-
-
-def get_topics_by_datatype(bag):
-    """
-    Get all the message types in the bag and their associated topics.
-
-    @param bag: bag file
-    @type  bag: rosbag.Bag
-    @return: mapping from message typename to list of topics
-    @rtype:  dict of str to list of str
-    """
-    topics_by_datatype = {}
-    for name, topic in bag.topics.items():
-        topics_by_datatype.setdefault(topic['topic_metadata']['type'], []).append(name)
-
-    return topics_by_datatype
-
-
-def get_datatype(bag, topic):
-    """
-    Get the datatype of the given topic.
-
-    @param bag: bag file
-    @type  bag: rosbag.Bag
-    @return: message typename
-    @rtype:  str
-    """
-    if topic not in bag.topics:
-        return None
-    return bag.topics[topic]['topic_metadata']['type']
-
-
-def filesize_to_str(size):
-    size_name = ('B', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB')
-    i = int(math.floor(math.log(size, 1024)))
-    p = math.pow(1024, i)
-    s = round(size / p, 2)
-    if s > 0:
-        return '%s %s' % (s, size_name[i])
-    return '0 B'
 
 
 def to_sec(t):
-    """
-    Convert an rclpy.time.Time or rclpy.duration.Duration to a float representing seconds
+    """Convert an rclpy.time.Time or rclpy.duration.Duration to a float representing seconds.
 
     @param t:
     @type  t: rclpy.time.Time or rclpy.duration.Duration:
