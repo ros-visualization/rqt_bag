@@ -30,6 +30,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import heapq
 import rospy
 import rosbag
 import time
@@ -256,7 +257,6 @@ class BagTimeline(QGraphicsScene):
         :returns: entries the bag file, ''msg''
         """
         with self._bag_lock:
-            from rosbag import bag  # for _mergesort
             bag_entries = []
             for b in self._bags:
                 bag_start_time = bag_helper.get_start_stamp(b)
@@ -268,9 +268,11 @@ class BagTimeline(QGraphicsScene):
                     continue
 
                 connections = list(b._get_connections(topics))
-                bag_entries.append(b._get_entries(connections, start_stamp, end_stamp))
+                # Note: rosbag.bag._IndexEntry implements comparison by time,
+                # so we can directly sort without a custom key function.
+                bag_entries.append(sorted(b._get_entries(connections, start_stamp, end_stamp)))
 
-            for entry, _ in bag._mergesort(bag_entries, key=lambda entry: entry.time):
+            for entry in heapq.merge(*bag_entries):
                 yield entry
 
     def get_entries_with_bags(self, topic, start_stamp, end_stamp):
