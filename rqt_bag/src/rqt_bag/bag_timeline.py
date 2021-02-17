@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import heapq
+import itertools
 import rospy
 import rosbag
 import time
@@ -300,7 +301,9 @@ class BagTimeline(QGraphicsScene):
                 bag_entries.append([(bag, entry) for entry in sorted(
                     bag._get_entries(connections, start_stamp, end_stamp))])
 
-            for bag_entry in heapq.merge(*bag_entries, key=lambda bag_entry: bag_entry[1].time):
+            # TODO: replace sorted(itertools.chain(..), key..) by
+            # heapq.merge(.., key..) once Python 2.7 is not used anymore.
+            for bag_entry in sorted(itertools.chain(*bag_entries), key=lambda bag_entry: bag_entry[1].time):
                 yield bag_entry
 
     def get_entry(self, t, topic):
