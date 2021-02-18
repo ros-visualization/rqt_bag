@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import print_function
+
 import array
 try:
     from cStringIO import StringIO
@@ -55,7 +56,7 @@ def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
             pil_mode = 'RGB'
         else:
             pil_mode = 'RGB'
-            if img_msg.encoding in ['mono8', '8UC1' ]:
+            if img_msg.encoding in ['mono8', '8UC1']:
                 mode = 'L'
             elif img_msg.encoding == 'rgb8':
                 mode = 'RGB'
@@ -66,9 +67,9 @@ def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
             elif img_msg.encoding in ['bayer_rggb16', 'bayer_bggr16', 'bayer_gbrg16', 'bayer_grbg16']:
                 pil_mode = 'I;16'
                 if img_msg.is_bigendian:
-                    mode='I;16B'
+                    mode = 'I;16B'
                 else:
-                    mode='I;16L'
+                    mode = 'I;16L'
             elif img_msg.encoding == 'mono16' or img_msg.encoding == '16UC1':
                 pil_mode = 'F'
                 if img_msg.is_bigendian:
@@ -86,7 +87,7 @@ def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
             elif img_msg.encoding == 'bgra8':
                 mode = 'RGB'
             else:
-                raise Exception("Unsupported image format: %s" % img_msg.encoding)
+                raise Exception('Unsupported image format: %s' % img_msg.encoding)
             pil_img = Image.frombuffer(
                 pil_mode, (img_msg.width, img_msg.height), img_msg.data.tobytes(), 'raw', mode, 0, 1)
 
@@ -104,7 +105,7 @@ def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
         return pil_img
 
     except Exception as ex:
-        print('Can\'t convert image: %s' % ex, file=sys.stderr)
+        print("Can\'t convert image: %s" % ex, file=sys.stderr)
         return None
 
 

@@ -31,51 +31,53 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from __future__ import print_function
-from rclpy.time import Time
-# HACK workaround for upstream pillow issue python-pillow/Pillow#400
+
 import sys
+
+from PIL import Image
+from PIL.ImageQt import ImageQt
+
+# HACK workaround for upstream pillow issue python-pillow/Pillow#400
 from python_qt_binding import QT_BINDING_MODULES
 if (
     not QT_BINDING_MODULES['QtCore'].__name__.startswith('PyQt5') and
     'PyQt5' in sys.modules
 ):
     sys.modules['PyQt5'] = None
-from PIL import Image
-from PIL.ImageQt import ImageQt
-
-from rqt_bag import TimelineCache, TimelineRenderer
-
-from rqt_bag_plugins import image_helper
-
 from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtGui import QBrush, QPen, QPixmap
+from rclpy.time import Time
+from rqt_bag import TimelineCache, TimelineRenderer
+from rqt_bag_plugins import image_helper
 
 
 class ImageTimelineRenderer(TimelineRenderer):
-
-    """
-    Draws thumbnails of sensor_msgs/msg/Image or sensor_msgs/msg/CompressedImage in the timeline.
-    """
+    """Draws thumbnails of sensor_msgs/msg/{Image, CompressedImage} in the timeline."""
 
     def __init__(self, timeline, thumbnail_height=160):
         super(ImageTimelineRenderer, self).__init__(timeline, msg_combine_px=40.0)
 
         self.thumbnail_height = thumbnail_height
 
-        self.thumbnail_combine_px = 20.0  # use cached thumbnail if it's less than this many pixels away
-        self.min_thumbnail_width = 8  # don't display thumbnails if less than this many pixels across
-        self.quality = Image.NEAREST  # quality hint for thumbnail scaling
+        # Use cached thumbnail if it's less than this many pixels away
+        self.thumbnail_combine_px = 20.0
+
+        # Don't display thumbnails if less than this many pixels across
+        self.min_thumbnail_width = 8
+
+        # Quality hint for thumbnail scaling
+        self.quality = Image.NEAREST
 
         self.thumbnail_cache = TimelineCache(
-            self._load_thumbnail, lambda topic, msg_stamp, thumbnail: self.timeline.scene().update())
-    # TimelineRenderer implementation
+            self._load_thumbnail,
+            lambda topic, msg_stamp, thumbnail: self.timeline.scene().update())
 
     def get_segment_height(self, topic):
         return self.thumbnail_height
 
     def draw_timeline_segment(self, painter, topic, stamp_start, stamp_end, x, y, width, height):
-        """
-        draws a stream of images for the topic
+        """Draws a stream of images for the topic.
+
         :param painter: painter object, ''QPainter''
         :param topic: topic to draw, ''str''
         :param stamp_start: stamp to start drawing, ''rclpy.time.Time''
@@ -149,9 +151,7 @@ class ImageTimelineRenderer(TimelineRenderer):
             self.thumbnail_cache.join()
 
     def _load_thumbnail(self, topic, stamp, thumbnail_details):
-        """
-        Loads the thumbnail from the bag
-        """
+        """Load the thumbnail from the bag."""
         (thumbnail_height,) = thumbnail_details
 
         # Find position of stamp using index

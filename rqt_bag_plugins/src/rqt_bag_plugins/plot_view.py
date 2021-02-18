@@ -88,11 +88,10 @@ try:
 except NameError:
     long = int
 
-class PlotView(MessageView):
 
-    """
-    Popup plot viewer
-    """
+class PlotView(MessageView):
+    """Popup plot viewer."""
+
     name = 'Plot'
 
     def __init__(self, timeline, parent, topic):
@@ -103,9 +102,7 @@ class PlotView(MessageView):
         parent.layout().addWidget(self.plot_widget)
 
     def message_viewed(self, *, entry, ros_message, msg_type_name, **kwargs):
-        """
-        refreshes the plot
-        """
+        """Refresh the plot."""
         cursor_position = bag_helper.to_sec((Time(nanoseconds=entry.timestamp) - self.plot_widget.start_stamp))
 
         self.plot_widget.message_tree.set_message(ros_message, msg_type_name)
@@ -156,12 +153,12 @@ class PlotWidget(QWidget):
         self.data_plot_layout.addWidget(self.plot)
 
         self._home_button = QPushButton()
-        self._home_button.setToolTip("Reset View")
+        self._home_button.setToolTip('Reset View')
         self._home_button.setIcon(QIcon.fromTheme('go-home'))
         self._home_button.clicked.connect(self.home)
         self.plot_toolbar_layout.addWidget(self._home_button)
 
-        self._config_button = QPushButton("Configure Plot")
+        self._config_button = QPushButton('Configure Plot')
         self._config_button.clicked.connect(self.plot.doSettingsDialog)
         self.plot_toolbar_layout.addWidget(self._config_button)
 
@@ -205,7 +202,7 @@ class PlotWidget(QWidget):
         self.plot.redraw()
 
     def load_data(self):
-        """get a generator for the specified time range on our bag"""
+        """Get a generator for the specified time range on our bag."""
         return self.bag._get_entries(self.start_stamp + Duration(seconds=self.limits[0]),
                                      self.start_stamp + Duration(seconds=self.limits[1]),
                                      self.msgtopic)
@@ -287,7 +284,7 @@ class PlotWidget(QWidget):
         # update the plot with final resampled data
         for path in self.resample_fields:
             if len(x[path]) < 1:
-                qWarning("Resampling resulted in 0 data points for %s" % path)
+                qWarning('Resampling resulted in 0 data points for %s' % path)
             else:
                 if path in self.paths_on:
                     self.plot.clear_values(path)
@@ -476,7 +473,7 @@ class MessageTree(QTreeWidget):
             self.addTopLevelItem(item)
         else:
             parent.addChild(item)
-        if plotitem == True:
+        if plotitem is True:
             if path.replace(' ', '') in self._checked_states:
                 item.setCheckState(0, Qt.Checked)
             else:
@@ -515,12 +512,12 @@ class MessageTree(QTreeWidget):
                 self.selectAll()
 
     def handleChanged(self, item, column):
-        if item.data(0, Qt.UserRole) == None:
+        if item.data(0, Qt.UserRole) is None:
             pass
         else:
             # Strip the leading underscore from each of the path segments
             segments = [segment[1:] if segment[0] == '_' else segment for segment in self.get_item_path(item).split('.')]
-            path  = '.'.join(segments)
+            path = '.'.join(segments)
 
             if item.checkState(column) == Qt.Checked:
                 if path not in self.plot_list:

@@ -30,10 +30,11 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import sys
+
 from PIL import Image
 
 # HACK workaround for upstream pillow issue python-pillow/Pillow#400
-import sys
 from python_qt_binding import QT_BINDING_MODULES
 if (
     not QT_BINDING_MODULES['QtCore'].__name__.startswith('PyQt5') and
@@ -84,9 +85,7 @@ class ImageView(TopicMessageView):
         self.put_image_into_scene()
 
     def message_viewed(self, *, entry, ros_message, msg_type_name, topic, **kwargs):
-        """
-        refreshes the image
-        """
+        """Refresh the image."""
         TopicMessageView.message_viewed(self, entry=entry)
         self.set_image(ros_message, msg_type_name, topic, ros_message.header.stamp)
 
@@ -111,7 +110,7 @@ class ImageView(TopicMessageView):
             self._scene.addPixmap(pixmap)
 
     def set_image(self, image_msg, image_type, image_topic, image_stamp):
-        if image_type == "sensor_msgs/msg/Image" or image_type == "sensor_msgs/msg/CompressedImage":
+        if image_type == 'sensor_msgs/msg/Image' or image_type == 'sensor_msgs/msg/CompressedImage':
             self._image_msg = image_msg
             self._image = image_helper.imgmsg_to_pil(image_msg, image_type)
             self._image_topic = image_topic
