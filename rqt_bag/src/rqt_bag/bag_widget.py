@@ -311,6 +311,8 @@ class BagWidget(QWidget):
             qDebug("Done loading '%s'" % filename.encode(errors='replace'))
             # put the progress bar back the way it was
             self.set_status_text.emit("")
+            # reset zoom to show entirety of all loaded bags
+            self._timeline.reset_zoom()
         except rosbag.ROSBagException as e:
             qWarning("Loading '%s' failed due to: %s" % (filename.encode(errors='replace'), e))
             self.set_status_text.emit("Loading '%s' failed due to: %s" % (filename, e))
