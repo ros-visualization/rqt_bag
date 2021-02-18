@@ -331,6 +331,8 @@ class BagWidget(QWidget):
         qDebug("Done loading '%s'" % filename.encode(errors='replace'))
         # put the progress bar back the way it was
         self.set_status_text.emit("")
+        # reset zoom to show entirety of all loaded bags
+        self._timeline.reset_zoom()
 
         # self.progress_bar.setFormat(progress_format)
         # self.progress_bar.setTextVisible(progress_text_visible) # causes a segfault :(
