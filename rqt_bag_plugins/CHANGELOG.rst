@@ -2,6 +2,9 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.5.0 (2020-11-12)
 ------------------
 * Fix a few minor issues in image_helper (`#68 <https://github.com/ros-visualization/rqt_bag/issues/68>`_)

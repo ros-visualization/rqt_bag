@@ -2,6 +2,14 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix merge sort in bag export. (`#96 <https://github.com/ros-visualization/rqt_bag/issues/96>`_)
+* Reset timeline zoom after loading a new bag. (`#97 <https://github.com/ros-visualization/rqt_bag/issues/97>`_)
+* Fix raw view (`#94 <https://github.com/ros-visualization/rqt_bag/issues/94>`_)
+* Fix crash during merge sort of bag entries (fixes `#90 <https://github.com/ros-visualization/rqt_bag/issues/90>`_) (`#93 <https://github.com/ros-visualization/rqt_bag/issues/93>`_)
+* Contributors: Martin Pecka, Michael Grupp
+
 0.5.0 (2020-11-12)
 ------------------
 * Fix a few minor issues in image_helper (`#68 <https://github.com/ros-visualization/rqt_bag/issues/68>`_)
