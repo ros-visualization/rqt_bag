@@ -31,6 +31,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import heapq
+import itertools
 import rospy
 import rosbag
 import time
@@ -281,29 +282,29 @@ class BagTimeline(QGraphicsScene):
         :param topics: list of topics to query, ''list(str)''
         :param start_stamp: stamp to start at, ''rospy.Time''
         :param end_stamp: stamp to end at, ''rospy,Time''
-        :returns: tuple of (bag, entry) for the entries in the bag file, ''(rosbag.bag, msg)''
+        :returns: tuple of (bag, entry) for the entries in the bag file, ''(rosbag.Bag, rosbag.bag._IndexEntry)''
         """
         with self._bag_lock:
-            from rosbag import bag  # for _mergesort
-
             bag_entries = []
-            bag_by_iter = {}
-            for b in self._bags:
-                bag_start_time = bag_helper.get_start_stamp(b)
+            for bag in self._bags:
+                bag_start_time = bag_helper.get_start_stamp(bag)
                 if bag_start_time is not None and bag_start_time > end_stamp:
                     continue
 
-                bag_end_time = bag_helper.get_end_stamp(b)
+                bag_end_time = bag_helper.get_end_stamp(bag)
                 if bag_end_time is not None and bag_end_time < start_stamp:
                     continue
 
-                connections = list(b._get_connections(topic))
-                it = iter(b._get_entries(connections, start_stamp, end_stamp))
-                bag_by_iter[it] = b
-                bag_entries.append(it)
+                connections = list(bag._get_connections(topic))
+                # We must keep track to which bag file handle each index entry
+                # belongs before merge sorting.
+                bag_entries.append([(bag, entry) for entry in sorted(
+                    bag._get_entries(connections, start_stamp, end_stamp))])
 
-            for entry, it in bag._mergesort(bag_entries, key=lambda entry: entry.time):
-                yield bag_by_iter[it], entry
+            # TODO: replace sorted(itertools.chain(..), key..) by
+            # heapq.merge(.., key..) once Python 2.7 is not used anymore.
+            for bag_entry in sorted(itertools.chain(*bag_entries), key=lambda bag_entry: bag_entry[1].time):
+                yield bag_entry
 
     def get_entry(self, t, topic):
         """
