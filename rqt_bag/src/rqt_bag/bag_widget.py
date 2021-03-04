@@ -270,6 +270,10 @@ class BagWidget(QWidget):
             self, self.tr('Load from Files'), self.last_open_dir, self.tr('Bag files {.bag} (*.bag)'))
         if filenames and filenames[0]:
             self.last_open_dir = QFileInfo(filenames[0][0]).absoluteDir().absolutePath()
+        else:
+            qDebug("Load was canceled")
+            self.set_status_text.emit("Load was canceled")
+            return
         for filename in filenames[0]:
             self.load_bag(filename)
 
