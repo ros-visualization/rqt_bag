@@ -2,6 +2,11 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Refactor the Rosbag2 class (`#91 <https://github.com/ros-visualization/rqt_bag/issues/91>`_)
+* Contributors: Michael Jeronimo
+
 1.0.0 (2020-11-19)
 ------------------
 * Port the plot view to ROS2 (`#79 <https://github.com/ros-visualization/rqt_bag/issues/79>`_)

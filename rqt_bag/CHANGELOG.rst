@@ -2,6 +2,12 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Reset timeline zoom after loading a new bag. (`#98 <https://github.com/ros-visualization/rqt_bag/issues/98>`_)
+* Refactor the Rosbag2 class (`#91 <https://github.com/ros-visualization/rqt_bag/issues/91>`_)
+* Contributors: Michael Grupp, Michael Jeronimo
+
 1.0.0 (2020-11-19)
 ------------------
 * Fix exec_depend (`#89 <https://github.com/ros-visualization/rqt_bag/issues/89>`_)
