@@ -42,7 +42,6 @@ from python_qt_binding.QtCore import qDebug, QFileInfo, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QIcon, QResizeEvent
 from python_qt_binding.QtWidgets import QFileDialog, QGraphicsView, QWidget
 
-from rosbag2_transport import rosbag2_transport_py
 from rqt_bag import bag_helper
 from .bag_timeline import BagTimeline
 from .topic_selection import TopicSelection
@@ -279,12 +278,13 @@ class BagWidget(QWidget):
         dialog.setFileMode(QFileDialog.Directory)
         dialog.setOption(QFileDialog.ShowDirsOnly, True)
 
-        if dialog.exec():
-            filenames = dialog.selectedFiles()
-            if filenames:
-                self.last_open_dir = filenames[0]
-            for filename in filenames:
-                self.load_bag(filename)
+        if not dialog.exec():
+            return
+        filenames = dialog.selectedFiles()
+        if filenames:
+            self.last_open_dir = filenames[0]
+        for filename in filenames:
+            self.load_bag(filename)
 
         # After loading bag(s), force a resize event on the bag widget so that
         # it can take the new height of the timeline into account (and show
