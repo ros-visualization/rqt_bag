@@ -278,14 +278,13 @@ class BagWidget(QWidget):
         dialog.setFileMode(QFileDialog.Directory)
         dialog.setOption(QFileDialog.ShowDirsOnly, True)
 
-        if dialog.exec():
-            filenames = dialog.selectedFiles()
-            if filenames:
-                self.last_open_dir = filenames[0]
-            for filename in filenames:
-                self.load_bag(filename)
-        else:
+        if not dialog.exec():
             return
+        filenames = dialog.selectedFiles()
+        if filenames:
+            self.last_open_dir = filenames[0]
+        for filename in filenames:
+            self.load_bag(filename)
 
         # After loading bag(s), force a resize event on the bag widget so that
         # it can take the new height of the timeline into account (and show
