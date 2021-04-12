@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.1 (2021-04-12)
+------------------
 * Remove an invalid import statement (`#101 <https://github.com/ros-visualization/rqt_bag/issues/101>`_)
 * Contributors: Michael Jeronimo
 
