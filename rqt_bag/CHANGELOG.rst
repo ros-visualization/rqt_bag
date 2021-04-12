@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Remove an invalid import statement (`#101 <https://github.com/ros-visualization/rqt_bag/issues/101>`_)
+* Contributors: Michael Jeronimo
+
 1.1.0 (2021-03-18)
 ------------------
 * Reset timeline zoom after loading a new bag. (`#98 <https://github.com/ros-visualization/rqt_bag/issues/98>`_)
