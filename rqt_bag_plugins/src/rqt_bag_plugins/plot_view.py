@@ -258,19 +258,25 @@ class PlotWidget(QWidget):
                     # the minimum and maximum values present within a sample
                     # If the data has spikes, this is particularly bad because they
                     # will be missed entirely at some resolutions and offsets
-                    if x[path] == [] or (entry[2] - self.start_stamp).to_sec() - x[path][-1] >= self.timestep:
-                        y_value = entry[1]
-                        for field in path.split('.'):
-                            index = None
-                            if field.endswith(']'):
-                                field = field[:-1]
-                                field, _, index = field.rpartition('[')
-                            y_value = getattr(y_value, field)
-                            if index:
-                                index = int(index)
-                                y_value = y_value[index]
-                        y[path].append(y_value)
-                        x[path].append((entry[2] - self.start_stamp).to_sec())
+                    try:
+                        if x[path] == [] or (entry[2] - self.start_stamp).to_sec() - x[path][-1] >= self.timestep:
+                            y_value = entry[1]
+                            for field in path.split('.'):
+                                index = None
+                                if field.endswith(']'):
+                                    field = field[:-1]
+                                    field, _, index = field.rpartition('[')
+                                y_value = getattr(y_value, field)
+                                if index:
+                                    index = int(index)
+                                    y_value = y_value[index]
+                            y[path].append(y_value)
+                            x[path].append((entry[2] - self.start_stamp).to_sec())
+                    except IndexError as ex:
+                        rospy.loginfo_throttle_identical(
+                            1, "Failure accessing {}[{}] in {}: {}".format(field, index, path, str(ex)))
+                        pass
+
 
                 # TODO: incremental plot updates would go here...
                 #       we should probably do incremental updates based on time;
