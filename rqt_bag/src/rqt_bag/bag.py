@@ -74,17 +74,30 @@ class Bag(Plugin):
         return parser.parse_args(argv)
 
     @staticmethod
-    def _isfile(parser, arg):
+    def _isbag(parser, arg):
+        """
+        Determine if an input file or directory name is a legit rosbag.
+
+        Allow either the rosbag directory or the metadata file to be used
+        to represent the rosbag.
+        """
+        metadata_filename = 'metadata.yaml'
+
         if os.path.isfile(arg):
+            (dirname, filename) = os.path.split(arg)
+            if filename == metadata_filename:
+                return dirname
+
+        if os.path.isdir(arg) and os.path.isfile(os.path.join(arg, metadata_filename)):
             return arg
-        else:
-            parser.error("Bag file %s does not exist" % (arg))
+
+        parser.error(f"'{arg}' is not a valid rosbag")
 
     @staticmethod
     def add_arguments(parser):
         group = parser.add_argument_group('Options for rqt_bag plugin')
         group.add_argument('--clock', action='store_true', help='publish the clock time')
-        group.add_argument('bagfiles', type=lambda x: Bag._isfile(parser, x),
+        group.add_argument('bagfiles', type=lambda x: Bag._isbag(parser, x),
                            nargs='*', default=[], help='Bagfiles to load')
 
     def shutdown_plugin(self):
