@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.2 (2022-02-06)
+------------------
 * Fix: rqt-bag fails to open bag specified on command-line (`#106 <https://github.com/ros-visualization/rqt_bag/issues/106>`_)
 * Contributors: Michael Jeronimo
 
