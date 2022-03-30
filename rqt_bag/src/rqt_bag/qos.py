@@ -76,17 +76,18 @@ def qos_profiles_to_yaml(qos_profiles):
 def yaml_to_qos_profiles(profiles_yaml):
     qos_profiles = []
     nodes = yaml.safe_load(profiles_yaml)
-    for node in nodes:
-        qos_profile = QoSProfile(depth=int(node['depth']))
-        qos_profile.history = int(node['history'])
-        qos_profile.reliability = int(node['reliability'])
-        qos_profile.durability = int(node['durability'])
-        qos_profile.lifespan = node_to_duration(node['lifespan'])
-        qos_profile.deadline = node_to_duration(node['deadline'])
-        qos_profile.liveliness = int(node['liveliness'])
-        qos_profile.liveliness_lease_duration = node_to_duration(node['liveliness_lease_duration'])
-        qos_profile.avoid_ros_namespace_conventions = node['avoid_ros_namespace_conventions']
-        qos_profiles.append(qos_profile)
+    if nodes is not None:
+      for node in nodes:
+          qos_profile = QoSProfile(depth=int(node['depth']))
+          qos_profile.history = int(node['history'])
+          qos_profile.reliability = int(node['reliability'])
+          qos_profile.durability = int(node['durability'])
+          qos_profile.lifespan = node_to_duration(node['lifespan'])
+          qos_profile.deadline = node_to_duration(node['deadline'])
+          qos_profile.liveliness = int(node['liveliness'])
+          qos_profile.liveliness_lease_duration = node_to_duration(node['liveliness_lease_duration'])
+          qos_profile.avoid_ros_namespace_conventions = node['avoid_ros_namespace_conventions']
+          qos_profiles.append(qos_profile)
 
     return qos_profiles
 
