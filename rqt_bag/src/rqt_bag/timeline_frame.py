@@ -126,7 +126,7 @@ class TimelineFrame(QGraphicsItem):
         self._topic_name_sizes = None
         # minimum pixels between end of topic name and start of history
         self._topic_name_spacing = 3
-        self._topic_font_size = 10.0
+        self._topic_font_size = 10
         self._topic_font = QFont("cairo")
         self._topic_font.setPointSize(self._topic_font_size)
         self._topic_font.setBold(False)
@@ -137,7 +137,7 @@ class TimelineFrame(QGraphicsItem):
         # Time Rendering
         self._time_tick_height = 5
         self._time_font_height = None
-        self._time_font_size = 10.0
+        self._time_font_size = 10
         self._time_font = QFont("cairo")
         self._time_font.setPointSize(self._time_font_size)
         self._time_font.setBold(False)
@@ -158,8 +158,8 @@ class TimelineFrame(QGraphicsItem):
 
         # Selected Region Rendering
         self._selected_region_color = QColor(0, 179, 0, 21)
-        self._selected_region_outline_top_color = QColor(0.0, 77, 0.0, 51)
-        self._selected_region_outline_ends_color = QColor(0.0, 77, 0.0, 102)
+        self._selected_region_outline_top_color = QColor(0, 77, 0, 51)
+        self._selected_region_outline_ends_color = QColor(0, 77, 0, 102)
         self._selecting_mode = _SelectionMode.NONE
         self._selected_left = None
         self._selected_right = None
