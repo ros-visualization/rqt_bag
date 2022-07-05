@@ -426,5 +426,4 @@ class BagWidget(QWidget):
         self._timeline.handle_close()
 
     def update_size(self):
-        self._timeline._timeline_frame._layout()
         self._resizeEvent(QResizeEvent(self.size(), self.size()))
