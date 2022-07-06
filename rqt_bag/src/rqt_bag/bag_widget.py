@@ -121,7 +121,7 @@ class BagWidget(QWidget):
         self.graphics_view.mousePressEvent = self._timeline.on_mouse_down
         self.graphics_view.mouseReleaseEvent = self._timeline.on_mouse_up
         self.graphics_view.mouseMoveEvent = self._timeline.on_mouse_move
-        self.graphics_view.wheelEvent = self._timeline.on_mousewheel
+        self.graphics_view.wheelEvent = self.on_mousewheel
         self.closeEvent = self.handle_close
         self.keyPressEvent = self.on_key_press
         # TODO when the closeEvent is properly called by ROS_GUI implement that
@@ -427,3 +427,11 @@ class BagWidget(QWidget):
 
     def update_size(self):
         self._resizeEvent(QResizeEvent(self.size(), self.size()))
+
+    def on_mousewheel(self, event):
+        # scroll -> scroll the page up and down
+        # ctrl+scroll -> zoom-in or zoom out timeline
+        if event.modifiers() & Qt.ControlModifier:
+            self._timeline.on_mousewheel(event)
+        else:
+            BagGraphicsView.wheelEvent(self.graphics_view, event)
