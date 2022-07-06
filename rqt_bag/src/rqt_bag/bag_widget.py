@@ -429,10 +429,9 @@ class BagWidget(QWidget):
         self._resizeEvent(QResizeEvent(self.size(), self.size()))
 
     def on_mousewheel(self, event):
-        scrollbar_on = self.graphics_view.height() < self.graphics_view.scene().height()
-        # no scrollbar or pressing ctrl -> zoom-in or zoom out timeline
-        # otherwise -> scroll up or down
-        if not scrollbar_on or (event.modifiers() & Qt.ControlModifier):
+        # scroll -> scroll the page up and down
+        # ctrl+scroll -> zoom-in or zoom out timeline
+        if event.modifiers() & Qt.ControlModifier:
             self._timeline.on_mousewheel(event)
         else:
             BagGraphicsView.wheelEvent(self.graphics_view, event)
