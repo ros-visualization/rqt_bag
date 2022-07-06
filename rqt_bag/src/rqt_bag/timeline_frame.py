@@ -1165,14 +1165,19 @@ class TimelineFrame(QGraphicsItem):
                 elif self._selecting_mode == _SelectionMode.SHIFTING:
                     self.scene().views()[0].setCursor(QCursor(Qt.ClosedHandCursor))
         if x >= self._margin_left and x <= self._margin_left + self._topic_publishing_box_size:
-            topic = self.map_y_to_topic(y)
-            _, topic_y, _, topic_h = self._history_bounds[topic]
-            publishing_box_y = topic_y + topic_h / 2
-            if y >= publishing_box_y and y <= publishing_box_y + self._topic_publishing_box_size:
-                if self._bag_timeline.is_publishing(topic):
-                    self._bag_timeline.stop_publishing(topic)
-                else:
-                    self._bag_timeline.start_publishing(topic)
+            scene_y = self.scene().views()[0].mapToScene(event.pos()).y()
+            topic = self.map_y_to_topic(scene_y)
+            if topic is not None:
+                _, topic_y, _, topic_h = self._history_bounds[topic]
+                publishing_box_y = topic_y + topic_h / 2
+                if (
+                    scene_y >= publishing_box_y and
+                    scene_y <= publishing_box_y + self._topic_publishing_box_size
+                ):
+                    if self._bag_timeline.is_publishing(topic):
+                        self._bag_timeline.stop_publishing(topic)
+                    else:
+                        self._bag_timeline.start_publishing(topic)
 
     def on_mouse_up(self, event):
         self.resume()
