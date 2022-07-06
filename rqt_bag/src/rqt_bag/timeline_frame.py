@@ -125,12 +125,15 @@ class TimelineFrame(QGraphicsItem):
         self._topic_font_height = None
         self._topic_name_sizes = None
         # minimum pixels between end of topic name and start of history
+        # or publishing box
         self._topic_name_spacing = 3
         self._topic_font_size = 10
         self._topic_font = QFont("cairo")
         self._topic_font.setPointSize(self._topic_font_size)
         self._topic_font.setBold(False)
         self._topic_vertical_padding = 4
+        # publishing box size
+        self._topic_publishing_box_size = 10
         # percentage of the horiz space that can be used for topic display
         self._topic_name_max_percent = 25.0
 
@@ -317,7 +320,9 @@ class TimelineFrame(QGraphicsItem):
         area
         """
         allowed_width = self._scene_width * (self._topic_name_max_percent / 100.0)
-        allowed_width = allowed_width - self._topic_name_spacing - self._margin_left
+        allowed_width = (allowed_width
+            - self._topic_name_spacing - self._margin_left
+            - self._topic_publishing_box_size - self._topic_name_spacing)
         trimmed_return = topic_name
         if allowed_width < self._qfont_width(topic_name):
             #  We need to trim the topic
@@ -370,7 +375,8 @@ class TimelineFrame(QGraphicsItem):
                 self._topic_font_height = topic_height
 
         # Update the timeline boundries
-        new_history_left = self._margin_left + max_topic_name_width + self._topic_name_spacing
+        new_history_left = (self._margin_left + self._topic_publishing_box_size +
+            self._topic_name_spacing + max_topic_name_width + self._topic_name_spacing)
         new_history_width = self._scene_width - new_history_left - self._margin_right
         self._history_left = new_history_left
         self._history_width = new_history_width
@@ -621,8 +627,10 @@ class TimelineFrame(QGraphicsItem):
         :param painter: ,''QPainter''
         """
         topics = self._history_bounds.keys()
-        coords = [(self._margin_left, y + (h / 2) + (self._topic_font_height / 2))
-                  for (_, y, _, h) in self._history_bounds.values()]
+        coords = [(
+            self._margin_left,
+            y + (h / 2)
+            ) for (_, y, _, h) in self._history_bounds.values()]
 
         for topic, coords in zip(topics, coords):
             if topic == self._highlighted_topic:
@@ -633,7 +641,17 @@ class TimelineFrame(QGraphicsItem):
             painter.setBrush(self._default_brush)
             painter.setPen(self._default_pen)
             painter.setFont(self._topic_font)
-            painter.drawText(coords[0], coords[1], self._trimmed_topic_name(topic.lstrip('/')))
+            if self._bag_timeline.is_publishing(topic):
+                painter.setBrush(self._default_brush)
+            else:
+                painter.setBrush(QBrush(Qt.NoBrush))
+            painter.drawRect(
+                coords[0], coords[1], self._topic_publishing_box_size,
+                self._topic_publishing_box_size)
+            painter.drawText(
+                coords[0] + self._topic_publishing_box_size + self._topic_name_spacing,
+                coords[1] + (self._topic_font_height / 2),
+                self._trimmed_topic_name(topic.lstrip('/')))
 
     def _draw_time_divisions(self, painter):
         """
@@ -1146,6 +1164,15 @@ class TimelineFrame(QGraphicsItem):
                     self.emit_play_region()
                 elif self._selecting_mode == _SelectionMode.SHIFTING:
                     self.scene().views()[0].setCursor(QCursor(Qt.ClosedHandCursor))
+        if x >= self._margin_left and x <= self._margin_left + self._topic_publishing_box_size:
+            topic = self.map_y_to_topic(y)
+            _, topic_y, _, topic_h = self._history_bounds[topic]
+            publishing_box_y = topic_y + topic_h / 2
+            if y >= publishing_box_y and y <= publishing_box_y + self._topic_publishing_box_size:
+                if self._bag_timeline.is_publishing(topic):
+                    self._bag_timeline.stop_publishing(topic)
+                else:
+                    self._bag_timeline.start_publishing(topic)
 
     def on_mouse_up(self, event):
         self.resume()
