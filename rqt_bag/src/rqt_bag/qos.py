@@ -76,6 +76,8 @@ def qos_profiles_to_yaml(qos_profiles):
 def yaml_to_qos_profiles(profiles_yaml):
     qos_profiles = []
     nodes = yaml.safe_load(profiles_yaml)
+    if nodes is None:
+        return []
     for node in nodes:
         qos_profile = QoSProfile(depth=int(node['depth']))
         qos_profile.history = int(node['history'])
