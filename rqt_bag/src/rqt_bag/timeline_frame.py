@@ -191,6 +191,10 @@ class TimelineFrame(QGraphicsItem):
         self.invalidated_caches = set()
         self._index_cache_thread = IndexCacheThread(self)
 
+        # topic selected
+        # coloured differently while the popup menu is opened
+        self._highlighted_topic = None
+
     # TODO the API interface should exist entirely at the bag_timeline level.
     #     Add a "get_draw_parameters()" at the bag_timeline level to access these
     # Properties, work in progress API for plugins:
@@ -620,11 +624,16 @@ class TimelineFrame(QGraphicsItem):
         coords = [(self._margin_left, y + (h / 2) + (self._topic_font_height / 2))
                   for (_, y, _, h) in self._history_bounds.values()]
 
-        for text, coords in zip([t.lstrip('/') for t in topics], coords):
+        for topic, coords in zip(topics, coords):
+            if topic == self._highlighted_topic:
+                painter.setBackground(QBrush(QColor(0, 153, 0, 204)))
+                painter.setBackgroundMode(Qt.OpaqueMode)
+            else:
+                painter.setBackgroundMode(Qt.TransparentMode)
             painter.setBrush(self._default_brush)
             painter.setPen(self._default_pen)
             painter.setFont(self._topic_font)
-            painter.drawText(coords[0], coords[1], self._trimmed_topic_name(text))
+            painter.drawText(coords[0], coords[1], self._trimmed_topic_name(topic.lstrip('/')))
 
     def _draw_time_divisions(self, painter):
         """
@@ -963,6 +972,14 @@ class TimelineFrame(QGraphicsItem):
             if y > topic_y and y <= topic_y + topic_h:
                 return topic
         return None
+
+    @property
+    def highlighted_topic(self):
+        return self._highlighted_topic
+
+    @highlighted_topic.setter
+    def highlighted_topic(self, topic_name):
+        self._highlighted_topic = topic_name
 
     # View port manipulation functions
     def reset_timeline(self):
