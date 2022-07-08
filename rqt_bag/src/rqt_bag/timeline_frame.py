@@ -35,7 +35,7 @@ from rclpy.duration import Duration
 
 from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QBrush, QCursor, QColor, QFont, \
-    QFontMetrics, QPen, QPolygonF
+    QFontMetrics, QPen, QPolygonF, QPalette
 from python_qt_binding.QtWidgets import QGraphicsItem
 
 import bisect
@@ -197,6 +197,8 @@ class TimelineFrame(QGraphicsItem):
         # topic selected
         # coloured differently while the popup menu is opened
         self._highlighted_topic = None
+        # self._highlight_color= self.scene().palette().color(QPalette.Highlight)
+        # self._highlight_text_color = self.scene().palette().color(QPalette.HighlightedText)
 
     # TODO the API interface should exist entirely at the bag_timeline level.
     #     Add a "get_draw_parameters()" at the bag_timeline level to access these
@@ -626,32 +628,34 @@ class TimelineFrame(QGraphicsItem):
         Calculate positions of existing topic names and draw them on the left, one for each row
         :param painter: ,''QPainter''
         """
-        topics = self._history_bounds.keys()
-        coords = [(
-            self._margin_left,
-            y + (h / 2)
-            ) for (_, y, _, h) in self._history_bounds.values()]
-
-        for topic, coords in zip(topics, coords):
+        for topic, bounds in self._history_bounds.items():
+            _, y, _, h = bounds
+            highlight_color = self.scene().palette().color(QPalette.Highlight)
+            highlight_pen_color = self.scene().palette().color(QPalette.HighlightedText)
             if topic == self._highlighted_topic:
-                painter.setBackground(QBrush(QColor(0, 153, 0, 204)))
-                painter.setBackgroundMode(Qt.OpaqueMode)
+                painter.setBrush(QBrush(highlight_color))
+                painter.setPen(QPen(highlight_pen_color))
+                painter.drawRect(
+                    0, y,
+                    self._history_left, h)
+                painter.setBrush(QBrush(highlight_pen_color))
             else:
-                painter.setBackgroundMode(Qt.TransparentMode)
-            painter.setBrush(self._default_brush)
-            painter.setPen(self._default_pen)
-            painter.setFont(self._topic_font)
-            if self._bag_timeline.is_publishing(topic):
+                painter.setPen(self._default_pen)
                 painter.setBrush(self._default_brush)
-            else:
+            if not self._bag_timeline.is_publishing(topic):
                 painter.setBrush(QBrush(Qt.NoBrush))
-            painter.drawRect(
-                coords[0], coords[1], self._topic_publishing_box_size,
-                self._topic_publishing_box_size)
+            painter.setFont(self._topic_font)
+            shown_topic_name = self._trimmed_topic_name(topic.lstrip('/'))
             painter.drawText(
-                coords[0] + self._topic_publishing_box_size + self._topic_name_spacing,
-                coords[1] + (self._topic_font_height / 2),
-                self._trimmed_topic_name(topic.lstrip('/')))
+                self._margin_left + self._topic_publishing_box_size + self._topic_name_spacing,
+                y + h / 2 - self._topic_font_height / 2,
+                self._qfont_width(shown_topic_name),
+                self._topic_font_height,
+                Qt.AlignVCenter,
+                shown_topic_name)
+            painter.drawRect(
+                self._margin_left, y + h / 2 - self._topic_publishing_box_size / 2, self._topic_publishing_box_size,
+                self._topic_publishing_box_size)
 
     def _draw_time_divisions(self, painter):
         """
@@ -1169,7 +1173,7 @@ class TimelineFrame(QGraphicsItem):
             topic = self.map_y_to_topic(scene_y)
             if topic is not None:
                 _, topic_y, _, topic_h = self._history_bounds[topic]
-                publishing_box_y = topic_y + topic_h / 2
+                publishing_box_y = topic_y + topic_h / 2 - self._topic_publishing_box_size / 2
                 if (
                     scene_y >= publishing_box_y and
                     scene_y <= publishing_box_y + self._topic_publishing_box_size
