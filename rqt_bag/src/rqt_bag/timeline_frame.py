@@ -197,8 +197,6 @@ class TimelineFrame(QGraphicsItem):
         # topic selected
         # coloured differently while the popup menu is opened
         self._highlighted_topic = None
-        # self._highlight_color= self.scene().palette().color(QPalette.Highlight)
-        # self._highlight_text_color = self.scene().palette().color(QPalette.HighlightedText)
 
     # TODO the API interface should exist entirely at the bag_timeline level.
     #     Add a "get_draw_parameters()" at the bag_timeline level to access these
@@ -645,7 +643,7 @@ class TimelineFrame(QGraphicsItem):
             if not self._bag_timeline.is_publishing(topic):
                 painter.setBrush(QBrush(Qt.NoBrush))
             painter.setFont(self._topic_font)
-            shown_topic_name = self._trimmed_topic_name(topic.lstrip('/'))
+            shown_topic_name = self._trimmed_topic_name(topic)
             painter.drawText(
                 self._margin_left + self._topic_publishing_box_size + self._topic_name_spacing,
                 y + h / 2 - self._topic_font_height / 2,
