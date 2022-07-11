@@ -512,29 +512,6 @@ class BagTimeline(QGraphicsScene):
         with self._bag_lock:
             return bag.get_entry(Time(nanoseconds=position))
 
-    # Mouse events
-    def on_mouse_down(self, event):
-        if event.buttons() == Qt.LeftButton:
-            self._timeline_frame.on_left_down(event)
-        elif event.buttons() == Qt.MidButton:
-            self._timeline_frame.on_middle_down(event)
-        elif event.buttons() == Qt.RightButton:
-            topic = self._timeline_frame.map_y_to_topic(self.views()[0].mapToScene(event.pos()).y())
-            self._timeline_frame.highlighted_topic = topic
-            self._timeline_frame.scene().update()
-            TimelinePopupMenu(self, event, topic)
-            self._timeline_frame.highlighted_topic = None
-            self._timeline_frame.scene().update()
-
-    def on_mouse_up(self, event):
-        self._timeline_frame.on_mouse_up(event)
-
-    def on_mouse_move(self, event):
-        self._timeline_frame.on_mouse_move(event)
-
-    def on_mousewheel(self, event):
-        self._timeline_frame.on_mousewheel(event)
-
     # Zooming
 
     def zoom_in(self):

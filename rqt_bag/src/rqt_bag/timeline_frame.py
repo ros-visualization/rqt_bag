@@ -33,10 +33,10 @@
 from rclpy.time import Time
 from rclpy.duration import Duration
 
-from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning, Signal
+from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning, Slot, QSize
 from python_qt_binding.QtGui import QBrush, QCursor, QColor, QFont, \
     QFontMetrics, QPen, QPolygonF, QPalette
-from python_qt_binding.QtWidgets import QGraphicsItem
+from python_qt_binding.QtWidgets import QGraphicsItem, QCheckBox
 
 import bisect
 import threading
@@ -44,6 +44,22 @@ import threading
 from .index_cache_thread import IndexCacheThread
 from .plugins.raw_view import RawView
 from rqt_bag import bag_helper
+from .timeline_menu import TimelinePopupMenu
+
+
+class TopicPublishCheckBox(QCheckBox):
+
+    def __init__(self, *, size, on_clicked):
+        super().__init__()
+        self.clicked.connect(on_clicked)
+        self.setStyleSheet(
+            'QCheckBox::indicator {'
+            f'  width: {size};'
+            f'  height: {size};'
+            '}'
+        )
+        self.setMinimumSize(size, size)
+        self.resize(size, size)
 
 
 class _SelectionMode(object):
@@ -197,6 +213,7 @@ class TimelineFrame(QGraphicsItem):
         # topic selected
         # coloured differently while the popup menu is opened
         self._highlighted_topic = None
+        self._checkbox_widgets = {}
 
     # TODO the API interface should exist entirely at the bag_timeline level.
     #     Add a "get_draw_parameters()" at the bag_timeline level to access these
@@ -651,9 +668,23 @@ class TimelineFrame(QGraphicsItem):
                 self._topic_font_height,
                 Qt.AlignVCenter,
                 shown_topic_name)
-            painter.drawRect(
-                self._margin_left, y + h / 2 - self._topic_publishing_box_size / 2, self._topic_publishing_box_size,
-                self._topic_publishing_box_size)
+            if topic not in self._checkbox_widgets:
+                @Slot(bool)
+                def on_clicked(state, topic=topic):
+                    if self._bag_timeline.is_publishing(topic):
+                        self._bag_timeline.stop_publishing(topic)
+                    else:
+                        self._bag_timeline.start_publishing(topic)
+
+                proxy = self.scene().addWidget(TopicPublishCheckBox(
+                    size=self._topic_publishing_box_size, on_clicked=on_clicked))
+                proxy.setParentItem(self)
+                self._checkbox_widgets[topic] = proxy
+            else:
+                proxy = self._checkbox_widgets[topic]
+            proxy.setPos(self._margin_left, y + h / 2 - self._topic_publishing_box_size / 2)
+            proxy.widget().setCheckState(
+                Qt.Checked if self._bag_timeline.is_publishing(topic) else Qt.Unchecked)
 
     def _draw_time_divisions(self, painter):
         """
@@ -1166,20 +1197,6 @@ class TimelineFrame(QGraphicsItem):
                     self.emit_play_region()
                 elif self._selecting_mode == _SelectionMode.SHIFTING:
                     self.scene().views()[0].setCursor(QCursor(Qt.ClosedHandCursor))
-        if x >= self._margin_left and x <= self._margin_left + self._topic_publishing_box_size:
-            scene_y = self.scene().views()[0].mapToScene(event.pos()).y()
-            topic = self.map_y_to_topic(scene_y)
-            if topic is not None:
-                _, topic_y, _, topic_h = self._history_bounds[topic]
-                publishing_box_y = topic_y + topic_h / 2 - self._topic_publishing_box_size / 2
-                if (
-                    scene_y >= publishing_box_y and
-                    scene_y <= publishing_box_y + self._topic_publishing_box_size
-                ):
-                    if self._bag_timeline.is_publishing(topic):
-                        self._bag_timeline.stop_publishing(topic)
-                    else:
-                        self._bag_timeline.start_publishing(topic)
 
     def on_mouse_up(self, event):
         self.resume()
@@ -1208,8 +1225,8 @@ class TimelineFrame(QGraphicsItem):
         if not self._history_left:  # TODO: need a better notion of initialized
             return
 
-        x = event.pos().x()
-        y = event.pos().y()
+        x = event.scenePos().x()
+        y = event.scenePos().y()
 
         if event.buttons() == Qt.NoButton:
             # Mouse moving
@@ -1300,3 +1317,28 @@ class TimelineFrame(QGraphicsItem):
                         self.playhead = Time(seconds=x_stamp)
                     self.scene().update()
             self._dragged_pos = event.pos()
+
+    # Overrides QGraphicsItem.mousePressEvent
+    def mousePressEvent(self, event):
+        if event.buttons() == Qt.LeftButton:
+            self.on_left_down(event)
+            event.accept()
+        elif event.buttons() == Qt.MidButton:
+            self.on_middle_down(event)
+            event.accept()
+        elif event.buttons() == Qt.RightButton:
+            topic = self.map_y_to_topic(event.scenePos().y())
+            self.highlighted_topic = topic
+            self.scene().update()
+            TimelinePopupMenu(self._bag_timeline, event, topic)
+            self.highlighted_topic = None
+            self.scene().update()
+            event.accept()
+
+    # Overrides QGraphicsItem.mouseReleaseEvent
+    def mouseReleaseEvent(self, event):
+        self.on_mouse_up(event)
+
+    # Overrides QGraphicsItem.mouseMoveEvent
+    def mouseMoveEvent(self, event):
+        self.on_mouse_move(event)

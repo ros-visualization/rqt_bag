@@ -118,9 +118,6 @@ class BagWidget(QWidget):
         self.record_button.clicked[bool].connect(self._handle_record_clicked)
         self.load_button.clicked[bool].connect(self._handle_load_clicked)
         self.save_button.clicked[bool].connect(self._handle_save_clicked)
-        self.graphics_view.mousePressEvent = self._timeline.on_mouse_down
-        self.graphics_view.mouseReleaseEvent = self._timeline.on_mouse_up
-        self.graphics_view.mouseMoveEvent = self._timeline.on_mouse_move
         self.graphics_view.wheelEvent = self.on_mousewheel
         self.closeEvent = self.handle_close
         self.keyPressEvent = self.on_key_press
@@ -432,6 +429,6 @@ class BagWidget(QWidget):
         # scroll -> scroll the page up and down
         # ctrl+scroll -> zoom-in or zoom out timeline
         if event.modifiers() & Qt.ControlModifier:
-            self._timeline.on_mousewheel(event)
+            self._timeline._timeline_frame.on_mousewheel(event)
         else:
             BagGraphicsView.wheelEvent(self.graphics_view, event)
