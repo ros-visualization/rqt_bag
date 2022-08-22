@@ -664,7 +664,7 @@ class TimelineFrame(QGraphicsItem):
             shown_topic_name = self._trimmed_topic_name(topic)
             painter.drawText(
                 self._margin_left + self._topic_publishing_box_size + self._topic_name_spacing,
-                y + h / 2 - self._topic_font_height / 2,
+                int(y + h / 2 - self._topic_font_height / 2),
                 self._qfont_width(shown_topic_name),
                 self._topic_font_height,
                 Qt.AlignVCenter,
