@@ -841,11 +841,6 @@ class TimelineFrame(QGraphicsItem):
     def is_renderer_active(self, topic):
         return topic in self._rendered_topics
 
-    def toggle_renderers(self):
-        idle_renderers = len(self._rendered_topics) < len(self.topics)
-
-        self.set_renderers_active(idle_renderers)
-
     def set_renderers_active(self, active):
         if active:
             for topic in self.topics:
