@@ -454,7 +454,7 @@ class TimelineFrame(QGraphicsItem):
 
             painter.setBrush(QBrush(datatype_color))
             painter.setPen(QPen(datatype_color, 1))
-            painter.drawRect(region_x_start, msg_y, region_width, msg_height)
+            painter.drawRect(int(region_x_start), int(msg_y), int(region_width), int(msg_height))
 
         # Draw active message
         if topic in self.scene()._listeners:
@@ -469,7 +469,8 @@ class TimelineFrame(QGraphicsItem):
                 if playhead_stamp > self._stamp_left and playhead_stamp < self._stamp_right:
                     playhead_x = self._history_left + \
                         (all_stamps[playhead_index] - self._stamp_left) * width_interval
-                    painter.drawLine(playhead_x, msg_y, playhead_x, msg_y + msg_height)
+                    painter.drawLine(
+                        int(playhead_x), int(msg_y), int(playhead_x), int(msg_y + msg_height))
             curpen.setWidth(oldwidth)
             painter.setPen(curpen)
 
@@ -616,9 +617,44 @@ class TimelineFrame(QGraphicsItem):
         Calculate positions of existing topic names and draw them on the left, one for each row
         :param painter: ,''QPainter''
         """
+<<<<<<< HEAD
         topics = self._history_bounds.keys()
         coords = [(self._margin_left, y + (h / 2) + (self._topic_font_height / 2))
                   for (_, y, _, h) in self._history_bounds.values()]
+=======
+        for topic, bounds in self._history_bounds.items():
+            _, y, _, h = bounds
+            highlight_color = self.scene().palette().color(QPalette.Highlight)
+            highlight_pen_color = self.scene().palette().color(QPalette.HighlightedText)
+            if topic == self._highlighted_topic:
+                painter.setBrush(QBrush(highlight_color))
+                painter.setPen(QPen(highlight_pen_color))
+                painter.drawRect(
+                    0, y,
+                    self._history_left, h)
+                painter.setBrush(QBrush(highlight_pen_color))
+            else:
+                painter.setPen(self._default_pen)
+                painter.setBrush(self._default_brush)
+            if not self._bag_timeline.is_publishing(topic):
+                painter.setBrush(QBrush(Qt.NoBrush))
+            painter.setFont(self._topic_font)
+            shown_topic_name = self._trimmed_topic_name(topic)
+            painter.drawText(
+                self._margin_left + self._topic_publishing_box_size + self._topic_name_spacing,
+                int(y + h / 2 - self._topic_font_height / 2),
+                self._qfont_width(shown_topic_name),
+                self._topic_font_height,
+                Qt.AlignVCenter,
+                shown_topic_name)
+            if topic not in self._checkbox_widgets:
+                @Slot(bool)
+                def on_clicked(state, topic=topic):
+                    if self._bag_timeline.is_publishing(topic):
+                        self._bag_timeline.stop_publishing(topic)
+                    else:
+                        self._bag_timeline.start_publishing(topic)
+>>>>>>> fd889ae (ensure data types match what PyQt expects (#118))
 
         for text, coords in zip([t.lstrip('/') for t in topics], coords):
             painter.setBrush(self._default_brush)
@@ -670,7 +706,7 @@ class TimelineFrame(QGraphicsItem):
                 painter.setBrush(self._default_brush)
                 painter.setPen(self._default_pen)
                 painter.setFont(self._time_font)
-                painter.drawText(label_x, label_y, label)
+                painter.drawText(int(label_x), int(label_y), label)
 
             painter.setPen(self._major_division_pen)
             painter.drawLine(
@@ -923,11 +959,11 @@ class TimelineFrame(QGraphicsItem):
 
         if clamp_to_visible:
             if fraction <= 0.0:
-                return self._stamp_left
+                return int(self._stamp_left)
             elif fraction >= 1.0:
-                return self._stamp_right
+                return int(self._stamp_right)
 
-        return self._stamp_left + fraction * (self._stamp_right - self._stamp_left)
+        return int(self._stamp_left + fraction * (self._stamp_right - self._stamp_left))
 
     def map_dx_to_dstamp(self, dx):
         """
@@ -952,7 +988,7 @@ class TimelineFrame(QGraphicsItem):
         if clamp_to_visible:
             fraction = min(1.0, max(0.0, fraction))
 
-        return self._history_left + fraction * self._history_width
+        return int(self._history_left + fraction * self._history_width)
 
     def map_dstamp_to_dx(self, dstamp):
         return (float(dstamp) * self._history_width) / (self._stamp_right - self._stamp_left)
