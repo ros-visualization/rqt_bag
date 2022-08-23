@@ -235,7 +235,7 @@ class BagWidget(QWidget):
         self._timeline.navigate_end()
 
     def _handle_thumbs_clicked(self, checked):
-        self._timeline._timeline_frame.toggle_renderers()
+        self._timeline._timeline_frame.set_renderers_active(checked)
 
     def _handle_zoom_all_clicked(self):
         self._timeline.reset_zoom()
