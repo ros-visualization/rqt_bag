@@ -149,7 +149,7 @@ class TimelineFrame(QGraphicsItem):
         self._topic_font.setBold(False)
         self._topic_vertical_padding = 4
         # publishing box size
-        self._topic_publishing_box_size = 10
+        self._topic_publishing_box_size = 15
         # percentage of the horiz space that can be used for topic display
         self._topic_name_max_percent = 25.0
 
