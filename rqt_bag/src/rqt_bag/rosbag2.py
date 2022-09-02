@@ -40,6 +40,7 @@ import sqlite3
 
 from rclpy.clock import Clock, ClockType
 from rclpy.duration import Duration
+from rclpy import logging
 from rclpy.serialization import deserialize_message
 from rclpy.time import Time
 import rosbag2_py
@@ -52,6 +53,8 @@ class Rosbag2:
     def __init__(self, bag_path, recording=False, topics={},
                  serialization_format='cdr', storage_id='sqlite3'):
         self.bag_path = bag_path
+        self.recording = recording
+        self._logger = logging.get_logger('rqt_bag.Rosbag2')
 
         if recording:
             # If we're recording, the new rosbag doesn't have a metadata.yaml file yet, since
@@ -129,6 +132,9 @@ class Rosbag2:
 
         Returns the entry that is closest in time (<=) to the provided timestamp.
         """
+        if self.recording:
+            self._logger.warn("get_entry - recording, returning None")
+            return None
         sql_query = 'timestamp<={} ORDER BY messages.timestamp ' \
                     'DESC LIMIT 1;'.format(timestamp.nanoseconds)
         result = self._execute_sql_query(sql_query, topic)
@@ -136,12 +142,18 @@ class Rosbag2:
 
     def get_entry_after(self, timestamp, topic=None):
         """Get the next entry after a given timestamp."""
+        if self.recording:
+            self._logger.warn("get_entry_after - recording, returning None")
+            return None
         sql_query = 'timestamp>{} ORDER BY messages.timestamp ' \
                     'LIMIT 1;'.format(timestamp.nanoseconds)
         result = self._execute_sql_query(sql_query, topic)
         return result[0] if result else None
 
     def get_entries_in_range(self, t_start, t_end, topic=None):
+        if self.recording:
+            self._logger.warn("get_entries_in_range - recording, returning None")
+            return None
         """Get a list of all of the entries within a given range of timestamps (inclusive)."""
         sql_query = 'timestamp>={} AND timestamp<={} ' \
                     'ORDER BY messages.timestamp;'.format(t_start.nanoseconds, t_end.nanoseconds)

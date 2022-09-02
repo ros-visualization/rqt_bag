@@ -723,10 +723,9 @@ class BagTimeline(QGraphicsScene):
             self._messages_cvs[topic] = threading.Condition()
             self._message_loaders[topic] = MessageLoaderThread(self, topic)
 
-        # Notify the index caching thread that it has work to do
+        # Send new message info to the cache
         with self._timeline_frame.index_cache_cv:
-            self._timeline_frame.invalidated_caches.add(topic)
-            self._timeline_frame.index_cache_cv.notify()
+            self._timeline_frame.cache_message(topic, t)
 
         if topic in self._listeners:
             for listener in self._listeners[topic]:
