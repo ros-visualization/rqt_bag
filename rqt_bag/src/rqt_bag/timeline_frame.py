@@ -617,50 +617,15 @@ class TimelineFrame(QGraphicsItem):
         Calculate positions of existing topic names and draw them on the left, one for each row
         :param painter: ,''QPainter''
         """
-<<<<<<< HEAD
         topics = self._history_bounds.keys()
         coords = [(self._margin_left, y + (h / 2) + (self._topic_font_height / 2))
                   for (_, y, _, h) in self._history_bounds.values()]
-=======
-        for topic, bounds in self._history_bounds.items():
-            _, y, _, h = bounds
-            highlight_color = self.scene().palette().color(QPalette.Highlight)
-            highlight_pen_color = self.scene().palette().color(QPalette.HighlightedText)
-            if topic == self._highlighted_topic:
-                painter.setBrush(QBrush(highlight_color))
-                painter.setPen(QPen(highlight_pen_color))
-                painter.drawRect(
-                    0, y,
-                    self._history_left, h)
-                painter.setBrush(QBrush(highlight_pen_color))
-            else:
-                painter.setPen(self._default_pen)
-                painter.setBrush(self._default_brush)
-            if not self._bag_timeline.is_publishing(topic):
-                painter.setBrush(QBrush(Qt.NoBrush))
-            painter.setFont(self._topic_font)
-            shown_topic_name = self._trimmed_topic_name(topic)
-            painter.drawText(
-                self._margin_left + self._topic_publishing_box_size + self._topic_name_spacing,
-                int(y + h / 2 - self._topic_font_height / 2),
-                self._qfont_width(shown_topic_name),
-                self._topic_font_height,
-                Qt.AlignVCenter,
-                shown_topic_name)
-            if topic not in self._checkbox_widgets:
-                @Slot(bool)
-                def on_clicked(state, topic=topic):
-                    if self._bag_timeline.is_publishing(topic):
-                        self._bag_timeline.stop_publishing(topic)
-                    else:
-                        self._bag_timeline.start_publishing(topic)
->>>>>>> fd889ae (ensure data types match what PyQt expects (#118))
 
         for text, coords in zip([t.lstrip('/') for t in topics], coords):
             painter.setBrush(self._default_brush)
             painter.setPen(self._default_pen)
             painter.setFont(self._topic_font)
-            painter.drawText(coords[0], coords[1], self._trimmed_topic_name(text))
+            painter.drawText(coords[0], int(coords[1]), self._trimmed_topic_name(text))
 
     def _draw_time_divisions(self, painter):
         """
