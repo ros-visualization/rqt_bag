@@ -260,8 +260,7 @@ class Recorder(object):
                     self.rosbag_writer.write(topic, serialize_message(msg), t.nanoseconds)
 
                     # Update the overall duration for this bag based on the message just added
-                    duration_ns = t.nanoseconds - self._bag.start_time.nanoseconds
-                    self._bag.duration = Duration(nanoseconds=duration_ns)
+                    self._bag.duration = t - self._bag.get_earliest_timestamp()
 
                 # Notify listeners that a message has been recorded
                 for listener in self._listeners:

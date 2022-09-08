@@ -47,62 +47,46 @@ import rosbag2_py
 from rosidl_runtime_py.utilities import get_message
 import yaml
 
+WRITE_ONLY_MSG = "open for writing only, returning None"
+
 
 class Rosbag2:
 
     def __init__(self, bag_path, recording=False, topics={},
                  serialization_format='cdr', storage_id='sqlite3'):
         self.bag_path = bag_path
-        self.recording = recording
+        self.reader = None
         self._logger = logging.get_logger('rqt_bag.Rosbag2')
 
         if recording:
-            # If we're recording, the new rosbag doesn't have a metadata.yaml file yet, since
-            # it is written out when the database is closed. So, let's initialize based on the
-            # caller-supplied topic information and whatever else we can infer
-
-            # Construct a full path to the db3 file
-            bag_name = os.path.split(bag_path)[1]
-            database_relative_name = bag_name + '_0.db3'
-
-            # Set the fields we need
-            self.db_name = os.path.join(self.bag_path, database_relative_name)
-            self.start_time = Clock(clock_type=ClockType.SYSTEM_TIME).now()
-            self.duration = Duration(nanoseconds=0)
-            self.topic_metadata_map = topics
+            # TODO(emersonknapp)
+            pass
         else:
-            # Open the metadata file and grab the fields we need
-            with open(bag_path + '/metadata.yaml') as f:
-                full_bag_info = yaml.safe_load(f)
-                bag_info = full_bag_info['rosbag2_bagfile_information']
-                database_relative_name = bag_info['relative_file_paths'][0]
-
-                self.db_name = os.path.join(self.bag_path, database_relative_name)
-                self.start_time = Time(nanoseconds=bag_info['starting_time']
-                                       ['nanoseconds_since_epoch'])
-                self.duration = Duration(nanoseconds=bag_info['duration']['nanoseconds'])
-                self.topic_metadata_map = {
-                    topic['topic_metadata']['name']:
-                    rosbag2_py.TopicMetadata(
-                        name=topic['topic_metadata']['name'],
-                        type=topic['topic_metadata']['type'],
-                        serialization_format=topic['topic_metadata']['serialization_format'],
-                        offered_qos_profiles=topic['topic_metadata']['offered_qos_profiles'])
-                    for topic in bag_info['topics_with_message_count']
-                }
+            self.reader = rosbag2_py.SequentialReader()
+            self.reader.open(
+                rosbag2_py.StorageOptions(uri=bag_path), rosbag2_py.ConverterOptions())
+            self.metadata = self.reader.get_metadata()
+            self.db_name = os.path.join(self.bag_path, self.metadata.relative_file_paths[0])
+            self.topic_metadata_map = {
+                t_info.topic_metadata.name: t_info.topic_metadata
+                for t_info in self.metadata.topics_with_message_count
+            }
 
     def size(self):
         """Get the size of the rosbag."""
-        return sum(f.stat().st_size
-                   for f in pathlib.Path(self.bag_path).glob('**/*') if f.is_file())
+        return self.metadata.bag_size
 
     def get_earliest_timestamp(self):
         """Get the timestamp of the earliest message in the bag."""
-        return self.start_time
+        self._logger.info("GET START")
+        return self.metadata.starting_time
 
     def get_latest_timestamp(self):
         """Get the timestamp of the most recent message in the bag."""
-        return self.start_time + self.duration
+        self._logger.info("GET END")
+        end = self.metadata.starting_time + self.metadata.duration
+        print("ITS A ", end)
+        return self.metadata.starting_time + self.metadata.duration
 
     def get_topics(self):
         """Get all of the topics used in this bag."""
@@ -132,9 +116,10 @@ class Rosbag2:
 
         Returns the entry that is closest in time (<=) to the provided timestamp.
         """
-        if self.recording:
-            self._logger.warn("get_entry - recording, returning None")
+        if not self.reader:
+            self._logger.warn("get_entry - " + WRITE_ONLY_MSG)
             return None
+        self._logger.info("GET ENTRY")
         sql_query = 'timestamp<={} ORDER BY messages.timestamp ' \
                     'DESC LIMIT 1;'.format(timestamp.nanoseconds)
         result = self._execute_sql_query(sql_query, topic)
@@ -142,19 +127,21 @@ class Rosbag2:
 
     def get_entry_after(self, timestamp, topic=None):
         """Get the next entry after a given timestamp."""
-        if self.recording:
-            self._logger.warn("get_entry_after - recording, returning None")
+        if not self.reader:
+            self._logger.warn("get_entry_after - " + WRITE_ONLY_MSG)
             return None
+        self._logger.info("GET ENTRY AFTER")
         sql_query = 'timestamp>{} ORDER BY messages.timestamp ' \
                     'LIMIT 1;'.format(timestamp.nanoseconds)
         result = self._execute_sql_query(sql_query, topic)
         return result[0] if result else None
 
     def get_entries_in_range(self, t_start, t_end, topic=None):
-        if self.recording:
-            self._logger.warn("get_entries_in_range - recording, returning None")
+        if not self.reader:
+            self._logger.warn("get_entries_in_range - " + WRITE_ONLY_MSG)
             return None
         """Get a list of all of the entries within a given range of timestamps (inclusive)."""
+        self._logger.info("GET ENTRIES IN RANGE")
         sql_query = 'timestamp>={} AND timestamp<={} ' \
                     'ORDER BY messages.timestamp;'.format(t_start.nanoseconds, t_end.nanoseconds)
         return self._execute_sql_query(sql_query, topic)
