@@ -312,7 +312,7 @@ class BagTimeline(QGraphicsScene):
         Access a bag entry
         :param t: time, ''rclpy.time.Time''
         :param topic: the topic to be accessed, ''str''
-        :return: tuple of (bag, entry) corresponding to time t and topic, ''(rosbag2.bag, msg)''
+        :return: tuple of (bag, entry) closest less than or equal to t, ''(rosbag2.bag, msg)''
         """
         with self._bag_lock:
             entry_bag, entry = None, None
@@ -327,16 +327,9 @@ class BagTimeline(QGraphicsScene):
         """
         Access a bag entry
         :param t: time, ''rclpy.time.Time''
-        :return: tuple of (bag, entry) corresponding to time t, ''(rosbag2.bag, msg)''
+        :return: tuple of (bag, entry) closest less than but not equal to t, ''(rosbag2.bag, msg)''
         """
-        with self._bag_lock:
-            entry_bag, entry = None, None
-            for bag in self._bags:
-                bag_entry = bag.get_entry(t - Duration(nanoseconds=1))
-                if bag_entry and (not entry or bag_entry.timestamp < entry.timestamp):
-                    entry_bag, entry = bag, bag_entry
-
-            return entry_bag, entry
+        return self.get_entry(t - Duration(nanoseconds=1))
 
     def get_entry_after(self, t, topic=None):
         """

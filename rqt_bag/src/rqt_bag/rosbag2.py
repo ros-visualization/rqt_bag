@@ -78,14 +78,10 @@ class Rosbag2:
 
     def get_earliest_timestamp(self):
         """Get the timestamp of the earliest message in the bag."""
-        self._logger.info("GET START")
         return self.metadata.starting_time
 
     def get_latest_timestamp(self):
         """Get the timestamp of the most recent message in the bag."""
-        self._logger.info("GET END")
-        end = self.metadata.starting_time + self.metadata.duration
-        print("ITS A ", end)
         return self.metadata.starting_time + self.metadata.duration
 
     def get_topics(self):
@@ -119,7 +115,7 @@ class Rosbag2:
         if not self.reader:
             self._logger.warn("get_entry - " + WRITE_ONLY_MSG)
             return None
-        self._logger.info("GET ENTRY")
+        self._logger.info(f"get_entry {timestamp}")
         sql_query = 'timestamp<={} ORDER BY messages.timestamp ' \
                     'DESC LIMIT 1;'.format(timestamp.nanoseconds)
         result = self._execute_sql_query(sql_query, topic)
@@ -130,7 +126,7 @@ class Rosbag2:
         if not self.reader:
             self._logger.warn("get_entry_after - " + WRITE_ONLY_MSG)
             return None
-        self._logger.info("GET ENTRY AFTER")
+        self._logger.info(f"get_entry_after {timestamp}")
         sql_query = 'timestamp>{} ORDER BY messages.timestamp ' \
                     'LIMIT 1;'.format(timestamp.nanoseconds)
         result = self._execute_sql_query(sql_query, topic)
@@ -141,7 +137,7 @@ class Rosbag2:
             self._logger.warn("get_entries_in_range - " + WRITE_ONLY_MSG)
             return None
         """Get a list of all of the entries within a given range of timestamps (inclusive)."""
-        self._logger.info("GET ENTRIES IN RANGE")
+        self._logger.info(f"get_entries_in_range {t_start} -> {t_end}")
         sql_query = 'timestamp>={} AND timestamp<={} ' \
                     'ORDER BY messages.timestamp;'.format(t_start.nanoseconds, t_end.nanoseconds)
         return self._execute_sql_query(sql_query, topic)
