@@ -59,8 +59,10 @@ class Rosbag2:
         self._logger = logging.get_logger('rqt_bag.Rosbag2')
 
         if recording:
-            # TODO(emersonknapp)
-            pass
+            self.metadata = rosbag2_py.BagMetadata()
+            self.metadata.starting_time = Clock(clock_type=ClockType.SYSTEM_TIME).now()
+            self.metadata.duration = Duration(nanoseconds=0)
+            self.topic_metadata_map = topics
         else:
             self.reader = rosbag2_py.SequentialReader()
             self.reader.open(
@@ -83,6 +85,9 @@ class Rosbag2:
     def get_latest_timestamp(self):
         """Get the timestamp of the most recent message in the bag."""
         return self.metadata.starting_time + self.metadata.duration
+
+    def set_latest_timestamp(self, t):
+        self.metadata.duration = t - self.metadata.starting_time
 
     def get_topics(self):
         """Get all of the topics used in this bag."""
@@ -115,7 +120,6 @@ class Rosbag2:
         if not self.reader:
             self._logger.warn("get_entry - " + WRITE_ONLY_MSG)
             return None
-        self._logger.info(f"get_entry {timestamp}")
         sql_query = 'timestamp<={} ORDER BY messages.timestamp ' \
                     'DESC LIMIT 1;'.format(timestamp.nanoseconds)
         result = self._execute_sql_query(sql_query, topic)
@@ -126,7 +130,6 @@ class Rosbag2:
         if not self.reader:
             self._logger.warn("get_entry_after - " + WRITE_ONLY_MSG)
             return None
-        self._logger.info(f"get_entry_after {timestamp}")
         sql_query = 'timestamp>{} ORDER BY messages.timestamp ' \
                     'LIMIT 1;'.format(timestamp.nanoseconds)
         result = self._execute_sql_query(sql_query, topic)
@@ -137,7 +140,6 @@ class Rosbag2:
             self._logger.warn("get_entries_in_range - " + WRITE_ONLY_MSG)
             return None
         """Get a list of all of the entries within a given range of timestamps (inclusive)."""
-        self._logger.info(f"get_entries_in_range {t_start} -> {t_end}")
         sql_query = 'timestamp>={} AND timestamp<={} ' \
                     'ORDER BY messages.timestamp;'.format(t_start.nanoseconds, t_end.nanoseconds)
         return self._execute_sql_query(sql_query, topic)
