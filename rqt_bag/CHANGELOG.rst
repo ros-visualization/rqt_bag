@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.1 (2022-09-13)
+------------------
 * Increase publishing checkbox size (`#122 <https://github.com/ros-visualization/rqt_bag/issues/122>`_)
 * Fix toggle thumbnails button (`#117 <https://github.com/ros-visualization/rqt_bag/issues/117>`_)
 * ensure data types match what PyQt expects (`#118 <https://github.com/ros-visualization/rqt_bag/issues/118>`_)
