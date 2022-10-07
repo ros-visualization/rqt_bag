@@ -136,7 +136,7 @@ class Rosbag2:
             return None
 
         self.reader.set_read_order(rosbag2_py.ReadOrder(reverse=False))
-        self.reader.seek(timestamp.nanoseconds)
+        self.reader.seek(timestamp.nanoseconds + 1)
         return self.read_next() if self.reader.has_next() else None
 
     def get_entries_in_range(self, t_start, t_end, topic=None):
