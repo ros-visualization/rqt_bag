@@ -2,6 +2,13 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.1.4 (2022-11-07)
+------------------
+* [Humble] Ensure data types match what PyQt expects (backport `#118 <https://github.com/ros-visualization/rqt_bag/issues/118>`_) (`#125 <https://github.com/ros-visualization/rqt_bag/issues/125>`_)
+* Fix toggle thumbnails button (`#117 <https://github.com/ros-visualization/rqt_bag/issues/117>`_) (`#124 <https://github.com/ros-visualization/rqt_bag/issues/124>`_)
+* [Fixes] Fix crash when no qos metadata, make scroll bar appear if needed, add gitignore (`#113 <https://github.com/ros-visualization/rqt_bag/issues/113>`_) (`#120 <https://github.com/ros-visualization/rqt_bag/issues/120>`_)
+* Contributors: mergify[bot]
+
 1.1.3 (2022-05-10)
 ------------------
 * Fix the types being passed into QFont and QColor. (`#109 <https://github.com/ros-visualization/rqt_bag/issues/109>`_)
