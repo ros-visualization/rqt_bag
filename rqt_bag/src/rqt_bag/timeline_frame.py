@@ -124,7 +124,7 @@ class TimelineFrame(QGraphicsItem):
         self._topic_name_sizes = None
         # minimum pixels between end of topic name and start of history
         self._topic_name_spacing = 3
-        self._topic_font_size = 10.0
+        self._topic_font_size = 10
         self._topic_font = QFont("cairo")
         self._topic_font.setPointSize(self._topic_font_size)
         self._topic_font.setBold(False)
@@ -135,7 +135,7 @@ class TimelineFrame(QGraphicsItem):
         # Time Rendering
         self._time_tick_height = 5
         self._time_font_height = None
-        self._time_font_size = 10.0
+        self._time_font_size = 10
         self._time_font = QFont("cairo")
         self._time_font.setPointSize(self._time_font_size)
         self._time_font.setBold(False)
@@ -158,12 +158,12 @@ class TimelineFrame(QGraphicsItem):
 
         # Selected Region Rendering
         self._selected_region_color = QColor(0, 179, 0, 21)
-        self._selected_region_outline_top_color = QColor(0.0, 77, 0.0, 51)
-        self._selected_region_outline_ends_color = QColor(0.0, 77, 0.0, 102)
+        self._selected_region_outline_top_color = QColor(0, 77, 0, 51)
+        self._selected_region_outline_ends_color = QColor(0, 77, 0, 102)
         self._selecting_mode = _SelectionMode.NONE
         self._selected_left = None
         self._selected_right = None
-        self._selection_handle_width = 3.0
+        self._selection_handle_width = 3
 
         # Playhead Rendering
         self._playhead = None  # timestamp of the playhead
@@ -446,10 +446,10 @@ class TimelineFrame(QGraphicsItem):
             if stamp_end < self._stamp_left:
                 continue
 
-            region_x_start = self._history_left + (stamp_start - self._stamp_left) * width_interval
+            region_x_start = int(self._history_left + (stamp_start - self._stamp_left) * width_interval)
             if region_x_start < self._history_left:
                 region_x_start = self._history_left  # Clip the region
-            region_x_end = self._history_left + (stamp_end - self._stamp_left) * width_interval
+            region_x_end = int(self._history_left + (stamp_end - self._stamp_left) * width_interval)
             region_width = max(1, region_x_end - region_x_start)
 
             painter.setBrush(QBrush(datatype_color))
@@ -467,8 +467,8 @@ class TimelineFrame(QGraphicsItem):
             if playhead_index >= 0:
                 playhead_stamp = all_stamps[playhead_index]
                 if playhead_stamp > self._stamp_left and playhead_stamp < self._stamp_right:
-                    playhead_x = self._history_left + \
-                        (all_stamps[playhead_index] - self._stamp_left) * width_interval
+                    playhead_x = int(self._history_left + \
+                        (all_stamps[playhead_index] - self._stamp_left) * width_interval)
                     painter.drawLine(playhead_x, msg_y, playhead_x, msg_y + msg_height)
             curpen.setWidth(oldwidth)
             painter.setPen(curpen)
@@ -617,7 +617,7 @@ class TimelineFrame(QGraphicsItem):
         :param painter: ,''QPainter''
         """
         topics = self._history_bounds.keys()
-        coords = [(self._margin_left, y + (h / 2) + (self._topic_font_height / 2))
+        coords = [(int(self._margin_left), int(y + (h / 2) + (self._topic_font_height / 2)))
                   for (_, y, _, h) in self._history_bounds.values()]
 
         for text, coords in zip([t.lstrip('/') for t in topics], coords):
@@ -660,12 +660,12 @@ class TimelineFrame(QGraphicsItem):
         Draw black hashed vertical grid-lines showing major time divisions.
         :param painter: allows access to paint functions,''QPainter''
         """
-        label_y = self._history_top - self._playhead_pointer_size[1] - 5
+        label_y = int(self._history_top - self._playhead_pointer_size[1] - 5)
         for stamp in stamps:
             x = self.map_stamp_to_x(stamp, False)
 
             label = self._get_label(division, stamp - start_stamp)
-            label_x = x + self._major_divisions_label_indent
+            label_x = int(x + self._major_divisions_label_indent)
             if label_x + self._qfont_width(label) < self.scene().width():
                 painter.setBrush(self._default_brush)
                 painter.setPen(self._default_pen)
@@ -674,7 +674,7 @@ class TimelineFrame(QGraphicsItem):
 
             painter.setPen(self._major_division_pen)
             painter.drawLine(
-                x, label_y - self._time_tick_height - self._time_font_size, x, self._history_bottom)
+                x, int(label_y - self._time_tick_height - self._time_font_size), x, self._history_bottom)
 
         painter.setBrush(self._default_brush)
         painter.setPen(self._default_pen)
@@ -952,7 +952,7 @@ class TimelineFrame(QGraphicsItem):
         if clamp_to_visible:
             fraction = min(1.0, max(0.0, fraction))
 
-        return self._history_left + fraction * self._history_width
+        return int(self._history_left + fraction * self._history_width)
 
     def map_dstamp_to_dx(self, dstamp):
         return (float(dstamp) * self._history_width) / (self._stamp_right - self._stamp_left)
