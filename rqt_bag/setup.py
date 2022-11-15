@@ -17,7 +17,7 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     author='Dirk Thomas, Aaron Blasdel, Austin Hendrix, Tim Field',
-    maintainer='Michael Jeronimo, Mabel Zhang',
+    maintainer='Michael Jeronimo',
     maintainer_email='michael.jeronimo@openrobotics.org',
     keywords=['ROS'],
     classifiers=[
