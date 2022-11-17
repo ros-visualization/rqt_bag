@@ -899,6 +899,19 @@ class TimelineFrame(QGraphicsItem):
 
         return len(topic_cache) - topic_cache_len
 
+
+    def cache_message(self, topic, t):
+        """
+        Updates the cache of message timestamps with a specific new message,
+        bypassing any need to read entries from the bag.
+        """
+        if self._start_stamp is None or self._end_stamp is None:
+            return 0
+
+        topic_cache = self.index_cache.setdefault(topic, [])
+        topic_cache.append(bag_helper.to_sec(t))
+
+
     def _find_regions(self, stamps, max_interval):
         """
         Group timestamps into regions connected by timestamps less than max_interval secs apart
