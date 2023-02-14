@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.0 (2023-02-14)
+------------------
 * Use rosbag2_py API instead of direct bag parsing
 * [rolling] Update maintainers - 2022-11-07 (`#132 <https://github.com/ros-visualization/rqt_bag/issues/132>`_)
 * For get_entry_after, bump by 1 nanosecond otherwise always get the same message equal to the timestamp
