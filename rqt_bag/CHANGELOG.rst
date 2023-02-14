@@ -2,6 +2,18 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Use rosbag2_py API instead of direct bag parsing
+* [rolling] Update maintainers - 2022-11-07 (`#132 <https://github.com/ros-visualization/rqt_bag/issues/132>`_)
+* For get_entry_after, bump by 1 nanosecond otherwise always get the same message equal to the timestamp
+* Use rosbag2_py.reader for all message queries, remove sqlite3 direct usage
+* Cleanup for review
+* Improved logging
+* Use a rosbag2_py.Reader to get bag metadata
+* Disable reading from bag while recording - use direct caching to index for timeline
+* Contributors: Audrow Nash, Emerson Knapp
+
 1.2.1 (2022-09-13)
 ------------------
 * Increase publishing checkbox size (`#122 <https://github.com/ros-visualization/rqt_bag/issues/122>`_)
