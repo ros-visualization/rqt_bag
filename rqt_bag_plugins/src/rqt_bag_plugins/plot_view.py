@@ -435,8 +435,8 @@ class MessageTree(QTreeWidget):
         # Remove the leading underscore for display
         label = name[1:] if name.startswith('_') else name
 
-        if hasattr(obj, '__slots__'):
-            subobjs = [(slot, getattr(obj, slot)) for slot in obj.__slots__]
+        if hasattr(obj, '_fields_and_field_types'):
+            subobjs = [(field_name, getattr(obj, field_name)) for field_name in obj.get_fields_and_field_types().keys()]
         elif type(obj) in [list, tuple]:
             len_obj = len(obj)
             if len_obj == 0:
