@@ -1,6 +1,6 @@
 <package format="3">
   <name>rqt_bag_plugins</name>
-  <version>1.3.0</version>
+  <version>1.3.1</version>
   <description>rqt_bag provides a GUI plugin for displaying and replaying ROS bag files.</description>
 
   <maintainer email="michael.jeronimo@openrobotics.org">Michael Jeronimo</maintainer>
