@@ -117,7 +117,7 @@ class BagTimeline(QGraphicsScene):
 
         # Database settings
         self.serialization_format = 'cdr'
-        self.storage_id = 'sqlite3'
+        self.storage_id = rosbag2_py.get_default_storage_id()
 
     def get_context(self):
         """

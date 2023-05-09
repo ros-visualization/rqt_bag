@@ -46,6 +46,8 @@ import rosbag2_py
 from rosidl_runtime_py.utilities import get_message
 import yaml
 
+from rosbag2_py import get_default_storage_id
+
 WRITE_ONLY_MSG = "open for writing only, returning None"
 
 Entry = namedtuple('Entry', ['topic', 'data', 'timestamp'])
@@ -54,7 +56,7 @@ Entry = namedtuple('Entry', ['topic', 'data', 'timestamp'])
 class Rosbag2:
 
     def __init__(self, bag_path, recording=False, topics={},
-                 serialization_format='cdr', storage_id='sqlite3'):
+                 serialization_format='cdr', storage_id=get_default_storage_id()):
         self.bag_path = bag_path
         self.reader = None
         self._logger = logging.get_logger('rqt_bag.Rosbag2')

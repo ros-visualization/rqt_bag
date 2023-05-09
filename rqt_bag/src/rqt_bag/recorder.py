@@ -54,6 +54,8 @@ from rosidl_runtime_py.utilities import get_message
 from .qos import gen_subscriber_qos_profile, get_qos_profiles_for_topic, qos_profiles_to_yaml
 from .rosbag2 import Rosbag2
 
+from rosbag2_py import get_default_storage_id
+
 
 class Recorder(object):
 
@@ -97,7 +99,7 @@ class Recorder(object):
         self._message_count = {}  # topic -> int (track number of messages recorded on each topic)
 
         self._serialization_format = 'cdr'
-        self._storage_id = 'sqlite3'
+        self._storage_id = get_default_storage_id()
         self._storage_options = rosbag2_py.StorageOptions(
             uri=filename, storage_id=self._storage_id)
         self._converter_options = rosbag2_py.ConverterOptions(
