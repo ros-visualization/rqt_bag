@@ -2,6 +2,9 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.3.1 (2023-04-11)
 ------------------
 * Changes the use of __slots_\_ for the field and field type getter (`#138 <https://github.com/ros-visualization/rqt_bag/issues/138>`_)
