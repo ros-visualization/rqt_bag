@@ -265,6 +265,7 @@ class BagWidget(QWidget):
             self._logger.info('Recording to %s.' % record_filename)
 
             self.load_button.setEnabled(False)
+            self.save_button.setEnabled(True)
             self._recording = True
             self._timeline.record_bag(record_filename, all_topics, selected_topics)
 
@@ -316,7 +317,7 @@ class BagWidget(QWidget):
         self.slower_button.setEnabled(True)
         self.begin_button.setEnabled(True)
         self.end_button.setEnabled(True)
-        self.save_button.setEnabled(True)
+        self.save_button.setEnabled(False)
         self.record_button.setEnabled(False)
         self._timeline.add_bag(bag)
         qDebug("Done loading '%s'" % filename.encode(errors='replace'))
@@ -335,6 +336,15 @@ class BagWidget(QWidget):
         # self clear loading filename
 
     def _handle_save_clicked(self):
+        # If we are currently recording, close the bag.
+        if self._recording:
+            self._timeline.stop_recorder()
+            self._recording = False
+            self.save_button.setEnabled(False)
+            self.load_button.setEnabled(True)
+            return
+        # todo: Enable this code pathway when support for extracting regions
+        # from loaded bags is available.
         # Get the bag name to save to, prepopulating the dialog input with the current time
         proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
         filename = \
