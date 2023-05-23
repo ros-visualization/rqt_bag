@@ -343,7 +343,7 @@ class BagWidget(QWidget):
             self.save_button.setEnabled(False)
             self.load_button.setEnabled(True)
             return
-        # todo: Enable this code pathway when support for extracting regions
+        # TODO(Yadunund): Enable this code pathway when support for extracting regions
         # from loaded bags is available.
         # Get the bag name to save to, prepopulating the dialog input with the current time
         proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
