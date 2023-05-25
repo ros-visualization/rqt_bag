@@ -210,6 +210,9 @@ class Recorder(object):
         for topic in list(self._subscriber_helpers.keys()):
             self._unsubscribe(topic)
 
+        # Close the writer to create the metadata.yaml file.
+        self.rosbag_writer.close()
+
     def _should_subscribe_to(self, topic):
         if self._all:
             return True
