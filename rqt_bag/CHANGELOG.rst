@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.0 (2023-06-07)
+------------------
 * [ros2] Enable Save (`#142 <https://github.com/ros-visualization/rqt_bag/issues/142>`_)
 * Call close (`#141 <https://github.com/ros-visualization/rqt_bag/issues/141>`_)
 * Contributors: Yadu
