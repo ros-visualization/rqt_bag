@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.3 (2023-07-14)
+------------------
 * Fix metadata.yaml not writing to disk when recorder is stopped (`#143 <https://github.com/ros-visualization/rqt_bag/issues/143>`_)
 * Contributors: Yadunund
 
