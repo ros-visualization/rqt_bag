@@ -124,7 +124,7 @@ class TimelineFrame(QGraphicsItem):
         self._topic_name_sizes = None
         # minimum pixels between end of topic name and start of history
         self._topic_name_spacing = 3
-        self._topic_font_size = 10.0
+        self._topic_font_size = 10
         self._topic_font = QFont("cairo")
         self._topic_font.setPointSize(self._topic_font_size)
         self._topic_font.setBold(False)
@@ -135,7 +135,7 @@ class TimelineFrame(QGraphicsItem):
         # Time Rendering
         self._time_tick_height = 5
         self._time_font_height = None
-        self._time_font_size = 10.0
+        self._time_font_size = 10
         self._time_font = QFont("cairo")
         self._time_font.setPointSize(self._time_font_size)
         self._time_font.setBold(False)
@@ -158,8 +158,8 @@ class TimelineFrame(QGraphicsItem):
 
         # Selected Region Rendering
         self._selected_region_color = QColor(0, 179, 0, 21)
-        self._selected_region_outline_top_color = QColor(0.0, 77, 0.0, 51)
-        self._selected_region_outline_ends_color = QColor(0.0, 77, 0.0, 102)
+        self._selected_region_outline_top_color = QColor(0, 77, 0, 51)
+        self._selected_region_outline_ends_color = QColor(0, 77, 0, 102)
         self._selecting_mode = _SelectionMode.NONE
         self._selected_left = None
         self._selected_right = None
@@ -454,7 +454,7 @@ class TimelineFrame(QGraphicsItem):
 
             painter.setBrush(QBrush(datatype_color))
             painter.setPen(QPen(datatype_color, 1))
-            painter.drawRect(region_x_start, msg_y, region_width, msg_height)
+            painter.drawRect(int(region_x_start), int(msg_y), int(region_width), int(msg_height))
 
         # Draw active message
         if topic in self.scene()._listeners:
@@ -469,7 +469,8 @@ class TimelineFrame(QGraphicsItem):
                 if playhead_stamp > self._stamp_left and playhead_stamp < self._stamp_right:
                     playhead_x = self._history_left + \
                         (all_stamps[playhead_index] - self._stamp_left) * width_interval
-                    painter.drawLine(playhead_x, msg_y, playhead_x, msg_y + msg_height)
+                    painter.drawLine(
+                        int(playhead_x), int(msg_y), int(playhead_x), int(msg_y + msg_height))
             curpen.setWidth(oldwidth)
             painter.setPen(curpen)
 
@@ -624,7 +625,7 @@ class TimelineFrame(QGraphicsItem):
             painter.setBrush(self._default_brush)
             painter.setPen(self._default_pen)
             painter.setFont(self._topic_font)
-            painter.drawText(coords[0], coords[1], self._trimmed_topic_name(text))
+            painter.drawText(coords[0], int(coords[1]), self._trimmed_topic_name(text))
 
     def _draw_time_divisions(self, painter):
         """
@@ -670,7 +671,7 @@ class TimelineFrame(QGraphicsItem):
                 painter.setBrush(self._default_brush)
                 painter.setPen(self._default_pen)
                 painter.setFont(self._time_font)
-                painter.drawText(label_x, label_y, label)
+                painter.drawText(int(label_x), int(label_y), label)
 
             painter.setPen(self._major_division_pen)
             painter.drawLine(
@@ -923,11 +924,11 @@ class TimelineFrame(QGraphicsItem):
 
         if clamp_to_visible:
             if fraction <= 0.0:
-                return self._stamp_left
+                return int(self._stamp_left)
             elif fraction >= 1.0:
-                return self._stamp_right
+                return int(self._stamp_right)
 
-        return self._stamp_left + fraction * (self._stamp_right - self._stamp_left)
+        return int(self._stamp_left + fraction * (self._stamp_right - self._stamp_left))
 
     def map_dx_to_dstamp(self, dx):
         """
@@ -952,7 +953,7 @@ class TimelineFrame(QGraphicsItem):
         if clamp_to_visible:
             fraction = min(1.0, max(0.0, fraction))
 
-        return self._history_left + fraction * self._history_width
+        return int(self._history_left + fraction * self._history_width)
 
     def map_dstamp_to_dx(self, dstamp):
         return (float(dstamp) * self._history_width) / (self._stamp_right - self._stamp_left)
