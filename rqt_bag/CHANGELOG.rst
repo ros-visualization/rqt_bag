@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Enable Save button while recording (`#144 <https://github.com/ros-visualization/rqt_bag/issues/144>`_)
+* Contributors: Emerson Knapp, Yadunund
+
 1.3.3 (2023-07-14)
 ------------------
 * Fix metadata.yaml not writing to disk when recorder is stopped (`#143 <https://github.com/ros-visualization/rqt_bag/issues/143>`_)
