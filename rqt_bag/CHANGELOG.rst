@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.4 (2023-09-08)
+------------------
 * Enable Save button while recording (`#144 <https://github.com/ros-visualization/rqt_bag/issues/144>`_)
 * Contributors: Emerson Knapp, Yadunund
 
