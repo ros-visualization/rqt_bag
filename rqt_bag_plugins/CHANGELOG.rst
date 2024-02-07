@@ -2,8 +2,8 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.1 (2024-02-07)
+------------------
 * Add a dependency on pytest to rqt_bag and rqt_bag_plugins. (`#148 <https://github.com/ros-visualization/rqt_bag/issues/148>`_)
 * Contributors: Chris Lalancette
 
