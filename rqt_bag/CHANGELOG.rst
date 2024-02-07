@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add a dependency on pytest to rqt_bag and rqt_bag_plugins. (`#148 <https://github.com/ros-visualization/rqt_bag/issues/148>`_)
+* Contributors: Chris Lalancette
+
 1.5.0 (2023-06-07)
 ------------------
 * [ros2] Enable Save (`#142 <https://github.com/ros-visualization/rqt_bag/issues/142>`_)
