@@ -33,6 +33,7 @@
 Defines a raw view: a TopicMessageView that displays the message contents in a tree.
 """
 import rospy
+import array
 import codecs
 import math
 
@@ -185,7 +186,7 @@ class MessageTree(QTreeWidget):
 
         if hasattr(obj, '__slots__'):
             subobjs = [(slot, getattr(obj, slot)) for slot in obj.__slots__]
-        elif type(obj) in [list, tuple]:
+        elif type(obj) in [list, tuple, array.array]:
             len_obj = len(obj)
             if len_obj == 0:
                 subobjs = []
