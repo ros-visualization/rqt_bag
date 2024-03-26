@@ -22,6 +22,7 @@
   <exec_depend version_gte="0.2.12">rqt_gui</exec_depend>
   <exec_depend>rqt_gui_py</exec_depend>
 
+  <test_depend>ament_copyright</test_depend>
   <test_depend>python3-pytest</test_depend>
 
   <export>
