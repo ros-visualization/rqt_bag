@@ -163,4 +163,4 @@ class Rosbag2:
         msg_type_name = self.get_topic_type(entry.topic)
         msg_type = get_message(msg_type_name)
         ros_message = deserialize_message(entry.data, msg_type)
-        return (ros_message, msg_type_name, entry.topic)
+        return (ros_message, msg_type_name)

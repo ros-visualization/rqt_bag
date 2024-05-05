@@ -160,7 +160,7 @@ class ImageTimelineRenderer(TimelineRenderer):
         if not entry:
             return None, None
 
-        (ros_message, msg_type, topic) = bag.deserialize_entry(entry)
+        (ros_message, msg_type) = bag.deserialize_entry(entry)
 
         # Convert from ROS image to PIL image
         try:
