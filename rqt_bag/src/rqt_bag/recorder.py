@@ -119,14 +119,6 @@ class Recorder(object):
                 qos_profiles = get_qos_profiles_for_topic(self._node, topic)
                 if qos_profiles:
                     offered_qos_profiles = qos_profiles_to_yaml(qos_profiles)
-                print('topic ', topic)
-                print('msg_type_names[0] ', msg_type_names[0])
-                print('_serialization_format ', self._serialization_format)
-                print('offered_qos_profiles ', offered_qos_profiles)
-                print('topic ', type(topic))
-                print('msg_type_names[0] ', type(msg_type_names[0]))
-                print('_serialization_format ', type(self._serialization_format))
-                print('offered_qos_profiles ', type(offered_qos_profiles))
                 vector_qos = to_rclcpp_qos_vector(offered_qos_profiles, 9)
                 topic_metadata = rosbag2_py.TopicMetadata(
                     id=0, name=topic, type=msg_type_names[0],
@@ -257,7 +249,7 @@ class Recorder(object):
             poll_interval = 1.0
             while not self._stop_flag:
                 try:
-                    item = self._write_queue.get(block=False, timeout=poll_interval)
+                    item = self._write_queue.get(block=True, timeout=poll_interval)
                 except Empty:
                     continue
 
