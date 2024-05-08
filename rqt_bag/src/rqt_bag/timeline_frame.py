@@ -29,7 +29,7 @@
 from rclpy.time import Time
 from rclpy.duration import Duration
 
-from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning, Slot, QSize
+from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning, Slot
 from python_qt_binding.QtGui import QBrush, QCursor, QColor, QFont, \
     QFontMetrics, QPen, QPolygonF, QPalette
 from python_qt_binding.QtWidgets import QGraphicsItem, QCheckBox

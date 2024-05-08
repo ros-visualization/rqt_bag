@@ -37,7 +37,6 @@ QoS-related utility functions
 import yaml
 import math
 import rclpy.qos
-import builtin_interfaces.msg
 
 from rclpy.qos import QoSProfile
 from rclpy.duration import Duration

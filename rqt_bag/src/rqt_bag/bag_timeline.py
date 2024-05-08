@@ -26,7 +26,6 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import rclpy
 import rosbag2_py
 import time
 import threading
@@ -44,7 +43,6 @@ from .message_listener_thread import MessageListenerThread
 from .message_loader_thread import MessageLoaderThread
 from .player import Player
 from .recorder import Recorder
-from .timeline_menu import TimelinePopupMenu
 
 
 class BagTimeline(QGraphicsScene):
@@ -507,9 +505,9 @@ class BagTimeline(QGraphicsScene):
                 export_filename, str(ex)), QMessageBox.Ok).exec_()
         self.stop_background_task()
 
-    def read_message(self, bag, position):
+    def read_message(self, bag, position, topic):
         with self._bag_lock:
-            return bag.get_entry(Time(nanoseconds=position))
+            return bag.get_entry(Time(nanoseconds=position), topic)
 
     # Zooming
 

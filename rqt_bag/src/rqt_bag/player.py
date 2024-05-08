@@ -30,11 +30,9 @@
 Player listens to messages from the timeline and publishes them to ROS.
 """
 
-import rclpy.qos
 
 from builtin_interfaces.msg import Time
 from python_qt_binding.QtCore import QObject
-from rclpy import logging
 from rclpy.qos import QoSProfile
 
 CLOCK_TOPIC = "/clock"

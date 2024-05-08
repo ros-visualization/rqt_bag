@@ -28,13 +28,14 @@
 
 import os
 import time
+import math
 
 
 from ament_index_python import get_resource
 from rclpy import logging
 
 from python_qt_binding import loadUi
-from python_qt_binding.QtCore import qDebug, QFileInfo, Qt, qWarning, Signal
+from python_qt_binding.QtCore import qDebug, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QIcon, QResizeEvent
 from python_qt_binding.QtWidgets import QFileDialog, QGraphicsView, QWidget
 
@@ -42,7 +43,6 @@ from rqt_bag import bag_helper
 from .bag_timeline import BagTimeline
 from .topic_selection import TopicSelection
 from .rosbag2 import Rosbag2
-import yaml
 
 
 class BagGraphicsView(QGraphicsView):
