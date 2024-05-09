@@ -34,6 +34,8 @@
 # We had to adapt it here to support PyQt5, which has been removed
 # from upstream PIL but is still in use by rqt today.
 
+from pathlib import Path
+
 import PIL.Image as Image
 
 from python_qt_binding.QtGui import QImage, QPixmap, qRgba
@@ -70,6 +72,10 @@ def align8to32(bytes, width, mode):
     return b"".join(new_data)
 
 
+def is_path(f):
+    return isinstance(f, (bytes, str, Path))
+
+
 def _toqclass_helper(im):
     data = None
     colortable = None
@@ -83,7 +89,7 @@ def _toqclass_helper(im):
         im = Image.open(im)
         exclusive_fp = True
 
-    qt_format = QImage.Format if qt_version == "6" else QImage
+    qt_format = QImage
     if im.mode == "1":
         format = qt_format.Format_Mono
     elif im.mode == "L":
