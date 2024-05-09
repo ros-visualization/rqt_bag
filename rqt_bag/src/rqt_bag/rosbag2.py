@@ -128,11 +128,10 @@ class Rosbag2:
             storage_filter = StorageFilter(topics=[topic])
             self.reader.set_filter(storage_filter)
 
-            result = self.read_next() if self.reader.has_next() else None
-            # No filter
-            self.reader.reset_filter()
-            return result
-        return None
+        result = self.read_next() if self.reader.has_next() else None
+        # No filter
+        self.reader.reset_filter()
+        return result
 
     def get_entry_after(self, timestamp, topic=None):
         """Get the next entry after a given timestamp."""
