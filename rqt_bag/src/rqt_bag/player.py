@@ -129,8 +129,30 @@ class Player(QObject):
 
         # Create publisher if this is the first message on the topic
         if topic not in self._publishers:
-            topic_metadata = bag.get_topic_metadata(topic)
-            self.create_publisher(topic, ros_message, topic_metadata.offered_qos_profiles)
+           rosbag2_qos = bag.get_topic_metadata(entry.topic).offered_qos_profiles[0]
+
+           reliability = ReliabilityPolicy.SYSTEM_DEFAULT
+           if rosbag2_qos.reliability() == rmw_qos_reliability_policy_t.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT:
+               reliability = ReliabilityPolicy.BEST_EFFORT
+           elif rosbag2_qos.reliability() == rmw_qos_reliability_policy_t.RMW_QOS_POLICY_RELIABILITY_RELIABLE:
+               reliability = ReliabilityPolicy.RELIABLE
+
+           durability = DurabilityPolicy.SYSTEM_DEFAULT
+           if rosbag2_qos.durability() == rmw_qos_durability_policy_t.RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL:
+               durability = DurabilityPolicy.TRANSIENT_LOCAL
+           elif rosbag2_qos.reliability() == rmw_qos_durability_policy_t.RMW_QOS_POLICY_DURABILITY_VOLATILE:
+               durability = DurabilityPolicy.VOLATILE
+
+           history = HistoryPolicy.SYSTEM_DEFAULT
+           if rosbag2_qos.history() == rmw_qos_history_policy_t.RMW_QOS_POLICY_HISTORY_KEEP_LAST:
+               history = DurabilityPolicy.KEEP_LAST
+           elif rosbag2_qos.history() == rmw_qos_history_policy_t.RMW_QOS_POLICY_HISTORY_KEEP_ALL:
+               history = DurabilityPolicy.KEEP_ALL
+
+           qos_profile_publisher = QoSProfile(
+               depth=rosbag2_qos.depth(), reliability=reliability, durability=durability, history=history)
+
+           self.create_publisher(entry.topic, ros_message, qos_profile_publisher)
 
         if self._publish_clock:
             time_msg = Time()
