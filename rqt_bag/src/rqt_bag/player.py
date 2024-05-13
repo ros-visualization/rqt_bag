@@ -33,10 +33,7 @@ Player listens to messages from the timeline and publishes them to ROS.
 
 from builtin_interfaces.msg import Time
 from python_qt_binding.QtCore import QObject
-from rclpy.qos import QoSProfile, DurabilityPolicy, HistoryPolicy, ReliabilityPolicy
-
-from .qos import get_qos_profiles_for_topic
-from rosbag2_py import rmw_qos_durability_policy_t, rmw_qos_history_policy_t, rmw_qos_reliability_policy_t
+from rclpy.qos import QoSProfile
 
 CLOCK_TOPIC = "/clock"
 
@@ -135,30 +132,7 @@ class Player(QObject):
             # We can't convert between them because the rosbag2_py._storage.QoS object has no
             # introspection capabilities, nor a method to convert itself to a QoSProfile object.
             # So for now, we just use a default QoSProfile.
-            rosbag2_qos = bag.get_topic_metadata(entry.topic).offered_qos_profiles[0]
-
-            reliability = ReliabilityPolicy.SYSTEM_DEFAULT
-            if rosbag2_qos.reliability() == rmw_qos_reliability_policy_t.RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT:
-                reliability = ReliabilityPolicy.BEST_EFFORT
-            elif rosbag2_qos.reliability() == rmw_qos_reliability_policy_t.RMW_QOS_POLICY_RELIABILITY_RELIABLE:
-                reliability = ReliabilityPolicy.RELIABLE
-
-            durability = DurabilityPolicy.SYSTEM_DEFAULT
-            if rosbag2_qos.durability() == rmw_qos_durability_policy_t.RMW_QOS_POLICY_DURABILITY_TRANSIENT_LOCAL:
-                durability = DurabilityPolicy.TRANSIENT_LOCAL
-            elif rosbag2_qos.reliability() == rmw_qos_durability_policy_t.RMW_QOS_POLICY_DURABILITY_VOLATILE:
-                durability = DurabilityPolicy.VOLATILE
-
-            history = HistoryPolicy.SYSTEM_DEFAULT
-            if rosbag2_qos.history() == rmw_qos_history_policy_t.RMW_QOS_POLICY_HISTORY_KEEP_LAST:
-                history = DurabilityPolicy.KEEP_LAST
-            elif rosbag2_qos.history() == rmw_qos_history_policy_t.RMW_QOS_POLICY_HISTORY_KEEP_ALL:
-                history = DurabilityPolicy.KEEP_ALL
-
-            qos_profile_publisher = QoSProfile(
-                depth=rosbag2_qos.depth(), reliability=reliability, durability=durability, history=history)
-
-            self.create_publisher(entry.topic, ros_message, qos_profile_publisher)
+            self.create_publisher(entry.topic, ros_message, QoSProfile(depth=10))
 
         if self._publish_clock:
             time_msg = Time()
