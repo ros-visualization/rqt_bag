@@ -35,8 +35,13 @@ import rclpy.qos
 from builtin_interfaces.msg import Time
 from python_qt_binding.QtCore import QObject
 from rclpy import logging
-from rclpy.qos import QoSProfile
+from rclpy.qos import QoSProfile, DurabilityPolicy, HistoryPolicy, ReliabilityPolicy
+
+
 from .qos import yaml_to_qos_profiles, gen_publisher_qos_profile
+from .qos import get_qos_profiles_for_topic
+from rosbag2_py import rmw_qos_durability_policy_t, rmw_qos_history_policy_t, rmw_qos_reliability_policy_t
+
 
 CLOCK_TOPIC = "/clock"
 
