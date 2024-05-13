@@ -50,7 +50,7 @@ from rosidl_runtime_py.utilities import get_message
 from .qos import gen_subscriber_qos_profile, get_qos_profiles_for_topic, qos_profiles_to_yaml
 from .rosbag2 import Rosbag2
 
-from rosbag2_py import get_default_storage_id
+from rosbag2_py import get_default_storage_id, to_rclcpp_qos_vector
 
 
 class Recorder(object):
@@ -119,10 +119,11 @@ class Recorder(object):
                 qos_profiles = get_qos_profiles_for_topic(self._node, topic)
                 if qos_profiles:
                     offered_qos_profiles = qos_profiles_to_yaml(qos_profiles)
+                vector_qos = to_rclcpp_qos_vector(offered_qos_profiles, 9)
                 topic_metadata = rosbag2_py.TopicMetadata(
-                    name=topic, type=msg_type_names[0],
+                    id=0, name=topic, type=msg_type_names[0],
                     serialization_format=self._serialization_format,
-                    offered_qos_profiles=offered_qos_profiles)
+                    offered_qos_profiles=vector_qos)
                 self.rosbag_writer.create_topic(topic_metadata)
                 topic_type_map[topic] = topic_metadata
 
@@ -248,7 +249,7 @@ class Recorder(object):
             poll_interval = 1.0
             while not self._stop_flag:
                 try:
-                    item = self._write_queue.get(block=False, timeout=poll_interval)
+                    item = self._write_queue.get(block=True, timeout=poll_interval)
                 except Empty:
                     continue
 

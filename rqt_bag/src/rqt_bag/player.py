@@ -30,13 +30,10 @@
 Player listens to messages from the timeline and publishes them to ROS.
 """
 
-import rclpy.qos
 
 from builtin_interfaces.msg import Time
 from python_qt_binding.QtCore import QObject
-from rclpy import logging
 from rclpy.qos import QoSProfile
-from .qos import yaml_to_qos_profiles, gen_publisher_qos_profile
 
 CLOCK_TOPIC = "/clock"
 
@@ -86,7 +83,7 @@ class Player(QObject):
     def start_clock_publishing(self):
         if CLOCK_TOPIC not in self._publishers:
             # Activate clock publishing only if the publisher was created successful
-            self._publish_clock = self.create_publisher(CLOCK_TOPIC, Time)
+            self._publish_clock = self.create_publisher(CLOCK_TOPIC, Time, QoSProfile(depth=10))
 
     def stop_clock_publishing(self):
         self._publish_clock = False
@@ -99,18 +96,17 @@ class Player(QObject):
             self.stop_publishing(topic)
         self.stop_clock_publishing()
 
-    def create_publisher(self, topic, ros_message, offered_qos_profiles = ""):
+    def create_publisher(self, topic, ros_message, offered_qos_profile):
+        ros_msg_type = type(ros_message)
         try:
             # Publish based on the original recorded QoS settings
-            qos_profiles = yaml_to_qos_profiles(offered_qos_profiles)
-            profile_to_use = gen_publisher_qos_profile(qos_profiles)
-            self._publishers[topic] = self._node.create_publisher(type(ros_message), topic, qos_profile=profile_to_use)
+            self._publishers[topic] = self._node.create_publisher(ros_msg_type, topic, qos_profile=offered_qos_profile)
             return True
         except Exception as ex:
             # Any errors, stop listening/publishing to this topic
             self._logger.error(
                 'Error creating publisher on topic %s for type %s. \nError text: %s' %
-                (topic, str(type(ros_message)), str(ex)))
+                (topic, str(ros_msg_type), str(ex)))
             if topic != CLOCK_TOPIC:
                 self.stop_publishing(topic)
             return False
@@ -125,12 +121,18 @@ class Player(QObject):
         if self.timeline.play_speed <= 0.0:
             return
 
-        (ros_message, _, topic) = bag.deserialize_entry(entry)
+        (ros_message, _) = bag.deserialize_entry(entry)
 
         # Create publisher if this is the first message on the topic
-        if topic not in self._publishers:
-            topic_metadata = bag.get_topic_metadata(topic)
-            self.create_publisher(topic, ros_message, topic_metadata.offered_qos_profiles)
+        if entry.topic not in self._publishers:
+            # TODO(clalancette): We should try to get the topic metadata via a call to
+            # bag.get_topic_metadata() so we can recreate the publisher with the same QoS profile.
+            # Unfortunately, as it stands that returns a rosbag2_py._storage.QoS object, and the
+            # eventual call to 'create_publisher' needs an rclpy.QoSProfile object.
+            # We can't convert between them because the rosbag2_py._storage.QoS object has no
+            # introspection capabilities, nor a method to convert itself to a QoSProfile object.
+            # So for now, we just use a default QoSProfile.
+            self.create_publisher(entry.topic, ros_message, QoSProfile(depth=10))
 
         if self._publish_clock:
             time_msg = Time()
@@ -140,7 +142,7 @@ class Player(QObject):
                 self._last_clock = time_msg
                 self._publishers[CLOCK_TOPIC].publish(time_msg)
 
-        self._publishers[topic].publish(ros_message)
+        self._publishers[entry.topic].publish(ros_message)
 
     def message_cleared(self):
         pass

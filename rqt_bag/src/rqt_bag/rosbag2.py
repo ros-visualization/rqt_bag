@@ -31,18 +31,15 @@
 
 from collections import namedtuple
 import os
-import pathlib
 
 from rclpy.clock import Clock, ClockType
 from rclpy.duration import Duration
 from rclpy import logging
 from rclpy.serialization import deserialize_message
-from rclpy.time import Time
 import rosbag2_py
 from rosidl_runtime_py.utilities import get_message
-import yaml
 
-from rosbag2_py import get_default_storage_id
+from rosbag2_py import get_default_storage_id, StorageFilter
 
 WRITE_ONLY_MSG = "open for writing only, returning None"
 
@@ -125,7 +122,16 @@ class Rosbag2:
 
         self.reader.set_read_order(rosbag2_py.ReadOrder(reverse=True))
         self.reader.seek(timestamp.nanoseconds)
-        return self.read_next() if self.reader.has_next() else None
+
+        # Set filter for topic of string type
+        if topic:
+            storage_filter = StorageFilter(topics=[topic])
+            self.reader.set_filter(storage_filter)
+
+        result = self.read_next() if self.reader.has_next() else None
+        # No filter
+        self.reader.reset_filter()
+        return result
 
     def get_entry_after(self, timestamp, topic=None):
         """Get the next entry after a given timestamp."""
@@ -163,4 +169,4 @@ class Rosbag2:
         msg_type_name = self.get_topic_type(entry.topic)
         msg_type = get_message(msg_type_name)
         ros_message = deserialize_message(entry.data, msg_type)
-        return (ros_message, msg_type_name, entry.topic)
+        return (ros_message, msg_type_name)

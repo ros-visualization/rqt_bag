@@ -6,6 +6,8 @@
   <maintainer email="clalancette@gmail.com">Chris Lalancette</maintainer>
 
   <license>BSD</license>
+  <license>HPND</license>  <!-- for the adapted ImageQt.py code -->
+
   <url type="website">http://wiki.ros.org/rqt_bag</url>
   <url type="repository">https://github.com/ros-visualization/rqt_bag</url>
   <url type="bugtracker">https://github.com/ros-visualization/rqt_bag/issues</url>
