@@ -41,11 +41,11 @@ if (
 ):
     sys.modules['PyQt5'] = None
 from PIL import Image
-from PIL.ImageQt import ImageQt
 
 from rqt_bag import TimelineCache, TimelineRenderer
 
 from rqt_bag_plugins import image_helper
+from rqt_bag_plugins.image_qt import ImageQt
 
 from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtGui import QBrush, QPen, QPixmap
@@ -160,7 +160,7 @@ class ImageTimelineRenderer(TimelineRenderer):
         if not entry:
             return None, None
 
-        (ros_message, msg_type, topic) = bag.deserialize_entry(entry)
+        (ros_message, msg_type) = bag.deserialize_entry(entry)
 
         # Convert from ROS image to PIL image
         try:

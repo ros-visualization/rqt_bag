@@ -89,8 +89,8 @@ class MessageView(QObject):
         """
         bag, entry = event.data
         if entry:
-            (ros_message, msg_type_name, topic) = bag.deserialize_entry(entry)
-            self.message_viewed(bag=bag, entry=entry, ros_message=ros_message, msg_type_name=msg_type_name, topic=topic)
+            (ros_message, msg_type_name) = bag.deserialize_entry(entry)
+            self.message_viewed(bag=bag, entry=entry, ros_message=ros_message, msg_type_name=msg_type_name, topic=entry.topic)
         else:
             self.message_cleared()
         return True

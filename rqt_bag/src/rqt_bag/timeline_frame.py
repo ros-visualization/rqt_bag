@@ -29,7 +29,7 @@
 from rclpy.time import Time
 from rclpy.duration import Duration
 
-from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning, Slot, QSize
+from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning, Slot
 from python_qt_binding.QtGui import QBrush, QCursor, QColor, QFont, \
     QFontMetrics, QPen, QPolygonF, QPalette
 from python_qt_binding.QtWidgets import QGraphicsItem, QCheckBox
@@ -104,7 +104,6 @@ class TimelineFrame(QGraphicsItem):
         self._margin_left = 4
         self._margin_right = 20
         self._margin_bottom = 20
-        self._history_top = 30
 
         # Background Rendering
         # color of background of timeline before first message and after last
@@ -412,7 +411,6 @@ class TimelineFrame(QGraphicsItem):
 
             y += topic_height
 
-        # new_history_bottom = max([y + h for (x, y, w, h) in self._history_bounds.values()]) - 1
         new_history_bottom = max([y + h for (_, y, _, h) in self._history_bounds.values()]) - 1
         if new_history_bottom != self._history_bottom:
             self._history_bottom = new_history_bottom
@@ -638,7 +636,7 @@ class TimelineFrame(QGraphicsItem):
     def _draw_topic_names(self, painter):
         """
         Calculate positions of existing topic names and draw them on the left, one for each row
-        :param painter: ,''QPainter''
+        :param painter: allows access to pain functions,''QPainter''
         """
         for topic, bounds in self._history_bounds.items():
             _, y, _, h = bounds
@@ -680,8 +678,10 @@ class TimelineFrame(QGraphicsItem):
             else:
                 proxy = self._checkbox_widgets[topic]
             proxy.setPos(self._margin_left, y + h / 2 - self._topic_publishing_box_size / 2)
-            proxy.widget().setCheckState(
-                Qt.Checked if self._bag_timeline.is_publishing(topic) else Qt.Unchecked)
+            if proxy.widget().isChecked() and not self._bag_timeline.is_publishing(topic):
+                proxy.widget().setChecked(True)
+            elif not proxy.widget().isChecked() and self._bag_timeline.is_publishing(topic):
+                proxy.widget().setChecked(False)
 
     def _draw_time_divisions(self, painter):
         """

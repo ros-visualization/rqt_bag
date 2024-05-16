@@ -93,7 +93,7 @@ class MessageLoaderThread(threading.Thread):
         if key in self._message_cache:
             return self._message_cache[key]
 
-        msg_data = self.timeline.read_message(bag, position)
+        msg_data = self.timeline.read_message(bag, position, self.topic)
 
         self._message_cache[key] = msg_data
         self._message_cache_keys.append(key)

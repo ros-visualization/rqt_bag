@@ -37,7 +37,6 @@ QoS-related utility functions
 import yaml
 import math
 import rclpy.qos
-import builtin_interfaces.msg
 
 from rclpy.qos import QoSProfile
 from rclpy.duration import Duration
@@ -71,44 +70,6 @@ def qos_profiles_to_yaml(qos_profiles):
         profiles_list.append(qos)
 
     return yaml.dump(profiles_list, sort_keys=False)
-
-
-def yaml_to_qos_profiles(profiles_yaml):
-    qos_profiles = []
-    nodes = yaml.safe_load(profiles_yaml)
-    if nodes is None:
-        return []
-    for node in nodes:
-        qos_profile = QoSProfile(depth=int(node['depth']))
-        qos_profile.history = int(node['history'])
-        qos_profile.reliability = int(node['reliability'])
-        qos_profile.durability = int(node['durability'])
-        qos_profile.lifespan = node_to_duration(node['lifespan'])
-        qos_profile.deadline = node_to_duration(node['deadline'])
-        qos_profile.liveliness = int(node['liveliness'])
-        qos_profile.liveliness_lease_duration = node_to_duration(node['liveliness_lease_duration'])
-        qos_profile.avoid_ros_namespace_conventions = node['avoid_ros_namespace_conventions']
-        qos_profiles.append(qos_profile)
-
-    return qos_profiles
-
-
-def gen_publisher_qos_profile(qos_profiles):
-    """Generate a single QoS profile for a publisher from a set of QoS profiles (typically
-       read from the offered_qos_profiles in the rosbag, which records the QoS settings used
-       by the various publishers on that topic)."""
-    if not qos_profiles:
-        return QoSProfile(depth=10)
-
-    # Simply use the first one (should have a more sophisticated strategy)
-    result = qos_profiles[0]
-
-    # UNKNOWN isn't a valid QoS history policy for a publisher
-    if result.history == rclpy.qos.HistoryPolicy.UNKNOWN:
-        result.history = rclpy.qos.HistoryPolicy.SYSTEM_DEFAULT
-        result.depth = 10
-
-    return result
 
 
 def gen_subscriber_qos_profile(qos_profiles):
