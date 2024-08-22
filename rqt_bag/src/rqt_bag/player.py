@@ -34,6 +34,7 @@ Player listens to messages from the timeline and publishes them to ROS.
 from builtin_interfaces.msg import Time
 from python_qt_binding.QtCore import QObject
 from rclpy.qos import QoSProfile
+from rosbag2_py import convert_rclcpp_qos_to_rclpy_qos
 
 CLOCK_TOPIC = "/clock"
 
@@ -125,14 +126,9 @@ class Player(QObject):
 
         # Create publisher if this is the first message on the topic
         if entry.topic not in self._publishers:
-            # TODO(clalancette): We should try to get the topic metadata via a call to
-            # bag.get_topic_metadata() so we can recreate the publisher with the same QoS profile.
-            # Unfortunately, as it stands that returns a rosbag2_py._storage.QoS object, and the
-            # eventual call to 'create_publisher' needs an rclpy.QoSProfile object.
-            # We can't convert between them because the rosbag2_py._storage.QoS object has no
-            # introspection capabilities, nor a method to convert itself to a QoSProfile object.
-            # So for now, we just use a default QoSProfile.
-            self.create_publisher(entry.topic, ros_message, QoSProfile(depth=10))
+            rosbag2_qos = bag.get_topic_metadata(entry.topic).offered_qos_profiles[0]
+            qos = convert_rclcpp_qos_to_rclpy_qos(rosbag2_qos)
+            self.create_publisher(entry.topic, ros_message, qos)
 
         if self._publish_clock:
             time_msg = Time()
