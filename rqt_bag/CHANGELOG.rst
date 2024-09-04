@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.1 (2024-09-04)
+------------------
+* Updated player QoS (`#164 <https://github.com/ros-visualization/rqt_bag/issues/164>`_)
+* Contributors: Alejandro Hernández Cordero
+
 2.0.0 (2024-06-17)
 ------------------
 * Adapted to rosbag2_py (`#156 <https://github.com/ros-visualization/rqt_bag/issues/156>`_)

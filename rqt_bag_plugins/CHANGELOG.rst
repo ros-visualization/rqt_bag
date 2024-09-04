@@ -2,6 +2,9 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.1 (2024-09-04)
+------------------
+
 2.0.0 (2024-06-17)
 ------------------
 * Adapted to rosbag2_py (`#156 <https://github.com/ros-visualization/rqt_bag/issues/156>`_)
