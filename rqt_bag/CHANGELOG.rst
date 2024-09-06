@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.5.4 (2024-09-06)
+------------------
 * Updated player QoS (backport `#164 <https://github.com/ros-visualization/rqt_bag/issues/164>`_) (`#167 <https://github.com/ros-visualization/rqt_bag/issues/167>`_)
   Updated player QoS (`#164 <https://github.com/ros-visualization/rqt_bag/issues/164>`_)
   (cherry picked from commit 4a9a69617e439140771a2b292aaa4aa93a213a03)
