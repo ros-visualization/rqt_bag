@@ -38,20 +38,19 @@ from pathlib import Path
 
 import PIL.Image as Image
 
-from python_qt_binding.QtGui import QImage, QPixmap, qRgba
+from python_qt_binding.QtGui import QImage, qRgba
+
 
 def rgb(r, g, b, a=255):
-    """(Internal) Turns an RGB color into a Qt compatible color integer."""
+    """Turn an RGB color into a Qt compatible color integer."""
     # use qRgb to pack the colors, and then turn the resulting long
     # into a negative integer with the same bitpattern.
     return qRgba(r, g, b, a) & 0xFFFFFFFF
 
-def align8to32(bytes, width, mode):
-    """
-    converts each scanline of data from 8 bit to 32 bit aligned
-    """
 
-    bits_per_pixel = {"1": 1, "L": 8, "P": 8, "I;16": 16}[mode]
+def align8to32(input_bytes, width, mode):
+    """Convert each scanline of data from 8 bit to 32 bit aligned."""
+    bits_per_pixel = {'1': 1, 'L': 8, 'P': 8, 'I;16': 16}[mode]
 
     # calculate bytes per line and the extra padding if needed
     bits_per_line = bits_per_pixel * width
@@ -62,14 +61,14 @@ def align8to32(bytes, width, mode):
 
     # already 32 bit aligned by luck
     if not extra_padding:
-        return bytes
+        return input_bytes
 
     new_data = [
-        bytes[i * bytes_per_line : (i + 1) * bytes_per_line] + b"\x00" * extra_padding
-        for i in range(len(bytes) // bytes_per_line)
+        input_bytes[i * bytes_per_line:(i + 1) * bytes_per_line] + b'\x00' * extra_padding
+        for i in range(len(input_bytes) // bytes_per_line)
     ]
 
-    return b"".join(new_data)
+    return b''.join(new_data)
 
 
 def is_path(f):
@@ -82,54 +81,54 @@ def _toqclass_helper(im):
     exclusive_fp = False
 
     # handle filename, if given instead of image name
-    if hasattr(im, "toUtf8"):
+    if hasattr(im, 'toUtf8'):
         # FIXME - is this really the best way to do this?
-        im = str(im.toUtf8(), "utf-8")
+        im = str(im.toUtf8(), 'utf-8')
     if is_path(im):
         im = Image.open(im)
         exclusive_fp = True
 
     qt_format = QImage
-    if im.mode == "1":
-        format = qt_format.Format_Mono
-    elif im.mode == "L":
-        format = qt_format.Format_Indexed8
+    if im.mode == '1':
+        fmt = qt_format.Format_Mono
+    elif im.mode == 'L':
+        fmt = qt_format.Format_Indexed8
         colortable = [rgb(i, i, i) for i in range(256)]
-    elif im.mode == "P":
-        format = qt_format.Format_Indexed8
+    elif im.mode == 'P':
+        fmt = qt_format.Format_Indexed8
         palette = im.getpalette()
-        colortable = [rgb(*palette[i : i + 3]) for i in range(0, len(palette), 3)]
-    elif im.mode == "RGB":
+        colortable = [rgb(*palette[i:i + 3]) for i in range(0, len(palette), 3)]
+    elif im.mode == 'RGB':
         # Populate the 4th channel with 255
-        im = im.convert("RGBA")
+        im = im.convert('RGBA')
 
-        data = im.tobytes("raw", "BGRA")
-        format = qt_format.Format_RGB32
-    elif im.mode == "RGBA":
-        data = im.tobytes("raw", "BGRA")
-        format = qt_format.Format_ARGB32
-    elif im.mode == "I;16" and hasattr(qt_format, "Format_Grayscale16"):  # Qt 5.13+
+        data = im.tobytes('raw', 'BGRA')
+        fmt = qt_format.Format_RGB32
+    elif im.mode == 'RGBA':
+        data = im.tobytes('raw', 'BGRA')
+        fmt = qt_format.Format_ARGB32
+    elif im.mode == 'I;16' and hasattr(qt_format, 'Format_Grayscale16'):  # Qt 5.13+
         im = im.point(lambda i: i * 256)
 
-        format = qt_format.Format_Grayscale16
+        fmt = qt_format.Format_Grayscale16
     else:
         if exclusive_fp:
             im.close()
-        msg = f"unsupported image mode {repr(im.mode)}"
+        msg = f'unsupported image mode {repr(im.mode)}'
         raise ValueError(msg)
 
     size = im.size
     __data = data or align8to32(im.tobytes(), size[0], im.mode)
     if exclusive_fp:
         im.close()
-    return {"data": __data, "size": size, "format": format, "colortable": colortable}
+    return {'data': __data, 'size': size, 'format': fmt, 'colortable': colortable}
 
 
 class ImageQt(QImage):
+
     def __init__(self, im):
         """
-        An PIL image wrapper for Qt.  This is a subclass of PyQt's QImage
-        class.
+        Construct an PIL image wrapper for Qt, a subclass of PyQt's QImage class.
 
         :param im: A PIL Image object, or a file name (given either as
             Python string or a PyQt string object).
@@ -139,12 +138,12 @@ class ImageQt(QImage):
         # All QImage constructors that take data operate on an existing
         # buffer, so this buffer has to hang on for the life of the image.
         # Fixes https://github.com/python-pillow/Pillow/issues/1370
-        self.__data = im_data["data"]
+        self.__data = im_data['data']
         super().__init__(
             self.__data,
-            im_data["size"][0],
-            im_data["size"][1],
-            im_data["format"],
+            im_data['size'][0],
+            im_data['size'][1],
+            im_data['format'],
         )
-        if im_data["colortable"]:
-            self.setColorTable(im_data["colortable"])
+        if im_data['colortable']:
+            self.setColorTable(im_data['colortable'])

@@ -1,4 +1,4 @@
-# Copyright (c) 2012, Willow Garage, Inc.
+# Copyright (c) 2024, Open Source Robotics Foundation, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -11,7 +11,7 @@
 #     copyright notice, this list of conditions and the following
 #     disclaimer in the documentation and/or other materials provided
 #     with the distribution.
-#   * Neither the name of the Willow Garage, Inc. nor the names of its
+#   * Neither the name of the copyright holder nor the names of its
 #     contributors may be used to endorse or promote products derived
 #     from this software without specific prior written permission.
 #
@@ -28,21 +28,12 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from rqt_bag.plugins.plugin import Plugin
+from ament_xmllint.main import main
+import pytest
 
-from .plot_view import PlotView
 
-
-class PlotPlugin(Plugin):
-
-    def __init__(self):
-        pass
-
-    def get_view_class(self):
-        return PlotView
-
-    def get_renderer_class(self):
-        return None
-
-    def get_message_types(self):
-        return ['*']
+@pytest.mark.linter
+@pytest.mark.xmllint
+def test_xmllint() -> None:
+    rc = main(argv=[])
+    assert rc == 0, 'Found errors'
