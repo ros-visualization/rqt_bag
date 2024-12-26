@@ -32,16 +32,17 @@
 from collections import namedtuple
 import os
 
+from rclpy import logging
 from rclpy.clock import Clock, ClockType
 from rclpy.duration import Duration
-from rclpy import logging
 from rclpy.serialization import deserialize_message
-import rosbag2_py
-from rosidl_runtime_py.utilities import get_message
 
+import rosbag2_py
 from rosbag2_py import get_default_storage_id, StorageFilter
 
-WRITE_ONLY_MSG = "open for writing only, returning None"
+from rosidl_runtime_py.utilities import get_message
+
+WRITE_ONLY_MSG = 'open for writing only, returning None'
 
 Entry = namedtuple('Entry', ['topic', 'data', 'timestamp'])
 
@@ -112,12 +113,13 @@ class Rosbag2:
         return topics_by_type
 
     def get_entry(self, timestamp, topic=None):
-        """Get the (serialized) entry for a specific timestamp.
+        """
+        Get the (serialized) entry for a specific timestamp.
 
         Returns the entry that is closest in time (<=) to the provided timestamp.
         """
         if not self.reader:
-            self._logger.warn("get_entry - " + WRITE_ONLY_MSG)
+            self._logger.warn('get_entry - ' + WRITE_ONLY_MSG)
             return None
 
         self.reader.set_read_order(rosbag2_py.ReadOrder(reverse=True))
@@ -136,7 +138,7 @@ class Rosbag2:
     def get_entry_after(self, timestamp, topic=None):
         """Get the next entry after a given timestamp."""
         if not self.reader:
-            self._logger.warn("get_entry_after - " + WRITE_ONLY_MSG)
+            self._logger.warn('get_entry_after - ' + WRITE_ONLY_MSG)
             return None
 
         self.reader.set_read_order(rosbag2_py.ReadOrder(reverse=False))
@@ -145,7 +147,7 @@ class Rosbag2:
 
     def get_entries_in_range(self, t_start, t_end, topic=None):
         if not self.reader:
-            self._logger.warn("get_entries_in_range - " + WRITE_ONLY_MSG)
+            self._logger.warn('get_entries_in_range - ' + WRITE_ONLY_MSG)
             return None
 
         self.reader.set_read_order(rosbag2_py.ReadOrder(reverse=False))

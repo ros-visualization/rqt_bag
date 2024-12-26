@@ -31,8 +31,7 @@ import threading
 
 class MessageLoaderThread(threading.Thread):
     """
-    Waits for a new playhead position on the given topic, then loads the message at that position
-    and notifies the view threads.
+    Waits for a playhead position on a topic, then loads that message and notifies view threads.
 
     One thread per topic.  Maintains a cache of recently loaded messages.
     """

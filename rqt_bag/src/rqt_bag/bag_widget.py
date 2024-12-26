@@ -26,23 +26,24 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import math
 import os
 import time
-import math
-
 
 from ament_index_python import get_resource
-from rclpy import logging
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import qDebug, Qt, qWarning, Signal
 from python_qt_binding.QtGui import QIcon, QResizeEvent
 from python_qt_binding.QtWidgets import QFileDialog, QGraphicsView, QWidget
 
+from rclpy import logging
+
 from rqt_bag import bag_helper
+
 from .bag_timeline import BagTimeline
-from .topic_selection import TopicSelection
 from .rosbag2 import Rosbag2
+from .topic_selection import TopicSelection
 
 
 class BagGraphicsView(QGraphicsView):
@@ -52,7 +53,6 @@ class BagGraphicsView(QGraphicsView):
 
 
 class BagWidget(QWidget):
-
     """
     Widget for use with Bag class to display and replay bag files.
 
@@ -65,6 +65,8 @@ class BagWidget(QWidget):
 
     def __init__(self, context, publish_clock):
         """
+        Construct a BagWidget object.
+
         :param context: plugin context hook to enable adding widgets as a ROS_GUI pane,
             ''PluginContext''
         """
@@ -251,7 +253,9 @@ class BagWidget(QWidget):
     def _on_record_settings_selected(self, all_topics, selected_topics):
         # Get bag name to record to, prepopulating the dialog input with the current time
         proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-        filename = QFileDialog.getSaveFileName(self, self.tr('Select name for new rosbag'), proposed_filename)
+        filename = QFileDialog.getSaveFileName(self,
+                                               self.tr('Select name for new rosbag'),
+                                               proposed_filename)
 
         if filename[0] != '':
             record_filename = filename[0].strip()
@@ -318,7 +322,7 @@ class BagWidget(QWidget):
         self._timeline.add_bag(bag)
         qDebug("Done loading '%s'" % filename.encode(errors='replace'))
         # put the progress bar back the way it was
-        self.set_status_text.emit("")
+        self.set_status_text.emit('')
         # reset zoom to show entirety of all loaded bags
         self._timeline.reset_zoom()
         # After loading bag(s), force a resize event on the bag widget so that
@@ -343,8 +347,9 @@ class BagWidget(QWidget):
         # from loaded bags is available.
         # Get the bag name to save to, prepopulating the dialog input with the current time
         proposed_filename = time.strftime('%Y-%m-%d-%H-%M-%S', time.localtime(time.time()))
-        filename = \
-            QFileDialog.getSaveFileName(self, self.tr('Save selected region...'), proposed_filename)
+        filename = QFileDialog.getSaveFileName(self,
+                                               self.tr('Save selected region...'),
+                                               proposed_filename)
         if filename[0] != '':
             self._timeline.copy_region_to_bag(filename[0])
 
@@ -365,7 +370,8 @@ class BagWidget(QWidget):
         return '0 B'
 
     def _stamp_to_str(self, t):
-        """Convert a rclpy.time.Time to a human-readable string.
+        """
+        Convert a rclpy.time.Time to a human-readable string.
 
         @param t: time to convert
         @type  t: rclpy.time.Time
@@ -379,8 +385,8 @@ class BagWidget(QWidget):
                                  time.localtime(t_sec)) + '.%03d' % (t_nsec * 1e-9)
 
     def _update_status_bar(self):
-        if (self._timeline._timeline_frame.playhead is None or \
-                self._timeline._timeline_frame.start_stamp is None):
+        if self._timeline._timeline_frame.playhead is None or \
+                self._timeline._timeline_frame.start_stamp is None:
             return
         # TODO Figure out why this function is causing a "RuntimeError: wrapped
         # C/C++ object of %S has been deleted" on close if the playhead is moving
@@ -389,7 +395,8 @@ class BagWidget(QWidget):
             self.progress_bar.setValue(self._timeline.background_progress)
 
             # Raw timestamp
-            self.stamp_label.setText('%.9fs' % bag_helper.to_sec(self._timeline._timeline_frame.playhead))
+            playhead_sec = bag_helper.to_sec(self._timeline._timeline_frame.playhead)
+            self.stamp_label.setText('%.9fs' % playhead_sec)
 
             # Human-readable time
             self.date_label.setText(
@@ -421,7 +428,7 @@ class BagWidget(QWidget):
                 self.playspeed_label.setText(spd_str)
             else:
                 self.playspeed_label.setText('')
-        except Exception as e:
+        except Exception:
             return
     # Shutdown all members
 
