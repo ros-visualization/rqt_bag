@@ -445,7 +445,7 @@ class MessageTree(QTreeWidget):
         plotitem = False
         if type(obj) in [int, float]:
             plotitem = True
-            if type(obj) is float:
+            if isinstance(obj, float):
                 obj_repr = '%.6f' % obj
             else:
                 obj_repr = str(obj)
