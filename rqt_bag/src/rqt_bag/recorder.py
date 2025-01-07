@@ -28,8 +28,7 @@
 
 """Recorder subscribes to ROS messages and writes them to a bag file."""
 
-from queue import Empty
-from queue import Queue
+from queue import Empty, Queue
 import re
 import sys
 import threading

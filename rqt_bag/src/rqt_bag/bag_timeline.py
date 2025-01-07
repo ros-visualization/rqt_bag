@@ -752,8 +752,7 @@ class BagTimeline(QGraphicsScene):
                 try:
                     listener.timeline_changed()
                 except Exception as ex:
-                    listen_type = type(listener)
-                    qWarning('Error calling timeline_changed on %s: %s' % (listen_type, str(ex)))
+                    qWarning(f'Error calling timeline_changed on {type(listener)}: {str(ex)}')
 
         # Dynamically resize the timeline, if necessary, to make visible any new messages
         # that might otherwise have exceeded the bounds of the window
