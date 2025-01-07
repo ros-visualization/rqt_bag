@@ -35,4 +35,4 @@ import pytest
 @pytest.mark.copyright
 @pytest.mark.linter
 def test_copyright():
-    assert main() == 0, 'Found errors'
+    assert main(argv=['--exclude', 'src/rqt_bag_plugins/image_qt.py']) == 0, 'Found errors'

@@ -26,12 +26,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-
 import bisect
-try:
-    from queue import Queue
-except ImportError:
-    from Queue import Queue
+from queue import Queue
 import threading
 import time
 
@@ -39,10 +35,7 @@ from rqt_bag import bag_helper
 
 
 class TimelineCache(threading.Thread):
-
-    """
-    Caches items for timeline renderers
-    """
+    """Caches items for timeline renderers."""
 
     def __init__(self, loader, listener=None, max_cache_size=100):
         threading.Thread.__init__(self)
@@ -78,11 +71,6 @@ class TimelineCache(threading.Thread):
 
                     if self.listener:
                         self.listener(topic, msg_stamp, item)
-#                else:
-#                    try:
-#                        qWarning('Failed to load:%s' % entry)
-#                    except:
-#                        qWarning('Failed to load cache item')
             self.queue.task_done()
 
     def enqueue(self, entry):
@@ -136,9 +124,7 @@ class TimelineCache(threading.Thread):
             return None
 
     def _update_last_accessed(self, topic, stamp):
-        """
-        Maintains a sorted list of cache accesses by timestamp for each topic.
-        """
+        """Maintain a sorted list of cache accesses by timestamp for each topic."""
         with self.lock:
             access_time = time.time()
 
@@ -154,7 +140,7 @@ class TimelineCache(threading.Thread):
                 last_access = topic_item_access[stamp]
 
                 index = bisect.bisect_left(topic_last_accessed, (last_access, ))
-                assert(topic_last_accessed[index][1] == stamp)
+                assert topic_last_accessed[index][1] == stamp
 
                 del topic_last_accessed[index]
 
@@ -162,16 +148,14 @@ class TimelineCache(threading.Thread):
             topic_item_access[stamp] = access_time
 
     def _limit_cache(self):
-        """
-        Removes LRU's from cache until size of each topic's cache is <= max_cache_size.
-        """
+        """Remove LRU's from cache until size of each topic's cache is <= max_cache_size."""
         with self.lock:
             for topic, topic_cache in self.items.items():
                 while len(topic_cache) > self.max_cache_size:
                     lru_stamp = self.last_accessed[topic][0][1]
 
                     cache_index = bisect.bisect_left(topic_cache, (lru_stamp, ))
-                    assert(topic_cache[cache_index][0] == lru_stamp)
+                    assert topic_cache[cache_index][0] == lru_stamp
 
                     del topic_cache[cache_index]
                     del self.last_accessed[topic][0]

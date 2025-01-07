@@ -26,8 +26,8 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import os
 import argparse
+import os
 import threading
 
 from qt_gui.plugin import Plugin
@@ -36,13 +36,12 @@ from .bag_widget import BagWidget
 
 
 class Bag(Plugin):
-
-    """
-    Subclass of Plugin to provide interactive bag visualization, playing(publishing) and recording
-    """
+    """Provide interactive bag visualization, playing(publishing) and recording."""
 
     def __init__(self, context):
         """
+        Construct a Bag object.
+
         :param context: plugin context hook to enable adding widgets as a ROS_GUI pane,
             ''PluginContext''
         """

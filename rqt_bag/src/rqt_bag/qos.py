@@ -30,17 +30,14 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-"""
-QoS-related utility functions
-"""
+"""QoS-related utility functions."""
+
+from rclpy.duration import Duration
+import rclpy.qos
+from rclpy.qos import QoSProfile
+from rclpy.time import Time
 
 import yaml
-import math
-import rclpy.qos
-
-from rclpy.qos import QoSProfile
-from rclpy.duration import Duration
-from rclpy.time import Time
 
 
 def duration_to_node(duration):
@@ -73,8 +70,11 @@ def qos_profiles_to_yaml(qos_profiles):
 
 
 def gen_subscriber_qos_profile(qos_profiles):
-    """Generate a single QoS profile for a subscriber from a set of QoS profiles (typically
-       acquired from an active set of publishers for a particular topic)."""
+    """
+    Generate a single QoS profile for a subscriber from a set of QoS profiles.
+
+    These are typically acquired from an active set of publishers for a particular topic.
+    """
     if not qos_profiles:
         return QoSProfile(depth=10)
 
@@ -90,7 +90,7 @@ def gen_subscriber_qos_profile(qos_profiles):
 
 
 def get_qos_profiles_for_topic(node, topic):
-    """Get the QoS profiles used by current publishers on a specific topic"""
+    """Get the QoS profiles used by current publishers on a specific topic."""
     publishers_info = node.get_publishers_info_by_topic(topic)
     if publishers_info:
         # Get the QoS info for each of the current publishers on this topic

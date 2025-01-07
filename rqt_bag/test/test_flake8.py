@@ -1,4 +1,4 @@
-# Copyright (c) 2019, Open Source Robotics Foundation, Inc.
+# Copyright (c) 2024, Open Source Robotics Foundation, Inc.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -28,11 +28,14 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from ament_copyright.main import main
+from ament_flake8.main import main_with_errors
 import pytest
 
 
-@pytest.mark.copyright
+@pytest.mark.flake8
 @pytest.mark.linter
-def test_copyright():
-    assert main() == 0, 'Found errors'
+def test_flake8():
+    rc, errors = main_with_errors(argv=[])
+    assert rc == 0, \
+        'Found %d code style errors / warnings:\n' % len(errors) + \
+        '\n'.join(errors)

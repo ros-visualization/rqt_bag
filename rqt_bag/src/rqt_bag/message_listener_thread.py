@@ -40,9 +40,9 @@ class ListenerEvent(QEvent):
 
 
 class MessageListenerThread(threading.Thread):
-
     """
     Waits for new messages loaded on the given topic, then calls the message listener.
+
     One thread per listener, topic pair.
     """
 
@@ -58,9 +58,7 @@ class MessageListenerThread(threading.Thread):
         self.start()
 
     def run(self):
-        """
-        Thread body. loops and notifies the listener of new messages
-        """
+        """Thread body. loops and notifies the listener of new messages."""
         while not self._stop_flag:
             # Wait for a new message
             cv = self.timeline._messages_cvs[self.topic]

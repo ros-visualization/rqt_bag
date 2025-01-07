@@ -31,9 +31,9 @@ import time
 
 
 class IndexCacheThread(threading.Thread):
-
     """
     Updates invalid caches.
+
     One thread per timeline.
     """
 

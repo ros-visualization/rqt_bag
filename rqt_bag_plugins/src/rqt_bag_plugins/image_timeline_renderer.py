@@ -1,5 +1,3 @@
-# Software License Agreement (BSD License)
-#
 # Copyright (c) 2009, Willow Garage, Inc.
 # All rights reserved.
 #
@@ -7,21 +5,21 @@
 # modification, are permitted provided that the following conditions
 # are met:
 #
-#  * Redistributions of source code must retain the above copyright
-#    notice, this list of conditions and the following disclaimer.
-#  * Redistributions in binary form must reproduce the above
-#    copyright notice, this list of conditions and the following
-#    disclaimer in the documentation and/or other materials provided
-#    with the distribution.
-#  * Neither the name of Willow Garage, Inc. nor the names of its
-#    contributors may be used to endorse or promote products derived
-#    from this software without specific prior written permission.
+#   * Redistributions of source code must retain the above copyright
+#     notice, this list of conditions and the following disclaimer.
+#   * Redistributions in binary form must reproduce the above
+#     copyright notice, this list of conditions and the following
+#     disclaimer in the documentation and/or other materials provided
+#     with the distribution.
+#   * Neither the name of the Willow Garage, Inc. nor the names of its
+#     contributors may be used to endorse or promote products derived
+#     from this software without specific prior written permission.
 #
 # THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 # "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 # LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
 # FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
-# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
 # INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 # BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
@@ -30,44 +28,45 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from __future__ import print_function
-from rclpy.time import Time
-# HACK workaround for upstream pillow issue python-pillow/Pillow#400
 import sys
+
+from PIL import Image
+
+# HACK workaround for upstream pillow issue python-pillow/Pillow#400
 from python_qt_binding import QT_BINDING_MODULES
 if (
     not QT_BINDING_MODULES['QtCore'].__name__.startswith('PyQt5') and
     'PyQt5' in sys.modules
 ):
     sys.modules['PyQt5'] = None
-from PIL import Image
+
+from python_qt_binding.QtCore import Qt
+from python_qt_binding.QtGui import QBrush, QPen, QPixmap
+
+from rclpy.time import Time
 
 from rqt_bag import TimelineCache, TimelineRenderer
 
 from rqt_bag_plugins import image_helper
 from rqt_bag_plugins.image_qt import ImageQt
 
-from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QBrush, QPen, QPixmap
-
 
 class ImageTimelineRenderer(TimelineRenderer):
-
-    """
-    Draws thumbnails of sensor_msgs/msg/Image or sensor_msgs/msg/CompressedImage in the timeline.
-    """
+    """Draws thumbnails of sensor_msgs/msg/{Compressed}Image in the timeline."""
 
     def __init__(self, timeline, thumbnail_height=160):
         super(ImageTimelineRenderer, self).__init__(timeline, msg_combine_px=40.0)
 
         self.thumbnail_height = thumbnail_height
-
-        self.thumbnail_combine_px = 20.0  # use cached thumbnail if it's less than this many pixels away
-        self.min_thumbnail_width = 8  # don't display thumbnails if less than this many pixels across
+        # use cached thumbnail if it's less than this many pixels away
+        self.thumbnail_combine_px = 20.0
+        # don't display thumbnails if less than this many pixels across
+        self.min_thumbnail_width = 8
         self.quality = Image.NEAREST  # quality hint for thumbnail scaling
 
         self.thumbnail_cache = TimelineCache(
-            self._load_thumbnail, lambda topic, msg_stamp, thumbnail: self.timeline.scene().update())
+            self._load_thumbnail, lambda topic, msg_stamp,
+            thumbnail: self.timeline.scene().update())
     # TimelineRenderer implementation
 
     def get_segment_height(self, topic):
@@ -75,7 +74,8 @@ class ImageTimelineRenderer(TimelineRenderer):
 
     def draw_timeline_segment(self, painter, topic, stamp_start, stamp_end, x, y, width, height):
         """
-        draws a stream of images for the topic
+        Draw a stream of images for the topic.
+
         :param painter: painter object, ''QPainter''
         :param topic: topic to draw, ''str''
         :param stamp_start: stamp to start drawing, ''rclpy.time.Time''
@@ -129,7 +129,8 @@ class ImageTimelineRenderer(TimelineRenderer):
                     QtImage = ImageQt(thumbnail_bitmap)
                     pixmap = QPixmap.fromImage(QtImage)
                     painter.drawPixmap(
-                        int(thumbnail_x), int(thumbnail_y), int(thumbnail_width), int(thumbnail_height), pixmap)
+                        int(thumbnail_x), int(thumbnail_y), int(thumbnail_width),
+                        int(thumbnail_height), pixmap)
             thumbnail_x += thumbnail_width
 
             if width == 1:
@@ -149,9 +150,7 @@ class ImageTimelineRenderer(TimelineRenderer):
             self.thumbnail_cache.join()
 
     def _load_thumbnail(self, topic, stamp, thumbnail_details):
-        """
-        Loads the thumbnail from the bag
-        """
+        """Load the thumbnail from the bag."""
         (thumbnail_height,) = thumbnail_details
 
         # Find position of stamp using index

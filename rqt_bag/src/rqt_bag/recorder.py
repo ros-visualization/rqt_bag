@@ -28,29 +28,23 @@
 
 """Recorder subscribes to ROS messages and writes them to a bag file."""
 
-try:
-    from queue import Queue
-    from queue import Empty
-except ImportError:
-    from Queue import Queue
-    from Queue import Empty
+from queue import Empty, Queue
 import re
-
 import sys
 import threading
 import time
 
 from rclpy.clock import Clock, ClockType
-from rclpy.duration import Duration
 from rclpy.serialization import serialize_message
 from rclpy.topic_or_service_is_hidden import topic_or_service_is_hidden
+
 import rosbag2_py
+from rosbag2_py import get_default_storage_id, to_rclcpp_qos_vector
+
 from rosidl_runtime_py.utilities import get_message
 
 from .qos import gen_subscriber_qos_profile, get_qos_profiles_for_topic, qos_profiles_to_yaml
 from .rosbag2 import Rosbag2
-
-from rosbag2_py import get_default_storage_id, to_rclcpp_qos_vector
 
 
 class Recorder(object):
@@ -130,7 +124,8 @@ class Recorder(object):
         return Rosbag2(filename, recording=True, topics=topic_type_map)
 
     def add_listener(self, listener):
-        """Add a listener which gets called whenever a message is recorded.
+        """
+        Add a listener which gets called whenever a message is recorded.
 
         @param listener: function to call
         @type  listener: function taking (topic, message, time)
