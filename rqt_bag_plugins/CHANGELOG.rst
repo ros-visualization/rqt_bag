@@ -2,6 +2,11 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Import setup from setuptools instead of distutils.core (`#137 <https://github.com/ros-visualization/rqt_bag/issues/137>`_)
+* Contributors: Arne Hitzmann, Matthijs van der Burgh
+
 0.5.1 (2021-02-18)
 ------------------
 

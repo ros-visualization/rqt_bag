@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Import setup from setuptools instead of distutils.core (`#137 <https://github.com/ros-visualization/rqt_bag/issues/137>`_)
+* Contributors: Arne Hitzmann, Matthijs van der Burgh
+
 0.5.1 (2021-02-18)
 ------------------
 * Fix merge sort in bag export. (`#96 <https://github.com/ros-visualization/rqt_bag/issues/96>`_)
