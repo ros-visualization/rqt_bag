@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.5)
 project(rqt_bag_plugins)
 # Load catkin and all dependencies required for this package
 find_package(catkin REQUIRED)
