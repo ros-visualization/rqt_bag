@@ -757,7 +757,7 @@ class BagTimeline(QGraphicsScene):
 
         self._message_listener_threads[(topic, listener)] = \
             MessageListenerThread(self, topic, listener)
-        # Notify the message listeners
+        # Notify the message loaders to get them ready
         self._message_loaders[topic].reset()
         with self._playhead_positions_cvs[topic]:
             self._playhead_positions_cvs[topic].notify_all()
