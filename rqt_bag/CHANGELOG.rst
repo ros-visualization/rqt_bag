@@ -2,6 +2,14 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* floats need to be ints for many methods in python 3.10 (`#131 <https://github.com/ros-visualization/rqt_bag/issues/131>`_)
+* comment on message loaders notify (was message listeners before) (`#112 <https://github.com/ros-visualization/rqt_bag/issues/112>`_)
+* raw_view: fix display of array types (`#152 <https://github.com/ros-visualization/rqt_bag/issues/152>`_)
+* Bump cmake_minimum_required to avoid deprecation (`#172 <https://github.com/ros-visualization/rqt_bag/issues/172>`_)
+* Contributors: Arne Hitzmann, Lucas Walter, Paul Mathieu, fergian94
+
 0.5.2 (2025-04-09)
 ------------------
 * Import setup from setuptools instead of distutils.core (`#137 <https://github.com/ros-visualization/rqt_bag/issues/137>`_)
