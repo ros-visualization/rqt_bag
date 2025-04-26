@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.3 (2025-04-26)
+------------------
 * floats need to be ints for many methods in python 3.10 (`#131 <https://github.com/ros-visualization/rqt_bag/issues/131>`_)
 * comment on message loaders notify (was message listeners before) (`#112 <https://github.com/ros-visualization/rqt_bag/issues/112>`_)
 * raw_view: fix display of array types (`#152 <https://github.com/ros-visualization/rqt_bag/issues/152>`_)
