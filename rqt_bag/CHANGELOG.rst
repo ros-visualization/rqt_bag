@@ -2,6 +2,9 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.0 (2025-04-28)
+------------------
+
 2.0.2 (2025-01-07)
 ------------------
 * Add standard tests for rqt_bag and rqt_bag_plugins (`#171 <https://github.com/ros-visualization/rqt_bag/issues/171>`_)
