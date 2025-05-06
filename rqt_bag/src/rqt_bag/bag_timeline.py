@@ -555,6 +555,9 @@ class BagTimeline(QGraphicsScene):
     def translate_timeline_right(self):
         self._timeline_frame.translate_timeline_right()
 
+    def update_size(self):
+        self._timeline_frame.update_size()
+
     # Publishing
     def is_publishing(self, topic):
         return self._player and self._player.is_publishing(topic)
