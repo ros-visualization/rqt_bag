@@ -277,9 +277,13 @@ class PlotWidget(QWidget):
                                 y_value = getattr(y_value, field)
                             if index:
                                 index = int(index)
-                                y_value = y_value[index]
-                        y[path].append(y_value)
-                        x[path].append(bag_helper.to_sec(timestamp - self.start_stamp))
+                                try:
+                                    y_value = y_value[index]
+                                except IndexError:
+                                    y_value = None
+                        if y_value is not None:
+                            y[path].append(y_value)
+                            x[path].append(bag_helper.to_sec(timestamp - self.start_stamp))
 
                 # TODO: incremental plot updates would go here...
                 #       we should probably do incremental updates based on time;
