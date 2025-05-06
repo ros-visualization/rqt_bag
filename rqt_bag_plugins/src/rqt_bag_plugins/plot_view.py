@@ -68,6 +68,8 @@ import threading
 
 from ament_index_python import get_resource
 
+from builtin_interfaces.msg import Time as TimeMsg
+
 import numpy
 
 from python_qt_binding import loadUi
@@ -267,7 +269,12 @@ class PlotWidget(QWidget):
                             if field.endswith(']'):
                                 field = field[:-1]
                                 field, _, index = field.rpartition('[')
-                            y_value = getattr(y_value, field)
+                            if type(y_value) in (Time, TimeMsg) and field == '*float_seconds':
+                                time_val = y_value if type(y_value) is Time \
+                                           else Time().from_msg(y_value)
+                                y_value = time_val.nanoseconds * 1e-9
+                            else:
+                                y_value = getattr(y_value, field)
                             if index:
                                 index = int(index)
                                 y_value = y_value[index]
@@ -438,6 +445,9 @@ class MessageTree(QTreeWidget):
         if hasattr(obj, '_fields_and_field_types'):
             field_keys = obj.get_fields_and_field_types().keys()
             subobjs = [(field_name, getattr(obj, field_name)) for field_name in field_keys]
+            if type(obj) in (Time, TimeMsg):
+                time_obj = obj if type(obj) is Time else Time().from_msg(obj)
+                subobjs.append(('*float_seconds', time_obj.nanoseconds * 1e-9))
         elif type(obj) in (list, tuple, array.array, numpy.ndarray):
             if type(obj) in (array.array, numpy.ndarray):
                 list_obj = obj.tolist()
