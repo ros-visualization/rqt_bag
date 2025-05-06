@@ -32,14 +32,12 @@
 
 from __future__ import print_function
 import array
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from io import StringIO
+from io import BytesIO
 import sys
 
 from PIL import Image
 from PIL import ImageOps
+from PIL import UnidentifiedImageError
 try:
     import cairo
 except ImportError:
@@ -49,10 +47,18 @@ except ImportError:
 def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
     try:
         if msg_type_name == 'sensor_msgs/msg/CompressedImage':
-            pil_img = Image.open(StringIO(img_msg.data))
-            if pil_img.mode != 'L':
-                pil_img = pil_bgr2rgb(pil_img)
-            pil_mode = 'RGB'
+            try:
+                pil_img = Image.open(BytesIO(img_msg.data))
+            except UnidentifiedImageError:
+                # Try decoding compressedDepth which stores a 12-byte ConfigHeader first
+                pil_img = Image.open(BytesIO(img_msg.data[12:]))
+
+            if pil_img.mode == 'I' and 'compressedDepth' in img_msg.format:
+                pil_mode = 'I;16'
+            else:
+                if pil_img.mode.startswith('BGR'):
+                    pil_img = pil_bgr2rgb(pil_img)
+                pil_mode = 'RGB'
         else:
             pil_mode = 'RGB'
             if img_msg.encoding in ['mono8', '8UC1' ]:
@@ -93,6 +99,7 @@ def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
         # 16 bits conversion to 8 bits
         if pil_mode == 'I;16':
             pil_img = pil_img.convert('I').point(lambda i: i * (1. / 256.)).convert('L')
+            pil_img = ImageOps.autocontrast(pil_img)
 
         if pil_img.mode == 'F':
             pil_img = pil_img.point(lambda i: i * (1. / 256.)).convert('L')
