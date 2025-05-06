@@ -62,13 +62,16 @@
 #  doesn't make sense to make it align with the timeline. This could be done
 #  if someone wanted to implement a separate timeline view
 
-import os
-import math
+import array
 import codecs
+import math
+import os
 import threading
-from rqt_bag import MessageView
 
 from ament_index_python import get_resource
+
+import numpy
+
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning, Signal
 from python_qt_binding.QtGui import QDoubleValidator, QIcon
@@ -81,6 +84,14 @@ from rqt_bag import bag_helper
 # rclpy used for Time and Duration objects, for interacting with rosbag
 from rclpy.duration import Duration
 from rclpy.time import Time
+
+from rqt_bag import bag_helper
+from rqt_bag import MessageView
+
+from rqt_plot.data_plot import DataPlot
+
+MAX_LIST_LEN = 50
+LIST_TAIL_LEN = 10
 
 # compatibility fix for python2/3
 try:
@@ -441,13 +452,23 @@ class MessageTree(QTreeWidget):
 
         if hasattr(obj, '_fields_and_field_types'):
             subobjs = [(field_name, getattr(obj, field_name)) for field_name in obj.get_fields_and_field_types().keys()]
-        elif type(obj) in [list, tuple]:
-            len_obj = len(obj)
+        elif type(obj) in (list, tuple, array.array, numpy.ndarray):
+            if type(obj) in (array.array, numpy.ndarray):
+                list_obj = obj.tolist()
+            else:
+                list_obj = obj
+            len_obj = len(list_obj)
+            short_list_obj = list_obj[:MAX_LIST_LEN]
+
             if len_obj == 0:
                 subobjs = []
             else:
                 w = int(math.ceil(math.log10(len_obj)))
-                subobjs = [('[%*d]' % (w, i), subobj) for (i, subobj) in enumerate(obj)]
+                subobjs = [('[%*d]' % (w, i), subobj) for (i, subobj) in enumerate(short_list_obj)]
+                if len_obj > MAX_LIST_LEN:
+                    for i in range(-LIST_TAIL_LEN, 0):
+                        if len_obj + i >= MAX_LIST_LEN:
+                            subobjs.append(('[%*d]' % (w, len_obj + i), list_obj[i]))
         else:
             subobjs = []
 
