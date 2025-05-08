@@ -83,9 +83,13 @@ from rqt_bag import MessageView
 
 from rqt_plot.data_plot import DataPlot
 
-ROLL_LABEL = '*roll'
-PITCH_LABEL = '*pitch'
-YAW_LABEL = '*yaw'
+# Labels of virtual (computed) fields. They cannot contain spaces and cannot end with ].
+ROLL_RAD_LABEL = '*roll(rad)'
+PITCH_RAD_LABEL = '*pitch(rad)'
+YAW_RAD_LABEL = '*yaw(rad)'
+ROLL_DEG_LABEL = '*roll(deg)'
+PITCH_DEG_LABEL = '*pitch(deg)'
+YAW_DEG_LABEL = '*yaw(deg)'
 
 
 class PlotView(MessageView):
@@ -269,12 +273,18 @@ class PlotWidget(QWidget):
                             if isinstance(y_value, Quaternion):
                                 roll, pitch, yaw = bag_helper.rpy_from_quaternion(
                                     y_value.x, y_value.y, y_value.z, y_value.w)
-                                if field == ROLL_LABEL:
+                                if field == ROLL_RAD_LABEL:
                                     y_value = roll
-                                elif field == PITCH_LABEL:
+                                elif field == PITCH_RAD_LABEL:
                                     y_value = pitch
-                                elif field == YAW_LABEL:
+                                elif field == YAW_RAD_LABEL:
                                     y_value = yaw
+                                elif field == ROLL_DEG_LABEL:
+                                    y_value = math.degrees(roll)
+                                elif field == PITCH_DEG_LABEL:
+                                    y_value = math.degrees(pitch)
+                                elif field == YAW_DEG_LABEL:
+                                    y_value = math.degrees(yaw)
                                 else:
                                     y_value = getattr(y_value, field)
                             else:
@@ -452,9 +462,12 @@ class MessageTree(QTreeWidget):
             if isinstance(obj, Quaternion):
                 roll, pitch, yaw = bag_helper.rpy_from_quaternion(
                     obj.x, obj.y, obj.z, obj.w)
-                subobjs.append((ROLL_LABEL, roll))
-                subobjs.append((PITCH_LABEL, pitch))
-                subobjs.append((YAW_LABEL, yaw))
+                subobjs.append((ROLL_RAD_LABEL, roll))
+                subobjs.append((PITCH_RAD_LABEL, pitch))
+                subobjs.append((YAW_RAD_LABEL, yaw))
+                subobjs.append((ROLL_DEG_LABEL, math.degrees(roll)))
+                subobjs.append((PITCH_DEG_LABEL, math.degrees(pitch)))
+                subobjs.append((YAW_DEG_LABEL, math.degrees(yaw)))
         elif type(obj) in [list, tuple]:
             len_obj = len(obj)
             if len_obj == 0:
