@@ -170,6 +170,8 @@ class Rosbag2:
             else:
                 break
 
+        # No filter
+        self.reader.reset_filter()
         return entries
 
     def read_next(self):
