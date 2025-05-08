@@ -29,7 +29,7 @@
 """Helper functions for bag files and timestamps."""
 
 from decimal import Decimal
-from math import atan2, asin
+from math import asin, atan2
 from typing import Tuple
 
 
@@ -49,8 +49,8 @@ def to_sec(t):
 
 def rpy_from_quaternion(x: float, y: float, z: float, w: float) -> Tuple[float, float, float]:
     """
-    Convert quaternion to roll, pitch, yaw
-    
+    Convert quaternion to roll, pitch, yaw.
+
     :param x: x component of quaternion
     :param y: y component of quaternion
     :param z: z component of quaternion

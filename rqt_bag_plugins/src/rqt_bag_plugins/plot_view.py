@@ -66,6 +66,7 @@ import os
 import threading
 
 from ament_index_python import get_resource
+from geometry_msgs.msg import Quaternion
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning
@@ -81,6 +82,10 @@ from rqt_bag import bag_helper
 from rqt_bag import MessageView
 
 from rqt_plot.data_plot import DataPlot
+
+ROLL_LABEL = '*roll'
+PITCH_LABEL = '*pitch'
+YAW_LABEL = '*yaw'
 
 
 class PlotView(MessageView):
@@ -261,7 +266,19 @@ class PlotWidget(QWidget):
                             if field.endswith(']'):
                                 field = field[:-1]
                                 field, _, index = field.rpartition('[')
-                            y_value = getattr(y_value, field)
+                            if isinstance(y_value, Quaternion):
+                                roll, pitch, yaw = bag_helper.rpy_from_quaternion(
+                                    y_value.x, y_value.y, y_value.z, y_value.w)
+                                if field == ROLL_LABEL:
+                                    y_value = roll
+                                elif field == PITCH_LABEL:
+                                    y_value = pitch
+                                elif field == YAW_LABEL:
+                                    y_value = yaw
+                                else:
+                                    y_value = getattr(y_value, field)
+                            else:
+                                y_value = getattr(y_value, field)
                             if index:
                                 index = int(index)
                                 y_value = y_value[index]
@@ -432,6 +449,12 @@ class MessageTree(QTreeWidget):
         if hasattr(obj, '_fields_and_field_types'):
             field_keys = obj.get_fields_and_field_types().keys()
             subobjs = [(field_name, getattr(obj, field_name)) for field_name in field_keys]
+            if isinstance(obj, Quaternion):
+                roll, pitch, yaw = bag_helper.rpy_from_quaternion(
+                    obj.x, obj.y, obj.z, obj.w)
+                subobjs.append((ROLL_LABEL, roll))
+                subobjs.append((PITCH_LABEL, pitch))
+                subobjs.append((YAW_LABEL, yaw))
         elif type(obj) in [list, tuple]:
             len_obj = len(obj)
             if len_obj == 0:
