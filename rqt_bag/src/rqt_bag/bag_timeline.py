@@ -318,11 +318,15 @@ class BagTimeline(QGraphicsScene):
                 except StopIteration:
                     last_entries[b] = None
 
+            to_delete = []
             for b in last_entries:
                 if last_entries[b] is None:
-                    del last_entries[b]
-                    del generators[b]
-                    relevant_bags.remove(b)
+                    to_delete.append(b)
+
+            for b in to_delete:
+                del last_entries[b]
+                del generators[b]
+                relevant_bags.remove(b)
 
             if progress_cb is not None:
                 progress = 0
