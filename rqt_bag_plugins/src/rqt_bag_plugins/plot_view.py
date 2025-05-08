@@ -456,13 +456,13 @@ class MessageTree(QTreeWidget):
                 subobjs.append((FLOAT_SECONDS_LABEL, bag_helper.to_sec(time_obj)))
         elif isinstance(obj, (Sequence, numpy.ndarray)) and not isinstance(obj, str):
             len_obj = len(obj)
-            short_obj = obj[:MAX_LIST_LEN]
 
             if len_obj == 0:
                 subobjs = []
             else:
                 w = int(math.ceil(math.log10(len_obj)))
-                subobjs = [('[%*d]' % (w, i), subobj) for (i, subobj) in enumerate(short_obj)]
+                subobjs = [('[%*d]' % (w, i), subobj)
+                           for (i, subobj) in enumerate(obj[:MAX_LIST_LEN])]
                 tail_start = max(MAX_LIST_LEN, len_obj - LIST_TAIL_LEN)
                 subobjs.extend([('[%*d]' % (w, i + tail_start), subobj)
                                 for (i, subobj) in enumerate(obj[tail_start:])])
