@@ -60,11 +60,12 @@
 #  doesn't make sense to make it align with the timeline. This could be done
 #  if someone wanted to implement a separate timeline view
 
-import array
 import codecs
 import math
+from numbers import Complex, Number, Real
 import os
 import threading
+from typing import Sequence
 
 from ament_index_python import get_resource
 
@@ -89,6 +90,7 @@ from rqt_plot.data_plot import DataPlot
 
 MAX_LIST_LEN = 50
 LIST_TAIL_LEN = 10
+FLOAT_SECONDS_LABEL = '*float_seconds'
 
 
 class PlotView(MessageView):
@@ -269,10 +271,10 @@ class PlotWidget(QWidget):
                             if field.endswith(']'):
                                 field = field[:-1]
                                 field, _, index = field.rpartition('[')
-                            if type(y_value) in (Time, TimeMsg) and field == '*float_seconds':
+                            if type(y_value) in (Time, TimeMsg) and field == FLOAT_SECONDS_LABEL:
                                 time_val = y_value if type(y_value) is Time \
                                            else Time().from_msg(y_value)
-                                y_value = time_val.nanoseconds * 1e-9
+                                y_value = bag_helper.to_sec(time_val)
                             else:
                                 y_value = getattr(y_value, field)
                             if index:
@@ -451,31 +453,26 @@ class MessageTree(QTreeWidget):
             subobjs = [(field_name, getattr(obj, field_name)) for field_name in field_keys]
             if type(obj) in (Time, TimeMsg):
                 time_obj = obj if type(obj) is Time else Time().from_msg(obj)
-                subobjs.append(('*float_seconds', time_obj.nanoseconds * 1e-9))
-        elif type(obj) in (list, tuple, array.array, numpy.ndarray):
-            if type(obj) in (array.array, numpy.ndarray):
-                list_obj = obj.tolist()
-            else:
-                list_obj = obj
-            len_obj = len(list_obj)
-            short_list_obj = list_obj[:MAX_LIST_LEN]
+                subobjs.append((FLOAT_SECONDS_LABEL, bag_helper.to_sec(time_obj)))
+        elif isinstance(obj, (Sequence, numpy.ndarray)) and not isinstance(obj, str):
+            len_obj = len(obj)
+            short_obj = obj[:MAX_LIST_LEN]
 
             if len_obj == 0:
                 subobjs = []
             else:
                 w = int(math.ceil(math.log10(len_obj)))
-                subobjs = [('[%*d]' % (w, i), subobj) for (i, subobj) in enumerate(short_list_obj)]
-                if len_obj > MAX_LIST_LEN:
-                    for i in range(-LIST_TAIL_LEN, 0):
-                        if len_obj + i >= MAX_LIST_LEN:
-                            subobjs.append(('[%*d]' % (w, len_obj + i), list_obj[i]))
+                subobjs = [('[%*d]' % (w, i), subobj) for (i, subobj) in enumerate(short_obj)]
+                tail_start = max(MAX_LIST_LEN, len_obj - LIST_TAIL_LEN)
+                subobjs.extend([('[%*d]' % (w, i + tail_start), subobj)
+                                for (i, subobj) in enumerate(obj[tail_start:])])
         else:
             subobjs = []
 
         plotitem = False
-        if type(obj) in (int, float):
+        if isinstance(obj, Number):
             plotitem = True
-            if isinstance(obj, float):
+            if isinstance(obj, Real):
                 obj_repr = '%.6f' % obj
             else:
                 obj_repr = str(obj)
@@ -485,7 +482,7 @@ class MessageTree(QTreeWidget):
             else:
                 label += ':  %s' % obj_repr
 
-        elif type(obj) in [str, bool, int, float, complex, Time]:
+        elif type(obj) in [str, bool, Complex, Time]:
             # Ignore any binary data
             obj_repr = codecs.utf_8_decode(str(obj).encode(), 'ignore')[0]
 
