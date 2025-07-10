@@ -31,8 +31,8 @@ setup(
     license='BSD',
     extras_require={
         'test' : [
-            'pytest'
-        ]
+            'pytest',
+        ],
     },
     scripts=['scripts/rqt_bag'],
 )
