@@ -169,11 +169,15 @@ class PlotWidget(QWidget):
             bag, entry = self.timeline.get_entry(start_time, topic)
             if bag is None:
                 bag, entry = self.timeline.get_entry_after(start_time, topic)
-                start_time = Time(nanoseconds=entry.timestamp)
+                if entry is not None:
+                    start_time = Time(nanoseconds=entry.timestamp)
+                else:
+                    break
 
         self.bag = bag
-        (ros_message, msg_type) = self.bag.deserialize_entry(entry)
-        self.message_tree.set_message(ros_message, msg_type)
+        if entry is not None:
+            (ros_message, msg_type) = self.bag.deserialize_entry(entry)
+            self.message_tree.set_message(ros_message, msg_type)
 
         # state used by threaded resampling
         self.resampling_active = False
