@@ -141,7 +141,16 @@ class Rosbag2:
 
         self.reader.set_read_order(rosbag2_py.ReadOrder(reverse=False))
         self.reader.seek(timestamp.nanoseconds + 1)
-        return self.read_next() if self.reader.has_next() else None
+
+        # Set filter for topic of string type
+        if topic:
+            storage_filter = StorageFilter(topics=[topic])
+            self.reader.set_filter(storage_filter)
+
+        result = self.read_next() if self.reader.has_next() else None
+        # No filter
+        self.reader.reset_filter()
+        return result
 
     def get_entries_in_range(self, t_start, t_end, topic=None):
         if not self.reader:
@@ -159,6 +168,8 @@ class Rosbag2:
             else:
                 break
 
+        # No filter
+        self.reader.reset_filter()
         return entries
 
     def read_next(self):
