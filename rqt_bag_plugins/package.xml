@@ -18,8 +18,14 @@
   <author email="mabel@openrobotics.org">Mabel Zhang</author>
   <author>Tim Field</author>
 
+<<<<<<< HEAD
+=======
+  <exec_depend>ament_index_python</exec_depend>
+  <exec_depend>builtin_interfaces</exec_depend>
+>>>>>>> ed713b5 (Improve plot view (#174))
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>python3-cairo</exec_depend>
+  <exec_depend>python3-numpy</exec_depend>
   <exec_depend>python3-pil</exec_depend>
   <exec_depend>rclpy</exec_depend>
   <exec_depend>rosbag2</exec_depend>
