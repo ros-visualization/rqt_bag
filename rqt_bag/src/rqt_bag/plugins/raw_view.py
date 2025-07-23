@@ -25,12 +25,29 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
+<<<<<<< HEAD
 """
 Defines a raw view: a TopicMessageView that displays the message contents in a tree.
 """
 import codecs
 import math
 
+=======
+
+"""Defines a raw view: a TopicMessageView that displays the message contents in a tree."""
+
+import array
+import math
+
+from builtin_interfaces.msg import Time as TimeMsg
+
+import numpy
+
+from python_qt_binding.QtCore import Qt
+from python_qt_binding.QtWidgets import \
+    QAbstractItemView, QApplication, QSizePolicy, QTreeWidget, QTreeWidgetItem, QWidget
+
+>>>>>>> 3ad9f4f (Improved raw view to better handle arrays and time objects (#173))
 from rclpy.time import Time
 
 from python_qt_binding.QtCore import Qt
@@ -38,11 +55,17 @@ from python_qt_binding.QtWidgets import \
     QApplication, QAbstractItemView, QSizePolicy, QTreeWidget, QTreeWidgetItem, QWidget
 from .topic_message_view import TopicMessageView
 
+<<<<<<< HEAD
 # compatibility fix for python2/3
 try:
     long
 except NameError:
     long = int
+=======
+MAX_LIST_LEN = 50
+LIST_TAIL_LEN = 10
+
+>>>>>>> 3ad9f4f (Improved raw view to better handle arrays and time objects (#173))
 
 class RawView(TopicMessageView):
     name = 'Raw'
@@ -181,13 +204,23 @@ class MessageTree(QTreeWidget):
 
         if hasattr(obj, '__slots__'):
             subobjs = [(slot, getattr(obj, slot)) for slot in obj.__slots__]
-        elif type(obj) in [list, tuple]:
-            len_obj = len(obj)
+        elif type(obj) in (list, tuple, array.array, numpy.ndarray):
+            if type(obj) in (array.array, numpy.ndarray):
+                list_obj = obj.tolist()
+            else:
+                list_obj = obj
+            len_obj = len(list_obj)
+            short_list_obj = list_obj[:MAX_LIST_LEN]
             if len_obj == 0:
                 subobjs = []
             else:
                 w = int(math.ceil(math.log10(len_obj)))
-                subobjs = [('[%*d]' % (w, i), subobj) for (i, subobj) in enumerate(obj)]
+                subobjs = [('[%*d]' % (w, i), subobj) for (i, subobj) in enumerate(short_list_obj)]
+                if len_obj > MAX_LIST_LEN:
+                    subobjs.append(('[%s]' % (w * '.',), '{} items total'.format(len_obj)))
+                    for i in range(-LIST_TAIL_LEN, 0):
+                        if len_obj + i >= MAX_LIST_LEN:
+                            subobjs.append(('[%*d]' % (w, len_obj + i), list_obj[i]))
         else:
             subobjs = []
 
@@ -202,9 +235,27 @@ class MessageTree(QTreeWidget):
             else:
                 label += ':  %s' % obj_repr
 
+<<<<<<< HEAD
         elif type(obj) in [str, bool, int, long, float, complex, Time]:
             # Ignore any binary data
             obj_repr = codecs.utf_8_decode(str(obj).encode(), 'ignore')[0]
+=======
+        elif type(obj) in (str, bool, int, float, complex, Time, TimeMsg, list, tuple,
+                           array.array, numpy.ndarray):
+            if type(obj) is array.array:
+                if obj.typecode == 'B':
+                    obj_repr = obj.tobytes().decode('utf-8', 'ignore')
+                elif obj.typecode == 'u':
+                    obj_repr = ''.join(obj.tolist())
+                else:
+                    obj_repr = '[' + ','.join(map(str, obj.tolist())) + ']'
+            elif type(obj) is Time:
+                obj_repr = '{:.9f}'.format(obj.nanoseconds * 1e-9)
+            elif type(obj) is TimeMsg:
+                obj_repr = '{:.9f}'.format(Time.from_msg(obj).nanoseconds * 1e-9)
+            else:
+                obj_repr = str(obj)
+>>>>>>> 3ad9f4f (Improved raw view to better handle arrays and time objects (#173))
 
             # Truncate long representations
             if len(obj_repr) >= 50:
