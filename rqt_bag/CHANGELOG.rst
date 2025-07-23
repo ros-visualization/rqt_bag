@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.1.1 (2025-07-01)
+------------------
+* Fixed timeline resolution (`#175 <https://github.com/ros-visualization/rqt_bag/issues/175>`_)
+* Contributors: Martin Pecka
+
 2.1.0 (2025-04-28)
 ------------------
 

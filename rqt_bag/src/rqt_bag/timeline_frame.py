@@ -1005,11 +1005,11 @@ class TimelineFrame(QGraphicsItem):
 
         if clamp_to_visible:
             if fraction <= 0.0:
-                return int(self._stamp_left)
+                return self._stamp_left
             elif fraction >= 1.0:
-                return int(self._stamp_right)
+                return self._stamp_right
 
-        return int(self._stamp_left + fraction * (self._stamp_right - self._stamp_left))
+        return self._stamp_left + fraction * (self._stamp_right - self._stamp_left)
 
     def map_dx_to_dstamp(self, dx):
         """
