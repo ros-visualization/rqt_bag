@@ -62,25 +62,38 @@
 #  doesn't make sense to make it align with the timeline. This could be done
 #  if someone wanted to implement a separate timeline view
 
-import os
-import math
+import array
 import codecs
+import math
+from numbers import Complex, Number, Real
+import os
 import threading
-from rqt_bag import MessageView
+from typing import Sequence
 
 from ament_index_python import get_resource
+
+from builtin_interfaces.msg import Time as TimeMsg
+
+import numpy
+
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning, Signal
 from python_qt_binding.QtGui import QDoubleValidator, QIcon
 from python_qt_binding.QtWidgets import \
     QWidget, QPushButton, QTreeWidget, QTreeWidgetItem, QSizePolicy
 
-from rqt_plot.data_plot import DataPlot
-from rqt_bag import bag_helper
-
 # rclpy used for Time and Duration objects, for interacting with rosbag
 from rclpy.duration import Duration
 from rclpy.time import Time
+
+from rqt_bag import bag_helper
+from rqt_bag import MessageView
+
+from rqt_plot.data_plot import DataPlot
+
+MAX_LIST_LEN = 50
+LIST_TAIL_LEN = 10
+FLOAT_SECONDS_LABEL = '*float_seconds'
 
 # compatibility fix for python2/3
 try:
@@ -272,12 +285,21 @@ class PlotWidget(QWidget):
                             if field.endswith(']'):
                                 field = field[:-1]
                                 field, _, index = field.rpartition('[')
-                            y_value = getattr(y_value, field)
+                            if type(y_value) in (Time, TimeMsg) and field == FLOAT_SECONDS_LABEL:
+                                time_val = y_value if type(y_value) is Time \
+                                           else Time().from_msg(y_value)
+                                y_value = bag_helper.to_sec(time_val)
+                            else:
+                                y_value = getattr(y_value, field)
                             if index:
                                 index = int(index)
-                                y_value = y_value[index]
-                        y[path].append(y_value)
-                        x[path].append(bag_helper.to_sec(timestamp - self.start_stamp))
+                                try:
+                                    y_value = y_value[index]
+                                except IndexError:
+                                    y_value = None
+                        if y_value is not None:
+                            y[path].append(y_value)
+                            x[path].append(bag_helper.to_sec(timestamp - self.start_stamp))
 
                 # TODO: incremental plot updates would go here...
                 #       we should probably do incremental updates based on time;
@@ -441,20 +463,28 @@ class MessageTree(QTreeWidget):
 
         if hasattr(obj, '_fields_and_field_types'):
             subobjs = [(field_name, getattr(obj, field_name)) for field_name in obj.get_fields_and_field_types().keys()]
-        elif type(obj) in [list, tuple]:
+            if type(obj) in (Time, TimeMsg):
+                time_obj = obj if type(obj) is Time else Time().from_msg(obj)
+                subobjs.append((FLOAT_SECONDS_LABEL, bag_helper.to_sec(time_obj)))
+        elif isinstance(obj, (Sequence, numpy.ndarray)) and not isinstance(obj, str):
             len_obj = len(obj)
+
             if len_obj == 0:
                 subobjs = []
             else:
                 w = int(math.ceil(math.log10(len_obj)))
-                subobjs = [('[%*d]' % (w, i), subobj) for (i, subobj) in enumerate(obj)]
+                subobjs = [('[%*d]' % (w, i), subobj)
+                           for (i, subobj) in enumerate(obj[:MAX_LIST_LEN])]
+                tail_start = max(MAX_LIST_LEN, len_obj - LIST_TAIL_LEN)
+                subobjs.extend([('[%*d]' % (w, i + tail_start), subobj)
+                                for (i, subobj) in enumerate(obj[tail_start:])])
         else:
             subobjs = []
 
         plotitem = False
-        if type(obj) in [int, long, float]:
+        if isinstance(obj, Number):
             plotitem = True
-            if type(obj) == float:
+            if isinstance(obj, Real):
                 obj_repr = '%.6f' % obj
             else:
                 obj_repr = str(obj)
@@ -464,7 +494,7 @@ class MessageTree(QTreeWidget):
             else:
                 label += ':  %s' % obj_repr
 
-        elif type(obj) in [str, bool, int, long, float, complex, Time]:
+        elif type(obj) in [str, bool, Complex, Time]:
             # Ignore any binary data
             obj_repr = codecs.utf_8_decode(str(obj).encode(), 'ignore')[0]
 
