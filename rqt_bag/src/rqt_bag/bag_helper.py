@@ -29,6 +29,8 @@
 """Helper functions for bag files and timestamps."""
 
 from decimal import Decimal
+from math import asin, atan2
+from typing import Tuple
 
 
 def to_sec(t):
@@ -43,3 +45,27 @@ def to_sec(t):
     # 1e-9 is not exactly 1e-9 if using floating point, so doing this math with floats is imprecise
     result = Decimal(t.nanoseconds) * Decimal('1e-9')
     return float(result)
+
+
+def rpy_from_quaternion(x: float, y: float, z: float, w: float) -> Tuple[float, float, float]:
+    """
+    Convert quaternion to roll, pitch, yaw.
+
+    :param x: x component of quaternion
+    :param y: y component of quaternion
+    :param z: z component of quaternion
+    :param w: w component of quaternion
+    :returns: roll, pitch, yaw in radians
+    """
+    sr_cp = 2 * (w * x + y * z)
+    cr_cp = 1 - 2 * (x * x + y * y)
+    roll = atan2(sr_cp, cr_cp)
+
+    sp = 2 * (w * y - z * x)
+    pitch = asin(sp)
+
+    sy_cp = 2 * (w * z + x * y)
+    cy_cp = 1 - 2 * (y * y + z * z)
+    yaw = atan2(sy_cp, cy_cp)
+
+    return roll, pitch, yaw
