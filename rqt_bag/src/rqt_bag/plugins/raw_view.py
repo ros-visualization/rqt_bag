@@ -38,15 +38,11 @@ import numpy
 
 from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtWidgets import \
-<<<<<<< HEAD
-    QApplication, QAbstractItemView, QSizePolicy, QTreeWidget, QTreeWidgetItem, QWidget
-=======
     QAbstractItemView, QApplication, QSizePolicy, QTreeWidget, QTreeWidgetItem, QWidget
 
 from rclpy.time import Time
 from rqt_bag.bag_helper import rpy_from_quaternion
 
->>>>>>> 4593d82 (Display roll, pitch, yaw values for quaternions (#179))
 from .topic_message_view import TopicMessageView
 
 # compatibility fix for python2/3
@@ -201,9 +197,6 @@ class MessageTree(QTreeWidget):
 
         if hasattr(obj, '__slots__'):
             subobjs = [(slot, getattr(obj, slot)) for slot in obj.__slots__]
-<<<<<<< HEAD
-        elif type(obj) in [list, tuple, array.array, numpy.ndarray]:
-=======
             type_name = type(obj).__name__
             quat_slots = ('_x', '_y', '_z', '_w')
             if 'Quaternion' in type_name and all(s in obj.__slots__ for s in quat_slots):
@@ -212,7 +205,6 @@ class MessageTree(QTreeWidget):
                 subobjs.append((PITCH_LABEL, '%.6f (%.3f°)' % (pitch, math.degrees(pitch))))
                 subobjs.append((YAW_LABEL, '%.6f (%.3f°)' % (yaw, math.degrees(yaw))))
         elif type(obj) in (list, tuple, array.array, numpy.ndarray):
->>>>>>> 4593d82 (Display roll, pitch, yaw values for quaternions (#179))
             if type(obj) in (array.array, numpy.ndarray):
                 list_obj = obj.tolist()
             else:
