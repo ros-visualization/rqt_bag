@@ -29,7 +29,6 @@
 """Defines a raw view: a TopicMessageView that displays the message contents in a tree."""
 
 import array
-import codecs
 import math
 
 from builtin_interfaces.msg import Time as TimeMsg
