@@ -38,7 +38,11 @@ import numpy
 
 from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtWidgets import \
-    QApplication, QAbstractItemView, QSizePolicy, QTreeWidget, QTreeWidgetItem, QWidget
+    QAbstractItemView, QApplication, QSizePolicy, QTreeWidget, QTreeWidgetItem, QWidget
+
+from rclpy.time import Time
+from rqt_bag.bag_helper import rpy_from_quaternion
+
 from .topic_message_view import TopicMessageView
 
 # compatibility fix for python2/3
@@ -49,6 +53,11 @@ except NameError:
 
 MAX_LIST_LEN = 50
 LIST_TAIL_LEN = 10
+
+# Labels of virtual (computed) fields. They cannot contain spaces and cannot end with ].
+ROLL_LABEL = '*roll'
+PITCH_LABEL = '*pitch'
+YAW_LABEL = '*yaw'
 
 
 class RawView(TopicMessageView):
@@ -188,7 +197,14 @@ class MessageTree(QTreeWidget):
 
         if hasattr(obj, '__slots__'):
             subobjs = [(slot, getattr(obj, slot)) for slot in obj.__slots__]
-        elif type(obj) in [list, tuple, array.array, numpy.ndarray]:
+            type_name = type(obj).__name__
+            quat_slots = ('_x', '_y', '_z', '_w')
+            if 'Quaternion' in type_name and all(s in obj.__slots__ for s in quat_slots):
+                roll, pitch, yaw = rpy_from_quaternion(obj.x, obj.y, obj.z, obj.w)
+                subobjs.append((ROLL_LABEL, '%.6f (%.3f°)' % (roll, math.degrees(roll))))
+                subobjs.append((PITCH_LABEL, '%.6f (%.3f°)' % (pitch, math.degrees(pitch))))
+                subobjs.append((YAW_LABEL, '%.6f (%.3f°)' % (yaw, math.degrees(yaw))))
+        elif type(obj) in (list, tuple, array.array, numpy.ndarray):
             if type(obj) in (array.array, numpy.ndarray):
                 list_obj = obj.tolist()
             else:

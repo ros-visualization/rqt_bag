@@ -71,8 +71,8 @@ import threading
 from typing import Sequence
 
 from ament_index_python import get_resource
-
 from builtin_interfaces.msg import Time as TimeMsg
+from geometry_msgs.msg import Quaternion
 
 import numpy
 
@@ -93,7 +93,15 @@ from rqt_plot.data_plot import DataPlot
 
 MAX_LIST_LEN = 50
 LIST_TAIL_LEN = 10
+
+# Labels of virtual (computed) fields. They cannot contain spaces and cannot end with ].
 FLOAT_SECONDS_LABEL = '*float_seconds'
+ROLL_RAD_LABEL = '*roll(rad)'
+PITCH_RAD_LABEL = '*pitch(rad)'
+YAW_RAD_LABEL = '*yaw(rad)'
+ROLL_DEG_LABEL = '*roll(deg)'
+PITCH_DEG_LABEL = '*pitch(deg)'
+YAW_DEG_LABEL = '*yaw(deg)'
 
 # compatibility fix for python2/3
 try:
@@ -289,6 +297,23 @@ class PlotWidget(QWidget):
                                 time_val = y_value if type(y_value) is Time \
                                            else Time().from_msg(y_value)
                                 y_value = bag_helper.to_sec(time_val)
+                            elif isinstance(y_value, Quaternion):
+                                roll, pitch, yaw = bag_helper.rpy_from_quaternion(
+                                    y_value.x, y_value.y, y_value.z, y_value.w)
+                                if field == ROLL_RAD_LABEL:
+                                    y_value = roll
+                                elif field == PITCH_RAD_LABEL:
+                                    y_value = pitch
+                                elif field == YAW_RAD_LABEL:
+                                    y_value = yaw
+                                elif field == ROLL_DEG_LABEL:
+                                    y_value = math.degrees(roll)
+                                elif field == PITCH_DEG_LABEL:
+                                    y_value = math.degrees(pitch)
+                                elif field == YAW_DEG_LABEL:
+                                    y_value = math.degrees(yaw)
+                                else:
+                                    y_value = getattr(y_value, field)
                             else:
                                 y_value = getattr(y_value, field)
                             if index:
@@ -466,6 +491,15 @@ class MessageTree(QTreeWidget):
             if type(obj) in (Time, TimeMsg):
                 time_obj = obj if type(obj) is Time else Time().from_msg(obj)
                 subobjs.append((FLOAT_SECONDS_LABEL, bag_helper.to_sec(time_obj)))
+            elif isinstance(obj, Quaternion):
+                roll, pitch, yaw = bag_helper.rpy_from_quaternion(
+                    obj.x, obj.y, obj.z, obj.w)
+                subobjs.append((ROLL_RAD_LABEL, roll))
+                subobjs.append((PITCH_RAD_LABEL, pitch))
+                subobjs.append((YAW_RAD_LABEL, yaw))
+                subobjs.append((ROLL_DEG_LABEL, math.degrees(roll)))
+                subobjs.append((PITCH_DEG_LABEL, math.degrees(pitch)))
+                subobjs.append((YAW_DEG_LABEL, math.degrees(yaw)))
         elif isinstance(obj, (Sequence, numpy.ndarray)) and not isinstance(obj, str):
             len_obj = len(obj)
 
