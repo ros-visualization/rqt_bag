@@ -28,6 +28,7 @@
 
 import bisect
 import threading
+from typing import Callable, Iterable, Optional, Union
 
 from python_qt_binding.QtCore import qDebug, QPointF, QRectF, Qt, qWarning, Slot
 from python_qt_binding.QtGui import QBrush, QColor, QCursor, QFont, \
@@ -870,43 +871,51 @@ class TimelineFrame(QGraphicsItem):
 
     # Index Caching functions
 
-    def _update_index_cache(self, topic):
+    def _update_index_cache(self, topic: Optional[Union[str, Iterable[str]]],
+                            progress_cb: Optional[Callable[[int], None]] = None) -> int:
         """
-        Update the cache of message timestamps for the given topic.
+        Update the cache of message timestamps for the given topic(s).
 
+        :param topic: topic or list of topics to update the cache for, ''list(str)''
+        :param progress_cb: callback function to report progress, called once per each percent.
         :return: number of messages added to the index cache
         """
         if self._start_stamp is None or self._end_stamp is None:
             return 0
 
-        if topic not in self.index_cache:
-            # Don't have any cache of messages in this topic
-            start_time = self._start_stamp
-            topic_cache = []
-            self.index_cache[topic] = topic_cache
+        if isinstance(topic, Iterable) and not isinstance(topic, str):
+            topics = [t for t in topic if t in self.invalidated_caches]
+            if len(topics) == 0:
+                return 0
         else:
-            topic_cache = self.index_cache[topic]
-
-            # Check if the cache has been invalidated
             if topic not in self.invalidated_caches:
                 return 0
+            topics = [topic]
 
-            if len(topic_cache) == 0:
-                start_time = self._start_stamp
+        start_time = self._start_stamp
+        for t in topics:
+            if t not in self.index_cache:
+                # Don't have any cache of messages in this topic
+                topic_cache = []
+                self.index_cache[t] = topic_cache
             else:
-                start_time = Time(seconds=max(0.0, topic_cache[-1]))
+                topic_cache = self.index_cache[t]
+                if len(topic_cache) > 0:
+                    start_time = min(start_time, Time(seconds=max(0.0, topic_cache[-1])))
 
         end_time = self._end_stamp
 
-        topic_cache_len = len(topic_cache)
-
-        for entry in self.scene().get_entries([topic], start_time, end_time):
+        newly_added = 0
+        for entry in self.scene().get_entries(topics, start_time, end_time, progress_cb):
+            topic_cache = self.index_cache[entry.topic]
             topic_cache.append(bag_helper.to_sec(Time(nanoseconds=entry.timestamp)))
+            newly_added += 1
 
-        if topic in self.invalidated_caches:
-            self.invalidated_caches.remove(topic)
+        for t in topics:
+            if t in self.invalidated_caches:
+                self.invalidated_caches.remove(t)
 
-        return len(topic_cache) - topic_cache_len
+        return newly_added
 
     def cache_message(self, topic, t):
         """
