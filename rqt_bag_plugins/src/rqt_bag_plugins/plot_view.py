@@ -62,10 +62,16 @@
 
 import codecs
 import math
+from numbers import Complex, Number, Real
 import os
 import threading
+from typing import Sequence
 
 from ament_index_python import get_resource
+from builtin_interfaces.msg import Time as TimeMsg
+from geometry_msgs.msg import Quaternion
+
+import numpy
 
 from python_qt_binding import loadUi
 from python_qt_binding.QtCore import Qt, qWarning
@@ -81,6 +87,18 @@ from rqt_bag import bag_helper
 from rqt_bag import MessageView
 
 from rqt_plot.data_plot import DataPlot
+
+MAX_LIST_LEN = 50
+LIST_TAIL_LEN = 10
+
+# Labels of virtual (computed) fields. They cannot contain spaces and cannot end with ].
+FLOAT_SECONDS_LABEL = '*float_seconds'
+ROLL_RAD_LABEL = '*roll(rad)'
+PITCH_RAD_LABEL = '*pitch(rad)'
+YAW_RAD_LABEL = '*yaw(rad)'
+ROLL_DEG_LABEL = '*roll(deg)'
+PITCH_DEG_LABEL = '*pitch(deg)'
+YAW_DEG_LABEL = '*yaw(deg)'
 
 
 class PlotView(MessageView):
@@ -169,11 +187,15 @@ class PlotWidget(QWidget):
             bag, entry = self.timeline.get_entry(start_time, topic)
             if bag is None:
                 bag, entry = self.timeline.get_entry_after(start_time, topic)
-                start_time = Time(nanoseconds=entry.timestamp)
+                if entry is not None:
+                    start_time = Time(nanoseconds=entry.timestamp)
+                else:
+                    break
 
         self.bag = bag
-        (ros_message, msg_type) = self.bag.deserialize_entry(entry)
-        self.message_tree.set_message(ros_message, msg_type)
+        if entry is not None:
+            (ros_message, msg_type) = self.bag.deserialize_entry(entry)
+            self.message_tree.set_message(ros_message, msg_type)
 
         # state used by threaded resampling
         self.resampling_active = False
@@ -261,12 +283,38 @@ class PlotWidget(QWidget):
                             if field.endswith(']'):
                                 field = field[:-1]
                                 field, _, index = field.rpartition('[')
-                            y_value = getattr(y_value, field)
+                            if type(y_value) in (Time, TimeMsg) and field == FLOAT_SECONDS_LABEL:
+                                time_val = y_value if type(y_value) is Time \
+                                           else Time().from_msg(y_value)
+                                y_value = bag_helper.to_sec(time_val)
+                            elif isinstance(y_value, Quaternion):
+                                roll, pitch, yaw = bag_helper.rpy_from_quaternion(
+                                    y_value.x, y_value.y, y_value.z, y_value.w)
+                                if field == ROLL_RAD_LABEL:
+                                    y_value = roll
+                                elif field == PITCH_RAD_LABEL:
+                                    y_value = pitch
+                                elif field == YAW_RAD_LABEL:
+                                    y_value = yaw
+                                elif field == ROLL_DEG_LABEL:
+                                    y_value = math.degrees(roll)
+                                elif field == PITCH_DEG_LABEL:
+                                    y_value = math.degrees(pitch)
+                                elif field == YAW_DEG_LABEL:
+                                    y_value = math.degrees(yaw)
+                                else:
+                                    y_value = getattr(y_value, field)
+                            else:
+                                y_value = getattr(y_value, field)
                             if index:
                                 index = int(index)
-                                y_value = y_value[index]
-                        y[path].append(y_value)
-                        x[path].append(bag_helper.to_sec(timestamp - self.start_stamp))
+                                try:
+                                    y_value = y_value[index]
+                                except IndexError:
+                                    y_value = None
+                        if y_value is not None:
+                            y[path].append(y_value)
+                            x[path].append(bag_helper.to_sec(timestamp - self.start_stamp))
 
                 # TODO: incremental plot updates would go here...
                 #       we should probably do incremental updates based on time;
@@ -432,20 +480,37 @@ class MessageTree(QTreeWidget):
         if hasattr(obj, '_fields_and_field_types'):
             field_keys = obj.get_fields_and_field_types().keys()
             subobjs = [(field_name, getattr(obj, field_name)) for field_name in field_keys]
-        elif type(obj) in [list, tuple]:
+            if type(obj) in (Time, TimeMsg):
+                time_obj = obj if type(obj) is Time else Time().from_msg(obj)
+                subobjs.append((FLOAT_SECONDS_LABEL, bag_helper.to_sec(time_obj)))
+            elif isinstance(obj, Quaternion):
+                roll, pitch, yaw = bag_helper.rpy_from_quaternion(
+                    obj.x, obj.y, obj.z, obj.w)
+                subobjs.append((ROLL_RAD_LABEL, roll))
+                subobjs.append((PITCH_RAD_LABEL, pitch))
+                subobjs.append((YAW_RAD_LABEL, yaw))
+                subobjs.append((ROLL_DEG_LABEL, math.degrees(roll)))
+                subobjs.append((PITCH_DEG_LABEL, math.degrees(pitch)))
+                subobjs.append((YAW_DEG_LABEL, math.degrees(yaw)))
+        elif isinstance(obj, (Sequence, numpy.ndarray)) and not isinstance(obj, str):
             len_obj = len(obj)
+
             if len_obj == 0:
                 subobjs = []
             else:
                 w = int(math.ceil(math.log10(len_obj)))
-                subobjs = [('[%*d]' % (w, i), subobj) for (i, subobj) in enumerate(obj)]
+                subobjs = [('[%*d]' % (w, i), subobj)
+                           for (i, subobj) in enumerate(obj[:MAX_LIST_LEN])]
+                tail_start = max(MAX_LIST_LEN, len_obj - LIST_TAIL_LEN)
+                subobjs.extend([('[%*d]' % (w, i + tail_start), subobj)
+                                for (i, subobj) in enumerate(obj[tail_start:])])
         else:
             subobjs = []
 
         plotitem = False
-        if type(obj) in [int, float]:
+        if isinstance(obj, Number):
             plotitem = True
-            if isinstance(obj, float):
+            if isinstance(obj, Real):
                 obj_repr = '%.6f' % obj
             else:
                 obj_repr = str(obj)
@@ -455,7 +520,7 @@ class MessageTree(QTreeWidget):
             else:
                 label += ':  %s' % obj_repr
 
-        elif type(obj) in [str, bool, int, float, complex, Time]:
+        elif type(obj) in [str, bool, Complex, Time]:
             # Ignore any binary data
             obj_repr = codecs.utf_8_decode(str(obj).encode(), 'ignore')[0]
 
