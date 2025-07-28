@@ -28,6 +28,7 @@
 
 import threading
 import time
+from typing import Callable, Iterable, Iterator, Optional, Tuple, Union
 
 from python_qt_binding.QtCore import qDebug, Qt, QTimer, qWarning, Signal
 from python_qt_binding.QtWidgets import QGraphicsScene, QMessageBox
@@ -43,6 +44,7 @@ from .message_listener_thread import MessageListenerThread
 from .message_loader_thread import MessageLoaderThread
 from .player import Player
 from .recorder import Recorder
+from .rosbag2 import Entry, Rosbag2
 from .timeline_frame import TimelineFrame
 
 
@@ -67,6 +69,7 @@ class BagTimeline(QGraphicsScene):
         super(BagTimeline, self).__init__()
         self._bags = []
         self._bag_lock = threading.RLock()
+        self._bags_size = 0
 
         self.background_task = None  # Display string
         self.background_task_cancel = False
@@ -158,6 +161,7 @@ class BagTimeline(QGraphicsScene):
         :param bag: ros bag file, ''rosbag2.bag''
         """
         self._bags.append(bag)
+        self._bags_size += bag.size()
 
         bag_topics = bag.get_topics()
         qDebug('Topics from this bag: {}'.format(bag_topics))
@@ -187,8 +191,7 @@ class BagTimeline(QGraphicsScene):
             self._timeline_frame.index_cache_cv.notify()
 
     def file_size(self):
-        with self._bag_lock:
-            return sum(b.size() for b in self._bags)
+        return self._bags_size
 
     # TODO Rethink API and if these need to be visible
     def _get_start_stamp(self):
@@ -264,47 +267,37 @@ class BagTimeline(QGraphicsScene):
                     datatype = bag_datatype
             return datatype
 
-    def get_entries(self, topics, start_stamp, end_stamp):
+    def get_entries(self, topics: Optional[Union[str, Iterable[str]]],
+                    start_stamp: Time, end_stamp: Time,
+                    progress_cb: Optional[Callable[[int], None]] = None) -> Iterator[Entry]:
         """
         Get a generator for bag entries.
 
         :param topics: list of topics to query, ''list(str)''
         :param start_stamp: stamp to start at, ''rclpy.time.Time''
-        :param end_stamp: stamp to end at, ''rclpy.time,Time''
+        :param end_stamp: stamp to end at, ''rclpy.time.Time''
+        :param progress_cb: callback function to report progress, called once per each percent.
         :returns: entries the bag file, ''msg''
         """
-        with self._bag_lock:
-            bag_entries = []
-            for b in self._bags:
-                bag_start_time = b.get_earliest_timestamp()
-                if bag_start_time is not None and bag_start_time > end_stamp:
-                    continue
+        for b, entry in self.get_entries_with_bags(topics, start_stamp, end_stamp, progress_cb):
+            yield entry
+        return None
 
-                bag_end_time = b.get_latest_timestamp()
-                if bag_end_time is not None and bag_end_time < start_stamp:
-                    continue
-
-                # Get all of the entries for each topic. When opening multiple
-                # bags, the requested topic may not be in a given bag database
-                for topic in topics:
-                    entries = b.get_entries_in_range(start_stamp, end_stamp, topic)
-                    if entries is not None:
-                        bag_entries.extend(entries)
-
-            for entry in sorted(bag_entries, key=lambda entry: entry.timestamp):
-                yield entry
-
-    def get_entries_with_bags(self, topic, start_stamp, end_stamp):
+    def get_entries_with_bags(self, topics: Optional[Union[str, Iterable[str]]],
+                              start_stamp: Time, end_stamp: Time,
+                              progress_cb: Optional[Callable[[int], None]] = None) \
+            -> Iterator[Tuple[Rosbag2, Entry]]:
         """
         Get a generator of bag entries.
 
-        :param topics: list of topics to query, ''list(str)''
+        :param topics: list of topics to query (if None, all topics are used), ''list(str)''
         :param start_stamp: stamp to start at, ''rclpy.time.Time''
-        :param end_stamp: stamp to end at, ''rclpy.time,Time''
-        :returns: tuple of (bag, entry) for the entries in the bag file, ''(rosbag2.bag, msg)''
+        :param end_stamp: stamp to end at, ''rclpy.time.Time''
+        :param progress_cb: callback function to report progress, called once per each percent.
+        :returns: tuple of (bag, entry) for the entries in the bag file, ''(rosbag2.Rosbag2, msg)''
         """
         with self._bag_lock:
-            bag_entries = []
+            relevant_bags = []
             for b in self._bags:
                 bag_start_time = b.get_earliest_timestamp()
                 if bag_start_time is not None and bag_start_time > end_stamp:
@@ -314,11 +307,61 @@ class BagTimeline(QGraphicsScene):
                 if bag_end_time is not None and bag_end_time < start_stamp:
                     continue
 
-                for entry in b.get_entries_in_range(start_stamp, end_stamp):
-                    bag_entries.append((b, entry))
+                relevant_bags.append(b)
 
-            for bag, entry in sorted(bag_entries, key=lambda item: item[1].timestamp):
-                yield bag, entry
+            generators = {}
+            last_entries = {}
+            for b in relevant_bags:
+                generators[b] = b.entries_in_range_generator(start_stamp, end_stamp, topics)
+                try:
+                    last_entries[b] = next(generators[b])
+                except StopIteration:
+                    last_entries[b] = None
+
+            to_delete = []
+            for b in last_entries:
+                if last_entries[b] is None:
+                    to_delete.append(b)
+
+            for b in to_delete:
+                del last_entries[b]
+                del generators[b]
+                relevant_bags.remove(b)
+
+            if progress_cb is not None:
+                progress = 0
+                num_entries = 0
+                estimated_num_entries = 0
+                for b in relevant_bags:
+                    estimated_num_entries += b.estimate_num_entries_in_range(
+                        start_stamp, end_stamp, topics)
+
+            while any(last_entries.values()):
+                min_bag = None
+                min_entry = None
+                for b, entry in last_entries.items():
+                    if entry is not None:
+                        if min_entry is None or entry.timestamp < min_entry.timestamp:
+                            min_bag = b
+                            min_entry = entry
+                if min_bag is None:
+                    return
+
+                if progress_cb is not None:
+                    num_entries += 1
+                    new_progress = int(100.0 * (float(num_entries) / estimated_num_entries))
+                    if new_progress != progress:
+                        progress_cb(new_progress)
+                        progress = new_progress
+
+                yield min_bag, min_entry
+
+                try:
+                    last_entries[min_bag] = next(generators[min_bag])
+                except StopIteration:
+                    last_entries[min_bag] = None
+
+        return
 
     def get_entry(self, t, topic):
         """
