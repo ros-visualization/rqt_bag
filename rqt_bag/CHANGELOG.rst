@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.2.0 (2025-07-30)
+------------------
 * Better handling of large bag files (`#178 <https://github.com/ros-visualization/rqt_bag/issues/178>`_)
 * Display roll, pitch, yaw values for quaternions (`#179 <https://github.com/ros-visualization/rqt_bag/issues/179>`_)
 * Fix flake8 error in setup.py (`#192 <https://github.com/ros-visualization/rqt_bag/issues/192>`_)
