@@ -2,6 +2,16 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Display roll, pitch, yaw values for quaternions (`#179 <https://github.com/ros-visualization/rqt_bag/issues/179>`_)
+* Fix flake8 error in setup.py (`#192 <https://github.com/ros-visualization/rqt_bag/issues/192>`_)
+* Fixed image helper and added support for PNG-coded compressedDepth (`#176 <https://github.com/ros-visualization/rqt_bag/issues/176>`_)
+* Improve plot view (`#174 <https://github.com/ros-visualization/rqt_bag/issues/174>`_)
+* plot_view: Fixed display of initial message (`#180 <https://github.com/ros-visualization/rqt_bag/issues/180>`_)
+* fix setuptools deprecations (`#185 <https://github.com/ros-visualization/rqt_bag/issues/185>`_)
+* Contributors: Martin Pecka, Michael Carlstrom, mosfet80
+
 2.1.1 (2025-07-01)
 ------------------
 
