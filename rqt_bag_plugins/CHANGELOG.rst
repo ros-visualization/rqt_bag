@@ -2,6 +2,19 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Display roll, pitch, yaw values for quaternions (backport `#179 <https://github.com/ros-visualization/rqt_bag/issues/179>`_) (`#199 <https://github.com/ros-visualization/rqt_bag/issues/199>`_)
+  * Display roll, pitch, yaw values for quaternions (`#179 <https://github.com/ros-visualization/rqt_bag/issues/179>`_)
+  (cherry picked from commit 4593d82d2b23a322119c6a518befec970db7d54e)
+* Fixed image helper and added support for PNG-coded compressedDepth (backport `#176 <https://github.com/ros-visualization/rqt_bag/issues/176>`_)  (`#196 <https://github.com/ros-visualization/rqt_bag/issues/196>`_)
+* Improve plot view (backport `#174 <https://github.com/ros-visualization/rqt_bag/issues/174>`_) (`#195 <https://github.com/ros-visualization/rqt_bag/issues/195>`_)
+* plot_view: Fixed display of initial message (backport `#180 <https://github.com/ros-visualization/rqt_bag/issues/180>`_) (`#187 <https://github.com/ros-visualization/rqt_bag/issues/187>`_)
+  plot_view: Fixed display of initial message (`#180 <https://github.com/ros-visualization/rqt_bag/issues/180>`_)
+  (cherry picked from commit 9ff337266e97143c2ec9eef6f9aa03bde2b31997)
+  Co-authored-by: Martin Pecka <peci1@seznam.cz>
+* Contributors: Martin Pecka, mergify[bot]
+
 1.5.4 (2024-09-06)
 ------------------
 
