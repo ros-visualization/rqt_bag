@@ -29,13 +29,5 @@ setup(
         'rqt_bag provides a GUI plugin for displaying and replaying ROS bag files.'
     ),
     license='BSD',
-<<<<<<< HEAD
-=======
-    extras_require={
-        'test' : [
-            'pytest',
-        ],
-    },
->>>>>>> 34e39bc (fix setuptools deprecations (#185))
     scripts=['scripts/rqt_bag'],
 )

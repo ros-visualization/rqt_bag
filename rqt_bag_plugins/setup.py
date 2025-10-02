@@ -28,12 +28,4 @@ setup(
         'rqt_bag_plugins provides GUI plugins for rqt_bag to display various message types.'
     ),
     license='BSD',
-<<<<<<< HEAD
-=======
-        extras_require={
-        'test' : [
-            'pytest',
-        ],
-    },
->>>>>>> 34e39bc (fix setuptools deprecations (#185))
 )
