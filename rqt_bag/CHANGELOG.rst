@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.2.1 (2025-11-24)
+------------------
+* Cleanup mislabeled BSD license (`#205 <https://github.com/ros-visualization/rqt_bag/issues/205>`_)
+* Contributors: Alejandro Hernández Cordero
+
 2.2.0 (2025-07-30)
 ------------------
 * Better handling of large bag files (`#178 <https://github.com/ros-visualization/rqt_bag/issues/178>`_)
