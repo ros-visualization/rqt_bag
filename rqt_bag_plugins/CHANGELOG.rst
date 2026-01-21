@@ -2,6 +2,14 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix setuptools deprecations (backport `#185 <https://github.com/ros-visualization/rqt_bag/issues/185>`_) (`#203 <https://github.com/ros-visualization/rqt_bag/issues/203>`_)
+  fix setuptools deprecations (`#185 <https://github.com/ros-visualization/rqt_bag/issues/185>`_)
+  (cherry picked from commit 34e39bcb6455d18d0073a05797e6e1f04bbcbf7c)
+  Co-authored-by: mosfet80 <10235105+mosfet80@users.noreply.github.com>
+* Contributors: mergify[bot]
+
 1.5.5 (2025-08-06)
 ------------------
 * Display roll, pitch, yaw values for quaternions (backport `#179 <https://github.com/ros-visualization/rqt_bag/issues/179>`_) (`#199 <https://github.com/ros-visualization/rqt_bag/issues/199>`_)
