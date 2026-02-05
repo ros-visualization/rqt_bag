@@ -31,17 +31,29 @@
 
 from collections import namedtuple
 import os
+from typing import Callable, Iterable, Iterator, List, Optional, Union
 
 from rclpy.clock import Clock, ClockType
 from rclpy.duration import Duration
 from rclpy import logging
 from rclpy.serialization import deserialize_message
+<<<<<<< HEAD
+=======
+from rclpy.time import Time
+
+>>>>>>> c7d3efd (Better handling of large bag files (#178))
 import rosbag2_py
 from rosidl_runtime_py.utilities import get_message
 
+<<<<<<< HEAD
 from rosbag2_py import get_default_storage_id, StorageFilter
 
 WRITE_ONLY_MSG = "open for writing only, returning None"
+=======
+from rqt_bag import bag_helper
+
+WRITE_ONLY_MSG = 'open for writing only, returning None'
+>>>>>>> c7d3efd (Better handling of large bag files (#178))
 
 Entry = namedtuple('Entry', ['topic', 'data', 'timestamp'])
 
@@ -152,25 +164,111 @@ class Rosbag2:
         self.reader.reset_filter()
         return result
 
-    def get_entries_in_range(self, t_start, t_end, topic=None):
+    def get_entries_in_range(self, t_start: Time, t_end: Time,
+                             topic: Optional[Union[str, Iterable[str]]] = None,
+                             progress_cb: Optional[Callable[[int], None]] = None) \
+            -> Optional[List[Entry]]:
+        """
+        Get a list of all entries in a given time range, sorted by receive stamp.
+
+        Do not use this function for large bags. It will load all entries into memory. Use
+        entries_in_range_generator() instead and process the data as they are returned.
+
+        :param t_start: stamp to start at, ''rclpy.time.Time''
+        :param t_end: stamp to end at, ''rclpy.time.Time''
+        :param topic: topic or list of topics to query (if None, all topics are), ''list(str)''
+        :param progress_cb: callback function to report progress, called once per each percent.
+        :returns: entries in the bag file, ''list(Entry)''
+        """
         if not self.reader:
             self._logger.warn("get_entries_in_range - " + WRITE_ONLY_MSG)
             return None
 
+        return list(self.entries_in_range_generator(t_start, t_end, topic, progress_cb))
+
+    def entries_in_range_generator(self, t_start: Time, t_end: Time,
+                                   topic: Optional[Union[str, Iterable[str]]] = None,
+                                   progress_cb: Optional[Callable[[int], None]] = None) \
+            -> Iterator[Entry]:
+        """
+        Get a generator of all entries in a given time range, sorted by receive stamp.
+
+        :param t_start: stamp to start at, ''rclpy.time.Time''
+        :param t_end: stamp to end at, ''rclpy.time.Time''
+        :param topic: topic or list of topics to query (if None, all topics are), ''list(str)''
+        :param progress_cb: callback function to report progress, called once per each percent.
+        :returns: generator of entries in the bag file, ''Generator(Entry)''
+        """
+        if not self.reader:
+            self._logger.warn('entries_in_range_generator - ' + WRITE_ONLY_MSG)
+            return
+
+        if isinstance(topic, Iterable) and not isinstance(topic, str):
+            topics = topic
+        else:
+            topics = [topic] if topic is not None else []
+
         self.reader.set_read_order(rosbag2_py.ReadOrder(reverse=False))
-        self.reader.set_filter(rosbag2_py.StorageFilter(topics=[topic] if topic else []))
+        self.reader.set_filter(rosbag2_py.StorageFilter(topics=topics))
         self.reader.seek(t_start.nanoseconds)
-        entries = []
+        if progress_cb is not None:
+            num_entries = 0
+            progress = 0
+            estimated_num_entries = self.estimate_num_entries_in_range(t_start, t_end, topic)
+
         while self.reader.has_next():
             next_entry = self.read_next()
             if next_entry.timestamp <= t_end.nanoseconds:
-                entries.append(next_entry)
+                if progress_cb is not None:
+                    num_entries += 1
+                    new_progress = int(100.0 * (float(num_entries) / estimated_num_entries))
+                    if new_progress != progress:
+                        progress_cb(new_progress)
+                        progress = new_progress
+                yield next_entry
             else:
                 break
 
         # No filter
         self.reader.reset_filter()
-        return entries
+
+        if progress_cb is not None and progress != 100:
+            progress_cb(100)
+
+        return
+
+    def estimate_num_entries_in_range(self, t_start: Time, t_end: Time,
+                                      topic: Optional[Union[str, Iterable[str]]] = None) -> int:
+        """
+        Estimate the number of entries in the given time range.
+
+        The computation is only approximate, based on the assumption that messages are distributed
+        evenly across the whole bag on every topic.
+
+        :param t_start: stamp to start at, ''rclpy.time.Time''
+        :param t_end: stamp to end at, ''rclpy.time.Time''
+        :param topic: topic or list of topics to query (if None, all topics are), ''list(str)''
+        :returns: the approximate number of entries, ''int''
+        """
+        if not self.reader:
+            self._logger.warn('estimate_num_entries_in_range - ' + WRITE_ONLY_MSG)
+            return 0
+
+        if isinstance(topic, Iterable) and not isinstance(topic, str):
+            topics = topic
+        else:
+            topics = [topic] if topic is not None else []
+
+        range_duration = t_end - t_start
+        bag_duration = self.get_latest_timestamp() - self.get_earliest_timestamp()
+        fraction = bag_helper.to_sec(range_duration) / bag_helper.to_sec(bag_duration)
+
+        num_messages = 0
+        for t_info in self.metadata.topics_with_message_count:
+            if t_info.topic_metadata.name in topics:
+                num_messages += t_info.message_count
+
+        return int(fraction * num_messages)
 
     def read_next(self):
         return Entry(*self.reader.read_next())
