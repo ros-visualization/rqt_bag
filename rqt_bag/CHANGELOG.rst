@@ -2,8 +2,8 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.1.6 (2026-02-13)
+------------------
 * fix setuptools deprecations (backport `#185 <https://github.com/ros-visualization/rqt_bag/issues/185>`_) (`#204 <https://github.com/ros-visualization/rqt_bag/issues/204>`_)
 * Contributors: mergify[bot]
 
