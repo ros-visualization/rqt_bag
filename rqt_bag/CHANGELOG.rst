@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix setuptools deprecations (backport `#185 <https://github.com/ros-visualization/rqt_bag/issues/185>`_) (`#204 <https://github.com/ros-visualization/rqt_bag/issues/204>`_)
+* Contributors: mergify[bot]
+
 1.1.5 (2024-05-15)
 ------------------
 * Fixed button icons (backport `#159 <https://github.com/ros-visualization/rqt_bag/issues/159>`_) (`#161 <https://github.com/ros-visualization/rqt_bag/issues/161>`_)
