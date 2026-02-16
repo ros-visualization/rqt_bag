@@ -430,7 +430,7 @@ class MessageTree(QTreeWidget):
                     self._expanded_paths.add(path)
                 elif path in self._expanded_paths:
                     self._expanded_paths.remove(path)
-                if item.checkState(0) == Qt.Checked:
+                if item.checkState(0) == Qt.CheckState.Checked:
                     self._checked_states.add(path)
                 elif path in self._checked_states:
                     self._checked_states.remove(path)
@@ -455,7 +455,7 @@ class MessageTree(QTreeWidget):
 
     def get_item_path(self, item):
         # remove spaces that may get introduced in indexing, e.g. [  3] is [3]
-        return item.data(0, Qt.UserRole)[0].replace(' ', '')
+        return item.data(0, Qt.ItemDataRole.UserRole)[0].replace(' ', '')
 
     def get_all_items(self):
         items = []
@@ -538,10 +538,10 @@ class MessageTree(QTreeWidget):
             parent.addChild(item)
         if plotitem:
             if path.replace(' ', '') in self._checked_states:
-                item.setCheckState(0, Qt.Checked)
+                item.setCheckState(0, Qt.CheckState.Checked)
             else:
-                item.setCheckState(0, Qt.Unchecked)
-        item.setData(0, Qt.UserRole, (path, obj_type))
+                item.setCheckState(0, Qt.CheckState.Unchecked)
+        item.setData(0, Qt.ItemDataRole.UserRole, (path, obj_type))
 
         for subobj_name, subobj in subobjs:
             if subobj is None:
@@ -563,7 +563,7 @@ class MessageTree(QTreeWidget):
 
     # Keyboard handler
     def on_key_press(self, event):
-        key, ctrl = event.key(), event.modifiers() & Qt.ControlModifier
+        key, ctrl = event.key(), event.modifiers() & Qt.KeyboardModifier.ControlModifier
         if ctrl:
             if key == ord('C') or key == ord('c'):
                 # Ctrl-C: copy text from selected items to clipboard
@@ -575,7 +575,7 @@ class MessageTree(QTreeWidget):
                 self.selectAll()
 
     def handleChanged(self, item, column):
-        if item.data(0, Qt.UserRole) is None:
+        if item.data(0, Qt.ItemDataRole.UserRole) is None:
             pass
         else:
             # Strip the leading underscore from each of the path segments
@@ -583,11 +583,11 @@ class MessageTree(QTreeWidget):
             segments = [seg[1:] if seg[0] == '_' else seg for seg in split_item_path]
             path = '.'.join(segments)
 
-            if item.checkState(column) == Qt.Checked:
+            if item.checkState(column) == Qt.CheckState.Checked:
                 if path not in self.plot_list:
                     self.plot_list.add(path)
                     self.parent().parent().parent().add_plot(path)
-            if item.checkState(column) == Qt.Unchecked:
+            if item.checkState(column) == Qt.CheckState.Unchecked:
                 if path in self.plot_list:
                     self.plot_list.remove(path)
                     self.parent().parent().parent().remove_plot(path)

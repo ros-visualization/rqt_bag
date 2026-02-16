@@ -142,7 +142,7 @@ class MessageTree(QTreeWidget):
 
     # Keyboard handler
     def on_key_press(self, event):
-        if event.modifiers() & Qt.ControlModifier:
+        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             key = event.key()
             if key == ord('C') or key == ord('c'):
                 # Ctrl-C: copy text from selected items to clipboard
@@ -171,7 +171,7 @@ class MessageTree(QTreeWidget):
 
     def get_item_path(self, item):
         # remove spaces that may get introduced in indexing, e.g. [  3] is [3]
-        return item.data(0, Qt.UserRole)[0].replace(' ', '')
+        return item.data(0, Qt.ItemDataRole.UserRole)[0].replace(' ', '')
 
     def get_all_items(self):
         items = []
@@ -260,7 +260,7 @@ class MessageTree(QTreeWidget):
             self.addTopLevelItem(item)
         else:
             parent.addChild(item)
-        item.setData(0, Qt.UserRole, (path, obj_type))
+        item.setData(0, Qt.ItemDataRole.UserRole, (path, obj_type))
 
         for subobj_name, subobj in subobjs:
             if subobj is None:
