@@ -40,7 +40,6 @@ if (
 ):
     sys.modules['PyQt5'] = None
 
-from python_qt_binding.QtCore import Qt
 from python_qt_binding.QtGui import QBrush, QColorConstants, QPen, QPixmap
 
 from rclpy.time import Time
