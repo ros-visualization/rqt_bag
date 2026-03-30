@@ -68,7 +68,7 @@ class NodeSelection(QWidget):
         self.selection_vlayout.addWidget(item)
 
     def updateNode(self, state, node):
-        if state == Qt.Checked:
+        if state == Qt.CheckState.Checked:
             self.selected_nodes.append(node)
         else:
             self.selected_nodes.remove(node)
@@ -88,7 +88,7 @@ class NodeSelection(QWidget):
 
         # Select each of these in the (parent) topics dialog
         for topic in topics:
-            self.parent_widget.changeTopicCheckState(topic, Qt.Checked)
-            self.parent_widget.updateList(Qt.Checked, topic)
+            self.parent_widget.changeTopicCheckState(topic, Qt.CheckState.Checked)
+            self.parent_widget.updateList(Qt.CheckState.Checked, topic)
 
         self.close()

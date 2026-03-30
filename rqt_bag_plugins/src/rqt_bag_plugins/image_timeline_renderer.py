@@ -40,8 +40,7 @@ if (
 ):
     sys.modules['PyQt5'] = None
 
-from python_qt_binding.QtCore import Qt
-from python_qt_binding.QtGui import QBrush, QPen, QPixmap
+from python_qt_binding.QtGui import QBrush, QColorConstants, QPen, QPixmap
 
 from rclpy.time import Time
 
@@ -95,7 +94,7 @@ class ImageTimelineRenderer(TimelineRenderer):
         thumbnail_x, thumbnail_y, thumbnail_height = x + 1, y + 1, height - 2 - thumbnail_gap
 
         # set color to white draw rectangle over messages
-        painter.setBrush(QBrush(Qt.white))
+        painter.setBrush(QBrush(QColorConstants.White))
         painter.drawRect(int(x), int(y), int(width), int(height - thumbnail_gap))
         thumbnail_width = None
 
@@ -136,8 +135,8 @@ class ImageTimelineRenderer(TimelineRenderer):
             if width == 1:
                 break
 
-        painter.setPen(QPen(Qt.black))
-        painter.setBrush(QBrush(Qt.transparent))
+        painter.setPen(QPen(QColorConstants.Black))
+        painter.setBrush(QBrush(QColorConstants.transparent))
         if width == 1:
             painter.drawRect(int(x), int(y), int(thumbnail_x - x), int(height - thumbnail_gap - 1))
         else:

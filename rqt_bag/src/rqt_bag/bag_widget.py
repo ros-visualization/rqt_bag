@@ -145,7 +145,8 @@ class BagWidget(QWidget):
     def graphics_view_on_key_press(self, event):
         key = event.key()
         if key in (
-                Qt.Key_Left, Qt.Key_Right, Qt.Key_Up, Qt.Key_Down, Qt.Key_PageUp, Qt.Key_PageDown):
+                Qt.Key.Key_Left, Qt.Key.Key_Right, Qt.Key.Key_Up, Qt.Key.Key_Down,
+                Qt.Key.Key_PageUp, Qt.Key.Key_PageDown):
             # This causes the graphics view to ignore these keys so they can be caught
             # by the bag_widget keyPressEvent
             event.ignore()
@@ -156,23 +157,23 @@ class BagWidget(QWidget):
     # callbacks for ui events
     def on_key_press(self, event):
         key = event.key()
-        if key == Qt.Key_Space:
+        if key == Qt.Key.Key_Space:
             self._timeline.toggle_play()
-        elif key == Qt.Key_Home:
+        elif key == Qt.Key.Key_Home:
             self._timeline.navigate_start()
-        elif key == Qt.Key_End:
+        elif key == Qt.Key.Key_End:
             self._handle_end_clicked()
-        elif key == Qt.Key_Plus or key == Qt.Key_Equal:
+        elif key == Qt.Key.Key_Plus or key == Qt.Key.Key_Equal:
             self._handle_faster_clicked()
-        elif key == Qt.Key_Minus:
+        elif key == Qt.Key.Key_Minus:
             self._handle_slower_clicked()
-        elif key == Qt.Key_Left:
+        elif key == Qt.Key.Key_Left:
             self._timeline.translate_timeline_left()
-        elif key == Qt.Key_Right:
+        elif key == Qt.Key.Key_Right:
             self._timeline.translate_timeline_right()
-        elif key == Qt.Key_Up or key == Qt.Key_PageUp:
+        elif key == Qt.Key.Key_Up or key == Qt.Key.Key_PageUp:
             self._handle_zoom_in_clicked()
-        elif key == Qt.Key_Down or key == Qt.Key_PageDown:
+        elif key == Qt.Key.Key_Down or key == Qt.Key.Key_PageDown:
             self._handle_zoom_out_clicked()
 
     def handle_destroy(self, args):
@@ -273,8 +274,8 @@ class BagWidget(QWidget):
         # Create a dialog explicitly so that we can set options on it. We're currently using
         # a native dialog which is not able to multi-select directories
         dialog = QFileDialog(self)
-        dialog.setFileMode(QFileDialog.Directory)
-        dialog.setOption(QFileDialog.ShowDirsOnly, True)
+        dialog.setFileMode(QFileDialog.FileMode.Directory)
+        dialog.setOption(QFileDialog.OptionQFontMetricsQFontMetrics.ShowDirsOnly, True)
 
         if not dialog.exec():
             return
@@ -441,7 +442,7 @@ class BagWidget(QWidget):
     def on_mousewheel(self, event):
         # scroll -> scroll the page up and down
         # ctrl+scroll -> zoom-in or zoom out timeline
-        if event.modifiers() & Qt.ControlModifier:
+        if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
             self._timeline._timeline_frame.on_mousewheel(event)
         else:
             BagGraphicsView.wheelEvent(self.graphics_view, event)
