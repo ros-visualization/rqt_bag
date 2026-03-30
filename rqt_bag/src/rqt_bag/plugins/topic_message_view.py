@@ -29,7 +29,7 @@
 from packaging.version import Version
 from python_qt_binding import QT_BINDING_VERSION
 from python_qt_binding.QtGui import QIcon
-if Version(QT_BINDING_VERSION) > Version('6.0.0'):
+if Version(QT_BINDING_VERSION) >= Version('6.0.0'):
     from python_qt_binding.QtGui import QAction
 else:
     from python_qt_binding.QtWidgets import QAction
