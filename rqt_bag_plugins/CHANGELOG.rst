@@ -2,8 +2,8 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.0.3 (2026-04-13)
+------------------
 * fix setuptools deprecations (backport `#185 <https://github.com/ros-visualization/rqt_bag/issues/185>`_) (`#202 <https://github.com/ros-visualization/rqt_bag/issues/202>`_)
   Co-authored-by: mosfet80 <10235105+mosfet80@users.noreply.github.com>
   Co-authored-by: Alejandro Hernandez Cordero <ahcorde@gmail.com>
