@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.2.2 (2026-04-13)
+------------------
+* Support Qt6 (`#206 <https://github.com/ros-visualization/rqt_bag/issues/206>`_)
+* Contributors: Alejandro Hernández Cordero
+
 2.2.1 (2025-11-24)
 ------------------
 * Cleanup mislabeled BSD license (`#205 <https://github.com/ros-visualization/rqt_bag/issues/205>`_)
