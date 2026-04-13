@@ -2,6 +2,15 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.3 (2026-04-13)
+------------------
+* fix setuptools deprecations (backport `#185 <https://github.com/ros-visualization/rqt_bag/issues/185>`_) (`#202 <https://github.com/ros-visualization/rqt_bag/issues/202>`_)
+* Better handling of large bag files (backport `#178 <https://github.com/ros-visualization/rqt_bag/issues/178>`_) (`#200 <https://github.com/ros-visualization/rqt_bag/issues/200>`_)
+* Display roll, pitch, yaw values for quaternions (backport `#179 <https://github.com/ros-visualization/rqt_bag/issues/179>`_) (`#198 <https://github.com/ros-visualization/rqt_bag/issues/198>`_)
+* Improved raw view to better handle arrays and time objects (backport `#173 <https://github.com/ros-visualization/rqt_bag/issues/173>`_) (`#193 <https://github.com/ros-visualization/rqt_bag/issues/193>`_)
+* plot_view: Fixed display of initial message (backport `#180 <https://github.com/ros-visualization/rqt_bag/issues/180>`_) (`#186 <https://github.com/ros-visualization/rqt_bag/issues/186>`_)
+* Contributors: mergify[bot]
+
 2.0.2 (2025-01-07)
 ------------------
 * Add standard tests for rqt_bag and rqt_bag_plugins (`#171 <https://github.com/ros-visualization/rqt_bag/issues/171>`_)
