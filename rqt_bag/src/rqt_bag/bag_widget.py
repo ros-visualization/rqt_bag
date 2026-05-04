@@ -275,7 +275,7 @@ class BagWidget(QWidget):
         # a native dialog which is not able to multi-select directories
         dialog = QFileDialog(self)
         dialog.setFileMode(QFileDialog.FileMode.Directory)
-        dialog.setOption(QFileDialog.OptionQFontMetricsQFontMetrics.ShowDirsOnly, True)
+        dialog.setOption(QFileDialog.Option.ShowDirsOnly, True)
 
         if not dialog.exec():
             return

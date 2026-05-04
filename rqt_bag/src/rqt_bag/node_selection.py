@@ -68,6 +68,7 @@ class NodeSelection(QWidget):
         self.selection_vlayout.addWidget(item)
 
     def updateNode(self, state, node):
+        state = Qt.CheckState(state)
         if state == Qt.CheckState.Checked:
             self.selected_nodes.append(node)
         else:

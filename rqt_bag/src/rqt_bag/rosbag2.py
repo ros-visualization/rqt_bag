@@ -123,7 +123,7 @@ class Rosbag2:
         Returns the entry that is closest in time (<=) to the provided timestamp.
         """
         if not self.reader:
-            self._logger.warn('get_entry - ' + WRITE_ONLY_MSG)
+            self._logger.warning('get_entry - ' + WRITE_ONLY_MSG)
             return None
 
         self.reader.set_read_order(rosbag2_py.ReadOrder(reverse=True))
@@ -142,7 +142,7 @@ class Rosbag2:
     def get_entry_after(self, timestamp, topic=None):
         """Get the next entry after a given timestamp."""
         if not self.reader:
-            self._logger.warn('get_entry_after - ' + WRITE_ONLY_MSG)
+            self._logger.warning('get_entry_after - ' + WRITE_ONLY_MSG)
             return None
 
         self.reader.set_read_order(rosbag2_py.ReadOrder(reverse=False))
@@ -175,7 +175,7 @@ class Rosbag2:
         :returns: entries in the bag file, ''list(Entry)''
         """
         if not self.reader:
-            self._logger.warn('get_entries_in_range - ' + WRITE_ONLY_MSG)
+            self._logger.warning('get_entries_in_range - ' + WRITE_ONLY_MSG)
             return None
 
         return list(self.entries_in_range_generator(t_start, t_end, topic, progress_cb))
@@ -194,7 +194,7 @@ class Rosbag2:
         :returns: generator of entries in the bag file, ''Generator(Entry)''
         """
         if not self.reader:
-            self._logger.warn('entries_in_range_generator - ' + WRITE_ONLY_MSG)
+            self._logger.warning('entries_in_range_generator - ' + WRITE_ONLY_MSG)
             return
 
         if isinstance(topic, Iterable) and not isinstance(topic, str):
@@ -245,7 +245,7 @@ class Rosbag2:
         :returns: the approximate number of entries, ''int''
         """
         if not self.reader:
-            self._logger.warn('estimate_num_entries_in_range - ' + WRITE_ONLY_MSG)
+            self._logger.warning('estimate_num_entries_in_range - ' + WRITE_ONLY_MSG)
             return 0
 
         if isinstance(topic, Iterable) and not isinstance(topic, str):
