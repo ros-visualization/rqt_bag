@@ -2,6 +2,9 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 2.2.2 (2026-04-13)
 ------------------
 * Support Qt6 (`#206 <https://github.com/ros-visualization/rqt_bag/issues/206>`_)
