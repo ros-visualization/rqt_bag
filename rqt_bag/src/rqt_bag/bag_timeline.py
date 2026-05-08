@@ -457,8 +457,9 @@ class BagTimeline(QGraphicsScene):
         """
         if self.background_task is not None:
             QMessageBox(
-                QMessageBox.Icon.Warning, 'Exclamation', 'Background operation already running:\n\n%s' %
-                self.background_task, QMessageBox.StandardButton.Ok).exec()
+                QMessageBox.Icon.Warning, 'Exclamation',
+                'Background operation already running:\n\n%s' % self.background_task,
+                QMessageBox.StandardButton.Ok).exec()
             return False
 
         self.background_task = background_task
@@ -513,7 +514,8 @@ class BagTimeline(QGraphicsScene):
             rosbag_writer.open(storage_options, converter_options)
         except Exception:
             QMessageBox(QMessageBox.Icon.Warning, 'rqt_bag',
-                        'Error opening bag file [%s] for writing' % path, QMessageBox.StandardButton.Ok).exec()
+                        'Error opening bag file [%s] for writing' % path,
+                        QMessageBox.StandardButton.Ok).exec()
             self.stop_background_task()
             return
 
