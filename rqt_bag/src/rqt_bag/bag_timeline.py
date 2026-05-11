@@ -457,8 +457,9 @@ class BagTimeline(QGraphicsScene):
         """
         if self.background_task is not None:
             QMessageBox(
-                QMessageBox.Warning, 'Exclamation', 'Background operation already running:\n\n%s' %
-                self.background_task, QMessageBox.Ok).exec_()
+                QMessageBox.Icon.Warning, 'Exclamation',
+                'Background operation already running:\n\n%s' % self.background_task,
+                QMessageBox.StandardButton.Ok).exec()
             return False
 
         self.background_task = background_task
@@ -496,8 +497,8 @@ class BagTimeline(QGraphicsScene):
 
         # If no messages, prompt the user and return
         if total_messages == 0:
-            QMessageBox(QMessageBox.Warning, 'rqt_bag', 'No messages found',
-                        QMessageBox.Ok).exec_()
+            QMessageBox(QMessageBox.Icon.Warning, 'rqt_bag', 'No messages found',
+                        QMessageBox.StandardButton.Ok).exec()
             self.stop_background_task()
             return
 
@@ -512,8 +513,9 @@ class BagTimeline(QGraphicsScene):
             rosbag_writer = rosbag2_py.SequentialWriter()
             rosbag_writer.open(storage_options, converter_options)
         except Exception:
-            QMessageBox(QMessageBox.Warning, 'rqt_bag',
-                        'Error opening bag file [%s] for writing' % path, QMessageBox.Ok).exec_()
+            QMessageBox(QMessageBox.Icon.Warning, 'rqt_bag',
+                        'Error opening bag file [%s] for writing' % path,
+                        QMessageBox.StandardButton.Ok).exec()
             self.stop_background_task()
             return
 
@@ -574,8 +576,8 @@ class BagTimeline(QGraphicsScene):
             self.background_progress = 0
             self.status_bar_changed_signal.emit()
         except Exception as ex:
-            QMessageBox(QMessageBox.Warning, 'rqt_bag', 'Error closing bag file [%s]: %s' % (
-                export_filename, str(ex)), QMessageBox.Ok).exec_()
+            QMessageBox(QMessageBox.Icon.Warning, 'rqt_bag', 'Error closing bag file [%s]: %s' % (
+                export_filename, str(ex)), QMessageBox.StandardButton.Ok).exec()
         self.stop_background_task()
 
     def read_message(self, bag, position, topic):
