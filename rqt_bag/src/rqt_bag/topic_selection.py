@@ -89,6 +89,7 @@ class TopicSelection(QWidget):
                 return
 
     def updateList(self, state, topic=None, force_update_state=False):
+        state = Qt.CheckState(state)
         if topic is None:  # The "All" checkbox was checked / unchecked
             if state == Qt.CheckState.Checked:
                 self.item_all.setTristate(False)
