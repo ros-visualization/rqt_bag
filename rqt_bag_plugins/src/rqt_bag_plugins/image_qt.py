@@ -88,7 +88,9 @@ def _toqclass_helper(im):
         im = Image.open(im)
         exclusive_fp = True
 
-    qt_format = QImage
+    # Qt6 only exposes the format enum members scoped under QImage.Format,
+    # while Qt5 exposes them on both QImage and QImage.Format.
+    qt_format = QImage.Format if hasattr(QImage.Format, 'Format_ARGB32') else QImage
     if im.mode == '1':
         fmt = qt_format.Format_Mono
     elif im.mode == 'L':
