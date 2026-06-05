@@ -136,7 +136,7 @@ class ImageTimelineRenderer(TimelineRenderer):
                 break
 
         painter.setPen(QPen(QColorConstants.Black))
-        painter.setBrush(QBrush(QColorConstants.transparent))
+        painter.setBrush(QBrush(QColorConstants.Transparent))
         if width == 1:
             painter.drawRect(int(x), int(y), int(thumbnail_x - x), int(height - thumbnail_gap - 1))
         else:
