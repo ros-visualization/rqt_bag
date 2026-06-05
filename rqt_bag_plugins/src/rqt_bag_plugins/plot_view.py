@@ -402,7 +402,7 @@ class MessageTree(QTreeWidget):
 
     def __init__(self, msg_type, parent):
         super(MessageTree, self).__init__(parent)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setHeaderHidden(False)
         self.itemChanged.connect(self.handleChanged)
         self._msg_type = msg_type
