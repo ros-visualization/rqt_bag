@@ -2,6 +2,11 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.3.2 (2026-06-05)
+------------------
+* Qt6 fixes (`#209 <https://github.com/ros-visualization/rqt_bag/issues/209>`_)
+* Contributors: Alejandro Hernández Cordero
+
 2.3.1 (2026-05-13)
 ------------------
 
