@@ -2,6 +2,11 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.2.4 (2026-06-05)
+------------------
+* Qt6 fixes (backport `#209 <https://github.com/ros-visualization/rqt_bag/issues/209>`_) (`#210 <https://github.com/ros-visualization/rqt_bag/issues/210>`_)
+* Contributors: mergify[bot]
+
 2.2.3 (2026-05-13)
 ------------------
 
