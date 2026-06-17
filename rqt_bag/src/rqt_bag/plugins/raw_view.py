@@ -67,15 +67,15 @@ class RawView(TopicMessageView):
         :param timeline: timeline data object, ''BagTimeline''
         :param parent: widget that will be added to the ros_gui context, ''QWidget''
         """
-        super(RawView, self).__init__(timeline, parent, topic)
+        super().__init__(timeline, parent, topic)
         self.message_tree = MessageTree(parent)
 
         # This will automatically resize the message_tree to the windowsize
         parent.layout().addWidget(self.message_tree)
 
     def message_viewed(self, *, entry, ros_message, msg_type_name, **kwargs):
-        super(RawView, self).message_viewed(entry=entry,
-                                            ros_message=ros_message, msg_type_name=msg_type_name)
+        super().message_viewed(
+            entry=entry, ros_message=ros_message, msg_type_name=msg_type_name)
         if ros_message is None:
             self.message_cleared()
         else:
@@ -89,7 +89,7 @@ class RawView(TopicMessageView):
 class MessageTree(QTreeWidget):
 
     def __init__(self, parent):
-        super(MessageTree, self).__init__(parent)
+        super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.setHeaderHidden(False)
         self.setHeaderLabel('')
@@ -214,7 +214,7 @@ class MessageTree(QTreeWidget):
                 w = int(math.ceil(math.log10(len_obj)))
                 subobjs = [('[%*d]' % (w, i), subobj) for (i, subobj) in enumerate(short_list_obj)]
                 if len_obj > MAX_LIST_LEN:
-                    subobjs.append(('[%s]' % (w * '.',), '{} items total'.format(len_obj)))
+                    subobjs.append((f'[{w * "."}]', f'{len_obj} items total'))
                     for i in range(-LIST_TAIL_LEN, 0):
                         if len_obj + i >= MAX_LIST_LEN:
                             subobjs.append(('[%*d]' % (w, len_obj + i), list_obj[i]))
@@ -242,9 +242,9 @@ class MessageTree(QTreeWidget):
                 else:
                     obj_repr = '[' + ','.join(map(str, obj.tolist())) + ']'
             elif type(obj) is Time:
-                obj_repr = '{:.9f}'.format(obj.nanoseconds * 1e-9)
+                obj_repr = f'{obj.nanoseconds * 1e-9:.9f}'
             elif type(obj) is TimeMsg:
-                obj_repr = '{:.9f}'.format(Time.from_msg(obj).nanoseconds * 1e-9)
+                obj_repr = f'{Time.from_msg(obj).nanoseconds * 1e-9:.9f}'
             else:
                 obj_repr = str(obj)
 

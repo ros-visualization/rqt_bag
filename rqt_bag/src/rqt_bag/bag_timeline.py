@@ -67,7 +67,7 @@ class BagTimeline(QGraphicsScene):
             plugin context hook to enable adding rqt_bag plugin widgets as ROS_GUI snapin panes,
             ''PluginContext''
         """
-        super(BagTimeline, self).__init__()
+        super().__init__()
         self._bags = []
         self._bag_lock = threading.RLock()
         self._bags_size = 0
@@ -165,7 +165,7 @@ class BagTimeline(QGraphicsScene):
         self._bags_size += bag.size()
 
         bag_topics = bag.get_topics()
-        qDebug('Topics from this bag: {}'.format(bag_topics))
+        qDebug(f'Topics from this bag: {bag_topics}')
 
         new_topics = set(bag_topics) - set(self._timeline_frame.topics)
 
@@ -556,8 +556,7 @@ class BagTimeline(QGraphicsScene):
                 # Then write it out
                 rosbag_writer.write(entry.topic, entry.data, entry.timestamp)
             except Exception as ex:
-                qWarning('Error exporting message at position %s: %s' %
-                         (str(entry.timestamp), str(ex)))
+                qWarning(f'Error exporting message at position {str(entry.timestamp)}: {str(ex)}')
                 self.stop_background_task()
                 return
 
@@ -626,7 +625,7 @@ class BagTimeline(QGraphicsScene):
                 if self._publish_clock:
                     self._player.start_clock_publishing()
             except Exception as ex:
-                qWarning('Error starting player; aborting publish: %s' % str(ex))
+                qWarning(f'Error starting player; aborting publish: {str(ex)}')
                 return False
 
         return True
@@ -756,7 +755,7 @@ class BagTimeline(QGraphicsScene):
                                       all_topics=all_topics, topics=topics,
                                       regex=regex, limit=limit)
         except Exception as ex:
-            qWarning('Error opening bag for recording [%s]: %s' % (filename, str(ex)))
+            qWarning(f'Error opening bag for recording [{filename}]: {str(ex)}')
             return
 
         self._recorder.add_listener(self._message_recorded)

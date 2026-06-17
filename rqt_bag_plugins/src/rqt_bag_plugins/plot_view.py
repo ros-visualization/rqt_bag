@@ -107,7 +107,7 @@ class PlotView(MessageView):
     name = 'Plot'
 
     def __init__(self, timeline, parent, topic):
-        super(PlotView, self).__init__(timeline, topic)
+        super().__init__(timeline, topic)
 
         self.plot_widget = PlotWidget(timeline, parent, topic)
 
@@ -128,7 +128,7 @@ class PlotView(MessageView):
 class PlotWidget(QWidget):
 
     def __init__(self, timeline, parent, topic):
-        super(PlotWidget, self).__init__(parent)
+        super().__init__(parent)
         self.setObjectName('PlotWidget')
 
         self.timeline = timeline
@@ -238,7 +238,7 @@ class PlotWidget(QWidget):
         self.resample_thread = threading.Thread(target=self._resample_thread)
         # explicitly mark our resampling thread as a daemon, because we don't
         # want to block program exit on a long resampling operation
-        self.resample_thread.setDaemon(True)
+        self.resample_thread.daemon = True
         self.resample_thread.start()
 
     def _resample_thread(self):
@@ -328,7 +328,7 @@ class PlotWidget(QWidget):
         # update the plot with final resampled data
         for path in self.resample_fields:
             if len(x[path]) < 1:
-                qWarning('Resampling resulted in 0 data points for %s' % path)
+                qWarning(f'Resampling resulted in 0 data points for {path}')
             else:
                 if path in self.paths_on:
                     self.plot.clear_values(path)
@@ -401,7 +401,7 @@ class PlotWidget(QWidget):
 class MessageTree(QTreeWidget):
 
     def __init__(self, msg_type, parent):
-        super(MessageTree, self).__init__(parent)
+        super().__init__(parent)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         self.setHeaderHidden(False)
         self.itemChanged.connect(self.handleChanged)
