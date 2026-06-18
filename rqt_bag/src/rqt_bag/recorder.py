@@ -187,8 +187,8 @@ class Recorder(object):
                             self._subscriber_helpers[topic] = _SubscriberHelper(
                                 self._node, self, topic, msg_type_name)
                         except Exception as ex:
-                            print('Error subscribing to %s (ignoring): %s' %
-                                  (topic, str(ex)), file=sys.stderr)
+                            print(f'Error subscribing to {topic} (ignoring): {str(ex)}',
+                                  file=sys.stderr)
                             self._failed_topics.add(topic)
 
                 # Wait a while
@@ -196,7 +196,7 @@ class Recorder(object):
                 self._stop_condition.wait(self._master_check_interval)
 
         except Exception as ex:
-            print('Error recording to bag: %s' % str(ex), file=sys.stderr)
+            print(f'Error recording to bag: {str(ex)}', file=sys.stderr)
 
         # Unsubscribe from all topics
         for topic in list(self._subscriber_helpers.keys()):
@@ -261,7 +261,7 @@ class Recorder(object):
                 for listener in self._listeners:
                     listener(topic, msg, t)
         except Exception as ex:
-            print('Error writing to bag: %s' % str(ex), file=sys.stderr)
+            print(f'Error writing to bag: {str(ex)}', file=sys.stderr)
 
 
 class _SubscriberHelper(object):

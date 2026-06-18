@@ -49,7 +49,7 @@ from .topic_selection import TopicSelection
 class BagGraphicsView(QGraphicsView):
 
     def __init__(self, parent=None):
-        super(BagGraphicsView, self).__init__()
+        super().__init__()
 
 
 class BagWidget(QWidget):
@@ -70,7 +70,7 @@ class BagWidget(QWidget):
         :param context: plugin context hook to enable adding widgets as a ROS_GUI pane,
             ''PluginContext''
         """
-        super(BagWidget, self).__init__()
+        super().__init__()
         self._node = context.node
         self._logger = logging.get_logger('rqt_bag.BagWidget')
         _, package_path = get_resource('packages', 'rqt_bag')
@@ -286,13 +286,13 @@ class BagWidget(QWidget):
             self.load_bag(filename)
 
     def load_bag(self, filename):
-        qDebug("Loading '%s' ..." % filename.encode(errors='replace'))
+        qDebug(f"Loading '{filename.encode(errors='replace')}' ...")
 
         # QProgressBar can EITHER: show text or show a bouncing loading bar,
         #  but apparently the text is hidden when the bounding loading bar is
         #  shown
         # self.progress_bar.setRange(0, 0)
-        self.set_status_text.emit("Loading '%s' ..." % os.path.split(filename)[0])
+        self.set_status_text.emit(f"Loading '{os.path.split(filename)[0]}' ...")
         # progress_format = self.progress_bar.format()
         # progress_text_visible = self.progress_bar.isTextVisible()
         # self.progress_bar.setFormat("Loading %s" % filename)
@@ -301,11 +301,11 @@ class BagWidget(QWidget):
         try:
             bag = Rosbag2(filename)
         except Exception as e:
-            qWarning("Loading '%s' failed due to: %s" % (filename.encode(errors='replace'), e))
-            self.set_status_text.emit("Loading '%s' failed due to: %s" % (filename, e))
+            qWarning(f"Loading '{filename.encode(errors='replace')}' failed due to: {e}")
+            self.set_status_text.emit(f"Loading '{filename}' failed due to: {e}")
             return
 
-        qDebug('Loading bag from metadata file "{}" Succeeded'.format(filename))
+        qDebug(f'Loading bag from metadata file "{filename}" Succeeded')
 
         self.play_button.setEnabled(True)
         self.thumbs_button.setEnabled(True)
@@ -321,7 +321,7 @@ class BagWidget(QWidget):
         self.save_button.setEnabled(False)
         self.record_button.setEnabled(False)
         self._timeline.add_bag(bag)
-        qDebug("Done loading '%s'" % filename.encode(errors='replace'))
+        qDebug(f"Done loading '{filename.encode(errors='replace')}'")
         # put the progress bar back the way it was
         self.set_status_text.emit('')
         # reset zoom to show entirety of all loaded bags
@@ -422,7 +422,7 @@ class BagWidget(QWidget):
                     spd_str = '> 1/%.0fx' % (1.0 / spd)
                 elif spd > -1.0:
                     spd_str = '< 1/%.0fx' % (1.0 / -spd)
-                elif spd == 1.0:
+                elif spd == -1.0:
                     spd_str = '<'
                 else:
                     spd_str = '<< %.0fx' % -spd

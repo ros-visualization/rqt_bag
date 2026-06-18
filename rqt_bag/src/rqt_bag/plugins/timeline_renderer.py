@@ -39,7 +39,7 @@ class TimelineRenderer(QObject):
     """
 
     def __init__(self, timeline, msg_combine_px=1.5):
-        super(TimelineRenderer, self).__init__()
+        super().__init__()
         self.timeline = timeline
         self.msg_combine_px = msg_combine_px
 

@@ -110,7 +110,7 @@ def imgmsg_to_pil(img_msg, msg_type_name, rgba=True):
         return pil_img
 
     except Exception as ex:
-        print("Can't convert image: %s" % ex, file=sys.stderr)
+        print(f"Can't convert image: {ex}", file=sys.stderr)
         return None
 
 
@@ -123,7 +123,7 @@ def pil_bgr2rgb(pil_img):
 
 def pil_to_cairo(pil_img):
     w, h = pil_img.size
-    data = array.array('c')
-    data.fromstring(pil_img.tostring())
+    data = array.array('B')
+    data.frombytes(pil_img.tobytes())
 
     return cairo.ImageSurface.create_for_data(data, cairo.FORMAT_ARGB32, w, h)

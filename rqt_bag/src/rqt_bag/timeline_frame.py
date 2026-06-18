@@ -89,7 +89,7 @@ class TimelineFrame(QGraphicsItem):
     """
 
     def __init__(self, bag_timeline):
-        super(TimelineFrame, self).__init__()
+        super().__init__()
         self._bag_timeline = bag_timeline
         self._clicked_pos = None
         self._dragged_pos = None
@@ -234,7 +234,7 @@ class TimelineFrame(QGraphicsItem):
             if self._playhead is not None and playhead == self._playhead:
                 return
 
-            qDebug('Setting playhead {}'.format(playhead))
+            qDebug(f'Setting playhead {playhead}')
             self._playhead = playhead
             if self._playhead != self._end_stamp:
                 self.scene().stick_to_end = False
@@ -787,15 +787,16 @@ class TimelineFrame(QGraphicsItem):
                 plugin = self.plugin_provider.load(
                     plugin_descriptor.plugin_id(), plugin_context=None)
             except Exception as e:
-                qWarning('rqt_bag.TimelineFrame.load_plugins() failed to load plugin "%s":\n%s' %
-                         (plugin_descriptor.plugin_id(), e))
+                qWarning(
+                    'rqt_bag.TimelineFrame.load_plugins() failed to load plugin '
+                    f'"{plugin_descriptor.plugin_id()}":\n{e}')
                 continue
             try:
                 view = plugin.get_view_class()
             except Exception as e:
                 qWarning(
                     'rqt_bag.TimelineFrame.load_plugins() failed to get view '
-                    'from plugin "%s":\n%s' % (plugin_descriptor.plugin_id(), e))
+                    f'from plugin "{plugin_descriptor.plugin_id()}":\n{e}')
                 continue
 
             timeline_renderer = None
@@ -806,7 +807,7 @@ class TimelineFrame(QGraphicsItem):
             except Exception as e:
                 qWarning(
                     'rqt_bag.TimelineFrame.load_plugins() failed to get renderer '
-                    'from plugin "%s":\n%s' % (plugin_descriptor.plugin_id(), e))
+                    f'from plugin "{plugin_descriptor.plugin_id()}":\n{e}')
 
             msg_types = []
             try:
@@ -816,20 +817,21 @@ class TimelineFrame(QGraphicsItem):
             except Exception as e:
                 qWarning(
                     'rqt_bag.TimelineFrame.load_plugins() failed to get message types '
-                    'from plugin "%s":\n%s' % (plugin_descriptor.plugin_id(), e))
+                    f'from plugin "{plugin_descriptor.plugin_id()}":\n{e}')
             finally:
                 if not msg_types:
                     qWarning(
-                        'rqt_bag.TimelineFrame.load_plugins() plugin "%s" declares '
-                        'no message types.' % (plugin_descriptor.plugin_id()))
+                        'rqt_bag.TimelineFrame.load_plugins() plugin '
+                        f'"{plugin_descriptor.plugin_id()}" declares no message types.')
 
             for msg_type in msg_types:
                 self._viewer_types.setdefault(msg_type, []).append(view)
                 if timeline_renderer:
                     self._timeline_renderers[msg_type] = timeline_renderer(self)
 
-            qDebug('rqt_bag.TimelineFrame.load_plugins() loaded plugin "%s"' %
-                   plugin_descriptor.plugin_id())
+            qDebug(
+                f'rqt_bag.TimelineFrame.load_plugins() loaded plugin '
+                f'"{plugin_descriptor.plugin_id()}"')
 
     # Timeline renderer interaction functions
 
@@ -1080,7 +1082,7 @@ class TimelineFrame(QGraphicsItem):
             self.playhead = Time(seconds=self._stamp_left)
 
     def set_timeline_view(self, stamp_left, stamp_right):
-        qDebug('Setting timeline left: {} right: {}'.format(stamp_left, stamp_right))
+        qDebug(f'Setting timeline left: {stamp_left} right: {stamp_right}')
         self._stamp_left = stamp_left
         self._stamp_right = stamp_right
 
