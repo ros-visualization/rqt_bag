@@ -37,7 +37,7 @@ class TopicSelection(QWidget):
     recordSettingsSelected = Signal(bool, list)
 
     def __init__(self, node):
-        super(TopicSelection, self).__init__()
+        super().__init__()
         self._node = node
         self.setWindowTitle('Select the topics you want to record')
         self.resize(500, 700)

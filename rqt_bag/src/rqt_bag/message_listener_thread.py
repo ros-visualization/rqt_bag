@@ -35,7 +35,7 @@ from python_qt_binding.QtCore import qWarning
 class ListenerEvent(QEvent):
 
     def __init__(self, data):
-        super(ListenerEvent, self).__init__(QEvent.User)
+        super().__init__(QEvent.User)
         self.data = data
 
 
@@ -47,14 +47,14 @@ class MessageListenerThread(threading.Thread):
     """
 
     def __init__(self, timeline, topic, listener):
-        threading.Thread.__init__(self)
+        super().__init__()
 
         self.timeline = timeline
         self.topic = topic
         self.listener = listener
         self.bag_msg_data = None
         self._stop_flag = False
-        self.setDaemon(True)
+        self.daemon = True
         self.start()
 
     def run(self):
@@ -75,7 +75,7 @@ class MessageListenerThread(threading.Thread):
                 event = ListenerEvent(bag_msg_data)
                 QCoreApplication.postEvent(self.listener, event)
             except Exception as ex:
-                qWarning('Error notifying listener %s: %s' % (type(self.listener), str(ex)))
+                qWarning(f'Error notifying listener {type(self.listener)}: {str(ex)}')
 
     def stop(self):
         self._stop_flag = True
