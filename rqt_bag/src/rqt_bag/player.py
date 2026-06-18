@@ -41,7 +41,7 @@ class Player(QObject):
     """Handles publishing messages as the playhead passes over their position."""
 
     def __init__(self, node, timeline):
-        super(Player, self).__init__()
+        super().__init__()
         self._node = node
         self._logger = self._node.get_logger().get_child('rqt_bag.Player')
         self.timeline = timeline

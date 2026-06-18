@@ -54,7 +54,7 @@ class ImageTimelineRenderer(TimelineRenderer):
     """Draws thumbnails of sensor_msgs/msg/{Compressed}Image in the timeline."""
 
     def __init__(self, timeline, thumbnail_height=160):
-        super(ImageTimelineRenderer, self).__init__(timeline, msg_combine_px=40.0)
+        super().__init__(timeline, msg_combine_px=40.0)
 
         self.thumbnail_height = thumbnail_height
         # use cached thumbnail if it's less than this many pixels away
@@ -164,11 +164,11 @@ class ImageTimelineRenderer(TimelineRenderer):
         try:
             pil_image = image_helper.imgmsg_to_pil(ros_message, msg_type)
         except Exception as ex:
-            print('Error loading image on topic %s: %s' % (topic, str(ex)), file=sys.stderr)
+            print(f'Error loading image on topic {topic}: {str(ex)}', file=sys.stderr)
             pil_image = None
 
         if not pil_image:
-            print('Disabling renderer on %s' % topic, file=sys.stderr)
+            print(f'Disabling renderer on {topic}', file=sys.stderr)
             self.timeline.set_renderer_active(topic, False)
             return None, None
 
@@ -183,6 +183,5 @@ class ImageTimelineRenderer(TimelineRenderer):
             return t, thumbnail
 
         except Exception as ex:
-            print('Error loading image on topic %s: %s' % (topic, str(ex)), file=sys.stderr)
+            print(f'Error loading image on topic {topic}: {str(ex)}', file=sys.stderr)
             raise
-            return None, None

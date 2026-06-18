@@ -33,7 +33,7 @@ from python_qt_binding.QtWidgets import QCheckBox, QPushButton, QScrollArea, QVB
 class NodeSelection(QWidget):
 
     def __init__(self, parent, node):
-        super(NodeSelection, self).__init__()
+        super().__init__()
         self.parent_widget = parent
         self.node = node
         self.selected_nodes = []

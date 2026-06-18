@@ -38,7 +38,7 @@ class TimelineCache(threading.Thread):
     """Caches items for timeline renderers."""
 
     def __init__(self, loader, listener=None, max_cache_size=100):
-        threading.Thread.__init__(self)
+        super().__init__()
 
         self.loader = loader
         self.listener = listener
@@ -49,7 +49,7 @@ class TimelineCache(threading.Thread):
         self.item_access = {}  # topic -> timestamp -> access time
         self.max_cache_size = max_cache_size  # max number of items to cache (per topic)
         self.queue = Queue()
-        self.setDaemon(True)
+        self.daemon = True
         self.start()
 
     def run(self):

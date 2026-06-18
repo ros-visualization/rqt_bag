@@ -54,7 +54,7 @@ class ImageView(TopicMessageView):
     name = 'Image'
 
     def __init__(self, timeline, parent, topic):
-        super(ImageView, self).__init__(timeline, parent, topic)
+        super().__init__(timeline, parent, topic)
 
         self._image = None
         self._image_topic = None
