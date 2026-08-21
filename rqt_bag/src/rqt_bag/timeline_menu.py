@@ -68,7 +68,7 @@ class TopicPopupWidget(QWidget):
             context.add_widget(self)
             # make the dock widget closable, even if it normally isn't
             dock_features = self.parent().features()
-            dock_features |= QDockWidget.DockWidgetClosable
+            dock_features |= QDockWidget.DockWidgetFeature.DockWidgetClosable
             self.parent().setFeatures(dock_features)
 
             # remove old listener
