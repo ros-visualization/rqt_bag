@@ -2,27 +2,16 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.0.4 (2026-08-24)
+------------------
+
 2.0.3 (2026-04-13)
 ------------------
 * fix setuptools deprecations (backport `#185 <https://github.com/ros-visualization/rqt_bag/issues/185>`_) (`#202 <https://github.com/ros-visualization/rqt_bag/issues/202>`_)
-  Co-authored-by: mosfet80 <10235105+mosfet80@users.noreply.github.com>
-  Co-authored-by: Alejandro Hernandez Cordero <ahcorde@gmail.com>
 * Display roll, pitch, yaw values for quaternions (backport `#179 <https://github.com/ros-visualization/rqt_bag/issues/179>`_) (`#198 <https://github.com/ros-visualization/rqt_bag/issues/198>`_)
-  Display roll, pitch, yaw values for quaternions (`#179 <https://github.com/ros-visualization/rqt_bag/issues/179>`_)
-  (cherry picked from commit 4593d82d2b23a322119c6a518befec970db7d54e)
-  Co-authored-by: Martin Pecka <peckama2@fel.cvut.cz>
 * Fixed image helper and added support for PNG-coded compressedDepth (backport `#176 <https://github.com/ros-visualization/rqt_bag/issues/176>`_) (`#190 <https://github.com/ros-visualization/rqt_bag/issues/190>`_)
-  Fixed image helper and added support for PNG-coded compressedDepth (`#176 <https://github.com/ros-visualization/rqt_bag/issues/176>`_)
-  (cherry picked from commit 6e68aed3db4fd3efbfd542d12e4e39d44d82580a)
-  Co-authored-by: Martin Pecka <peci1@seznam.cz>
 * Improve plot view (backport `#174 <https://github.com/ros-visualization/rqt_bag/issues/174>`_) (`#188 <https://github.com/ros-visualization/rqt_bag/issues/188>`_)
-  Improve plot view (`#174 <https://github.com/ros-visualization/rqt_bag/issues/174>`_)
-  (cherry picked from commit ed713b596bbe7d7b484556974e80dbcad83c009b)
-  Co-authored-by: Martin Pecka <peci1@seznam.cz>
 * plot_view: Fixed display of initial message (backport `#180 <https://github.com/ros-visualization/rqt_bag/issues/180>`_) (`#186 <https://github.com/ros-visualization/rqt_bag/issues/186>`_)
-  plot_view: Fixed display of initial message (`#180 <https://github.com/ros-visualization/rqt_bag/issues/180>`_)
-  (cherry picked from commit 9ff337266e97143c2ec9eef6f9aa03bde2b31997)
-  Co-authored-by: Martin Pecka <peci1@seznam.cz>
 * Contributors: mergify[bot]
 
 2.0.2 (2025-01-07)
