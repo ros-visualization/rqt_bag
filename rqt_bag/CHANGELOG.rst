@@ -2,6 +2,11 @@
 Changelog for package rqt_bag
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.3.4 (2026-08-24)
+------------------
+* Use scoped PyQt6 enums instead of removed flat aliases (`#213 <https://github.com/ros-visualization/rqt_bag//issues/213>`_)
+* Contributors: Incheon Robotics
+
 2.3.3 (2026-06-18)
 ------------------
 * Modernizes python: super(), f-string and others (`#211 <https://github.com/ros-visualization/rqt_bag/issues/211>`_)

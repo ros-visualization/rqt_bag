@@ -2,6 +2,9 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.3.4 (2026-08-24)
+------------------
+
 2.3.3 (2026-06-18)
 ------------------
 * Modernizes python: super(), f-string and others (`#211 <https://github.com/ros-visualization/rqt_bag/issues/211>`_)
