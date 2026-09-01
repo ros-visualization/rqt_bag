@@ -32,14 +32,6 @@ import sys
 
 from PIL import Image
 
-# HACK workaround for upstream pillow issue python-pillow/Pillow#400
-from python_qt_binding import QT_BINDING_MODULES
-if (
-    not QT_BINDING_MODULES['QtCore'].__name__.startswith('PyQt5') and
-    'PyQt5' in sys.modules
-):
-    sys.modules['PyQt5'] = None
-
 from python_qt_binding.QtGui import QBrush, QColorConstants, QPen, QPixmap
 
 from rclpy.time import Time
