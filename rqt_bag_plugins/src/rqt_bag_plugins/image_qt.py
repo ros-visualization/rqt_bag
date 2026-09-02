@@ -31,8 +31,8 @@
 
 # This code is adapted from the code in PIL, specifically
 # https://github.com/python-pillow/Pillow/blob/10.2.0/src/PIL/ImageQt.py .
-# We had to adapt it here to support PyQt5, which has been removed
-# from upstream PIL but is still in use by rqt today.
+# We had to adapt it here to support the Qt bindings selected through
+# python_qt_binding, which upstream PIL no longer covers.
 
 from pathlib import Path
 
@@ -88,9 +88,7 @@ def _toqclass_helper(im):
         im = Image.open(im)
         exclusive_fp = True
 
-    # Qt6 only exposes the format enum members scoped under QImage.Format,
-    # while Qt5 exposes them on both QImage and QImage.Format.
-    qt_format = QImage.Format if hasattr(QImage.Format, 'Format_ARGB32') else QImage
+    qt_format = QImage.Format
     if im.mode == '1':
         fmt = qt_format.Format_Mono
     elif im.mode == 'L':
@@ -109,7 +107,7 @@ def _toqclass_helper(im):
     elif im.mode == 'RGBA':
         data = im.tobytes('raw', 'BGRA')
         fmt = qt_format.Format_ARGB32
-    elif im.mode == 'I;16' and hasattr(qt_format, 'Format_Grayscale16'):  # Qt 5.13+
+    elif im.mode == 'I;16':
         im = im.point(lambda i: i * 256)
 
         fmt = qt_format.Format_Grayscale16
