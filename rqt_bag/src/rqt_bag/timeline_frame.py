@@ -415,6 +415,9 @@ class TimelineFrame(QGraphicsItem):
         if new_history_bottom != self._history_bottom:
             self._history_bottom = new_history_bottom
 
+    def update_size(self):
+        self._layout()
+
     def _draw_topic_histories(self, painter):
         """
         Draw all topic messages.
