@@ -2,6 +2,11 @@
 Changelog for package rqt_bag_plugins
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+2.3.5 (2026-09-04)
+------------------
+* Removed Qt5 support (`#215 <https://github.com/ros-visualization/rqt_bag/issues/215>`_)
+* Contributors: Alejandro Hernández Cordero
+
 2.3.4 (2026-08-24)
 ------------------
 
