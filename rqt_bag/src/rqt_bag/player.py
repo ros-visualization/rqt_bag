@@ -115,8 +115,10 @@ class Player(QObject):
         :param bag: the bag the message is in, ''rosbag.bag''
         :param entry: the bag entry
         """
-        # Don't publish unless the playhead is moving.
-        if self.timeline.play_speed <= 0.0:
+        # Publish while playing forward, and while paused so that stepping or seeking
+        # publishes the message under the playhead, like `ros2 bag play`'s play_next.
+        # Playing in reverse would publish messages backwards in time, so skip it.
+        if self.timeline.play_speed < 0.0:
             return
 
         (ros_message, _) = bag.deserialize_entry(entry)
