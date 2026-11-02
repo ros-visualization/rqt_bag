@@ -882,8 +882,11 @@ class BagTimeline(QGraphicsScene):
 
     def navigate_next(self):
         self.navigate_stop()
+        previous_playhead = self._timeline_frame.playhead
         self._timeline_frame.playhead = self.get_next_message_time()
         self.last_playhead = self._timeline_frame.playhead
+        if self._player:
+            self._player.publish_step(previous_playhead, self._timeline_frame.playhead)
 
     def navigate_rewind(self):
         if self._play_speed < 0.0:
