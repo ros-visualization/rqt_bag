@@ -115,10 +115,31 @@ class Player(QObject):
         :param bag: the bag the message is in, ''rosbag.bag''
         :param entry: the bag entry
         """
-        # Don't publish unless the playhead is moving.
+        # Don't publish unless the playhead is moving forward. Stepping forward while
+        # paused publishes through publish_step() instead.
         if self.timeline.play_speed <= 0.0:
             return
 
+        self._publish(bag, entry)
+
+    def publish_step(self, previous_playhead, playhead):
+        """
+        Publish the messages that a step forward moved the playhead onto.
+
+        This is what play_next does in `ros2 bag play`.
+
+        :param previous_playhead: the playhead before the step, ''rclpy.time.Time''
+        :param playhead: the playhead after the step, ''rclpy.time.Time''
+        """
+        if previous_playhead is None or playhead is None or playhead <= previous_playhead:
+            return
+
+        for topic in list(self._publishing):
+            bag, entry = self.timeline.get_entry(playhead, topic)
+            if entry is not None and entry.timestamp > previous_playhead.nanoseconds:
+                self._publish(bag, entry)
+
+    def _publish(self, bag, entry):
         (ros_message, _) = bag.deserialize_entry(entry)
 
         # Create publisher if this is the first message on the topic
