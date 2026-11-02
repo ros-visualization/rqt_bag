@@ -30,7 +30,7 @@
 
 
 from python_qt_binding.QtCore import QObject
-from rclpy.qos import QoSProfile
+from rclpy.qos import DurabilityPolicy, HistoryPolicy, QoSProfile, ReliabilityPolicy
 from rclpy.time import Time
 from rosbag2_py import convert_rclcpp_qos_to_rclpy_qos
 from rosgraph_msgs.msg import Clock
@@ -79,9 +79,15 @@ class Player(QObject):
 
     def start_clock_publishing(self):
         if CLOCK_TOPIC not in self._publishers:
+            # Equivalent to rclcpp::ClockQoS, which is not available from rclpy
+            clock_qos = QoSProfile(
+                history=HistoryPolicy.KEEP_LAST,
+                depth=1,
+                reliability=ReliabilityPolicy.BEST_EFFORT,
+                durability=DurabilityPolicy.VOLATILE,
+            )
             # Activate clock publishing only if the publisher was created successful
-            self._publish_clock = self.create_publisher(
-                CLOCK_TOPIC, Clock(), QoSProfile(depth=10))
+            self._publish_clock = self.create_publisher(CLOCK_TOPIC, Clock(), clock_qos)
 
     def stop_clock_publishing(self):
         self._publish_clock = False
