@@ -45,6 +45,9 @@ class IndexCacheThread(threading.Thread):
         self.start()
 
     def run(self):
+        # Delay start of the indexing so that the basic UI has time to be loaded
+        time.sleep(2.0)
+
         while not self._stop_flag:
             with self.timeline.index_cache_cv:
                 # Wait until the cache is dirty
@@ -52,23 +55,15 @@ class IndexCacheThread(threading.Thread):
                     self.timeline.index_cache_cv.wait()
                     if self._stop_flag:
                         return
-                # Update the index for one topic
-                total_topics = len(self.timeline.topics)
-                update_step = max(1, total_topics / 100)
-                topic_num = 1
-                progress = 0
-                updated = False
-                for topic in self.timeline.topics:
-                    if topic in self.timeline.invalidated_caches:
-                        updated |= (self.timeline._update_index_cache(topic) > 0)
-                    if topic_num % update_step == 0 or topic_num == total_topics:
-                        new_progress = int(100.0 * (float(topic_num) / total_topics))
-                        if new_progress != progress:
-                            progress = new_progress
-                            if not self._stop_flag:
-                                self.timeline.scene().background_progress = progress
-                                self.timeline.scene().status_bar_changed_signal.emit()
-                    topic_num += 1
+
+                # Update the index for all invalidated topics
+                def progress_cb(progress: int) -> None:
+                    if not self._stop_flag:
+                        self.timeline.scene().background_progress = progress
+                        self.timeline.scene().status_bar_changed_signal.emit()
+
+                topics = self.timeline.invalidated_caches.intersection(set(self.timeline.topics))
+                updated = (self.timeline._update_index_cache(topics, progress_cb) > 0)
 
             if updated:
                 self.timeline.scene().background_progress = 0
