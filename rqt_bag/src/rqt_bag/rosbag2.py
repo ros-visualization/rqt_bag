@@ -51,6 +51,10 @@ WRITE_ONLY_MSG = 'open for writing only, returning None'
 Entry = namedtuple('Entry', ['topic', 'data', 'timestamp'])
 
 
+class MessageTypeUnavailableError(Exception):
+    """The message type of a bag entry is not available in the current environment."""
+
+
 class Rosbag2:
 
     def __init__(self, bag_path, recording=False, topics={},
@@ -294,6 +298,14 @@ class Rosbag2:
     def deserialize_entry(self, entry):
         """Deserialize a bag entry into its corresponding ROS message."""
         msg_type_name = self.get_topic_type(entry.topic)
-        msg_type = get_message(msg_type_name)
+        try:
+            msg_type = get_message(msg_type_name)
+        except (AttributeError, ImportError) as ex:
+            # The package providing the message type is typically not installed in the
+            # current environment. Raise a descriptive error instead of the raw import
+            # error so that the caller can report the actual problem to the user.
+            raise MessageTypeUnavailableError(
+                f'Message type "{msg_type_name}" of topic "{entry.topic}" is not available '
+                f'in the current environment: {ex}') from ex
         ros_message = deserialize_message(entry.data, msg_type)
         return (ros_message, msg_type_name)
