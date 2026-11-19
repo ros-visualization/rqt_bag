@@ -65,9 +65,33 @@ class Rosbag2:
             self.metadata.duration = Duration(nanoseconds=0)
             self.topic_metadata_map = topics
         else:
-            self.reader = rosbag2_py.SequentialReader()
-            self.reader.open(
-                rosbag2_py.StorageOptions(uri=bag_path), rosbag2_py.ConverterOptions())
+            # Bags recorded with per-message compression store the compressed payload in
+            # the storage file. A plain SequentialReader returns those payloads verbatim,
+            # which breaks message deserialization, so open those bags with a
+            # SequentialCompressionReader, which decompresses messages transparently.
+            # The compression settings are read from the metadata before opening the bag,
+            # because opening a compressed bag with a plain reader may already fail.
+            metadata_io = rosbag2_py.MetadataIo()
+            metadata = (metadata_io.read_metadata(bag_path)
+                        if metadata_io.metadata_file_exists(bag_path) else None)
+            message_compressed = (metadata is not None and bool(metadata.compression_format)
+                                  and metadata.compression_mode == 'MESSAGE')
+            reader = (rosbag2_py.SequentialCompressionReader() if message_compressed
+                      else rosbag2_py.SequentialReader())
+            try:
+                reader.open(
+                    rosbag2_py.StorageOptions(uri=bag_path), rosbag2_py.ConverterOptions())
+            except Exception as e:
+                if not message_compressed:
+                    raise
+                # Fall back to the plain reader, which matches the behavior before
+                # compressed bags were supported at all.
+                self._logger.warning(
+                    f'Falling back to the uncompressed reader: {e}')
+                reader = rosbag2_py.SequentialReader()
+                reader.open(
+                    rosbag2_py.StorageOptions(uri=bag_path), rosbag2_py.ConverterOptions())
+            self.reader = reader
             self.metadata = self.reader.get_metadata()
             self.db_name = os.path.join(self.bag_path, self.metadata.relative_file_paths[0])
             self.topic_metadata_map = {
