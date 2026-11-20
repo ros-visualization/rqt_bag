@@ -201,6 +201,7 @@ class PlotWidget(QWidget):
                 # The message package is typically not installed; leave the tree empty.
                 qWarning(f'rqt_bag: {ex}')
                 ros_message = None
+                msg_type = self.bag.get_topic_type(entry.topic)
             self.message_tree.set_message(ros_message, msg_type)
 
         # state used by threaded resampling

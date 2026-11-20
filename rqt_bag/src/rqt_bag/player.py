@@ -51,6 +51,8 @@ class Player(QObject):
 
         self._publishing = set()
         self._publishers = {}
+        # Topics whose unavailable message type has already been reported
+        self._unavailable_topics = set()
 
         self._publish_clock = False
         self._last_clock = 0  # nanoseconds
@@ -154,8 +156,11 @@ class Player(QObject):
             (ros_message, _) = bag.deserialize_entry(entry)
         except MessageTypeUnavailableError as ex:
             # The message package is not installed in the current environment; skip
-            # the message and keep playing instead of taking the GUI down.
-            self._logger.error(f'Cannot publish message on topic {entry.topic}: {ex}')
+            # the message and keep playing instead of taking the GUI down. Report it
+            # only once per topic, since every message of the topic fails the same way.
+            if entry.topic not in self._unavailable_topics:
+                self._unavailable_topics.add(entry.topic)
+                self._logger.error(f'Cannot publish messages on topic {entry.topic}: {ex}')
             return
 
         # Create publisher if this is the first message on the topic

@@ -156,8 +156,10 @@ def test_skips_message_with_unavailable_type_while_publishing(make_player):
     timeline = FakeTimeline(MissingTypeBag([entry('/a', 1)]), playhead=1, play_speed=1.0)
     published = make_player(timeline, ['/a'])
     timeline.view_playhead('/a')
+    timeline.view_playhead('/a')
     assert published == []
     assert timeline._player._publishers == {}
+    # The problem is reported once per topic, not once per message.
     assert len(timeline._player._node.errors) == 1
 
 
