@@ -124,7 +124,7 @@ class Player(QObject):
         """
         Publish a message when it is viewed.
 
-        :param bag: the bag the message is in, ''rosbag.bag''
+        :param bag: the bag the message is in, ''rqt_bag.rosbag2.Rosbag2''
         :param entry: the bag entry
         """
         # Don't publish unless the playhead is moving forward. Stepping forward while

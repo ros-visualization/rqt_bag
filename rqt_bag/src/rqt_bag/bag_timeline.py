@@ -531,7 +531,7 @@ class BagTimeline(QGraphicsScene):
         """
         Threaded function that saves the current selection to a new bag file.
 
-        :param export_bag: bagfile to write to, ''rosbag.bag''
+        :param rosbag_writer: writer of the bag to save to, ''rosbag2_py.SequentialWriter''
         :param topics: topics to write to the file, ''list(str)''
         :param start_stamp: start of area to save, ''rclpy.time.Time''
         :param end_stamp: end of area to save, ''rclpy.time.Time''
