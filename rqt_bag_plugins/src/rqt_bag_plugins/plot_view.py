@@ -88,6 +88,7 @@ from rclpy.time import Time
 
 from rqt_bag import bag_helper
 from rqt_bag import MessageView
+from rqt_bag.rosbag2 import MessageTypeUnavailableError
 
 from rqt_plot.data_plot import DataPlot
 
@@ -205,7 +206,13 @@ class PlotWidget(QWidget):
 
         self.bag = bag
         if entry is not None:
-            (ros_message, msg_type) = self.bag.deserialize_entry(entry)
+            try:
+                (ros_message, msg_type) = self.bag.deserialize_entry(entry)
+            except MessageTypeUnavailableError as ex:
+                # The message package is typically not installed; leave the tree empty.
+                qWarning(f'rqt_bag: {ex}')
+                ros_message = None
+                msg_type = self.bag.get_topic_type(entry.topic)
             self.message_tree.set_message(ros_message, msg_type)
 
         # state used by threaded resampling
@@ -277,7 +284,12 @@ class PlotWidget(QWidget):
                 if not self.resampling_active:
                     return
 
-                (ros_message, _) = self.bag.deserialize_entry(entry)
+                try:
+                    (ros_message, _) = self.bag.deserialize_entry(entry)
+                except MessageTypeUnavailableError as ex:
+                    qWarning(f'rqt_bag: {ex}')
+                    self.resampling_active = False
+                    return
                 timestamp = Time(nanoseconds=entry.timestamp)
 
                 for path in self.resample_fields:
