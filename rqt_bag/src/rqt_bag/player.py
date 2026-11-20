@@ -35,6 +35,8 @@ from rclpy.time import Time
 from rosbag2_py import convert_rclcpp_qos_to_rclpy_qos
 from rosgraph_msgs.msg import Clock
 
+from rqt_bag.rosbag2 import MessageTypeUnavailableError
+
 CLOCK_TOPIC = '/clock'
 
 
@@ -49,6 +51,8 @@ class Player(QObject):
 
         self._publishing = set()
         self._publishers = {}
+        # Topics whose unavailable message type has already been reported
+        self._unavailable_topics = set()
 
         self._publish_clock = False
         self._last_clock = 0  # nanoseconds
@@ -148,7 +152,16 @@ class Player(QObject):
                 self._publish(bag, entry)
 
     def _publish(self, bag, entry):
-        (ros_message, _) = bag.deserialize_entry(entry)
+        try:
+            (ros_message, _) = bag.deserialize_entry(entry)
+        except MessageTypeUnavailableError as ex:
+            # The message package is not installed in the current environment; skip
+            # the message and keep playing instead of taking the GUI down. Report it
+            # only once per topic, since every message of the topic fails the same way.
+            if entry.topic not in self._unavailable_topics:
+                self._unavailable_topics.add(entry.topic)
+                self._logger.error(f'Cannot publish messages on topic {entry.topic}: {ex}')
+            return
 
         # Create publisher if this is the first message on the topic
         if entry.topic not in self._publishers:

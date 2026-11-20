@@ -37,6 +37,7 @@ from python_qt_binding.QtGui import QBrush, QColorConstants, QPen, QPixmap
 from rclpy.time import Time
 
 from rqt_bag import TimelineCache, TimelineRenderer
+from rqt_bag.rosbag2 import MessageTypeUnavailableError
 
 from rqt_bag_plugins import image_helper
 from rqt_bag_plugins.image_qt import ImageQt
@@ -150,7 +151,13 @@ class ImageTimelineRenderer(TimelineRenderer):
         if not entry:
             return None, None
 
-        (ros_message, msg_type) = bag.deserialize_entry(entry)
+        try:
+            (ros_message, msg_type) = bag.deserialize_entry(entry)
+        except MessageTypeUnavailableError as ex:
+            print(f'Error loading image on topic {topic}: {str(ex)}', file=sys.stderr)
+            print(f'Disabling renderer on {topic}', file=sys.stderr)
+            self.timeline.set_renderer_active(topic, False)
+            return None, None
 
         # Convert from ROS image to PIL image
         try:
