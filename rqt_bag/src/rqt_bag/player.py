@@ -36,13 +36,9 @@ from python_qt_binding.QtCore import QObject
 from rclpy.qos import QoSProfile
 from rosbag2_py import convert_rclcpp_qos_to_rclpy_qos
 
-<<<<<<< HEAD
-CLOCK_TOPIC = "/clock"
-=======
 from rqt_bag.rosbag2 import MessageTypeUnavailableError
 
-CLOCK_TOPIC = '/clock'
->>>>>>> 2fc5793 (Support MCAP bags with per-message compression + do not fail on unknown messages (#223))
+CLOCK_TOPIC = "/clock"
 
 
 class Player(QObject):

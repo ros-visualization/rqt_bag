@@ -26,14 +26,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-<<<<<<< HEAD
 
-from python_qt_binding.QtCore import QObject
-=======
 from python_qt_binding.QtCore import QObject, qWarning
 
 from rqt_bag.rosbag2 import MessageTypeUnavailableError
->>>>>>> 2fc5793 (Support MCAP bags with per-message compression + do not fail on unknown messages (#223))
 
 import rosbag2_py
 
@@ -95,10 +91,6 @@ class MessageView(QObject):
         """
         bag, entry = event.data
         if entry:
-<<<<<<< HEAD
-            (ros_message, msg_type_name) = bag.deserialize_entry(entry)
-            self.message_viewed(bag=bag, entry=entry, ros_message=ros_message, msg_type_name=msg_type_name, topic=entry.topic)
-=======
             try:
                 (ros_message, msg_type_name) = bag.deserialize_entry(entry)
             except MessageTypeUnavailableError as ex:
@@ -110,7 +102,6 @@ class MessageView(QObject):
                 return True
             self.message_viewed(bag=bag, entry=entry, ros_message=ros_message,
                                 msg_type_name=msg_type_name, topic=entry.topic)
->>>>>>> 2fc5793 (Support MCAP bags with per-message compression + do not fail on unknown messages (#223))
         else:
             self.message_cleared()
         return True
