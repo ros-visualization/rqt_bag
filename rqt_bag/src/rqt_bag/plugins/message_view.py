@@ -50,7 +50,7 @@ class MessageView(QObject):
         View the message.
 
         @param bag: the bag file the message is contained in
-        @type  bag: rosbag.Bag
+        @type  bag: rqt_bag.rosbag2.Rosbag2
         @param entry: the bag entry of the message to be viewed
         @type entry: tuple (id, topic_id, timestamp, data)
         @param ros_message: the (deserialized) ROS message
