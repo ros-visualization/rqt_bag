@@ -35,6 +35,7 @@ from rclpy.time import Time
 from rqt_bag import player as player_module
 from rqt_bag.bag_timeline import BagTimeline
 from rqt_bag.player import Player
+from rqt_bag.rosbag2 import MessageTypeUnavailableError
 
 
 class FakePublisher:
@@ -50,9 +51,11 @@ class FakeNode:
 
     def __init__(self):
         self.published = []
+        self.errors = []
 
     def get_logger(self):
-        return SimpleNamespace(get_child=lambda name: None)
+        return SimpleNamespace(get_child=lambda name: SimpleNamespace(
+            error=self.errors.append))
 
     def create_publisher(self, msg_type, topic, qos_profile):
         return FakePublisher(self.published)
@@ -69,6 +72,15 @@ class FakeBag:
 
     def get_topic_metadata(self, topic):
         return SimpleNamespace(offered_qos_profiles=[None])
+
+
+class MissingTypeBag(FakeBag):
+    """A bag whose message package is not installed in the environment."""
+
+    def deserialize_entry(self, entry):
+        raise MessageTypeUnavailableError(
+            f'Message type "missing_pkg/msg/Foo" of topic "{entry.topic}" is not '
+            'available in the current environment')
 
 
 class FakeTimeline:
@@ -136,6 +148,19 @@ def test_publishes_while_playing(make_player):
     published = make_player(timeline, ['/a'])
     timeline.view_playhead('/a')
     assert published == ['/a@1']
+
+
+def test_skips_message_with_unavailable_type_while_publishing(make_player):
+    # The message package of the topic is not installed; playback must skip the
+    # message and log the problem instead of raising in the Qt event handler.
+    timeline = FakeTimeline(MissingTypeBag([entry('/a', 1)]), playhead=1, play_speed=1.0)
+    published = make_player(timeline, ['/a'])
+    timeline.view_playhead('/a')
+    timeline.view_playhead('/a')
+    assert published == []
+    assert timeline._player._publishers == {}
+    # The problem is reported once per topic, not once per message.
+    assert len(timeline._player._node.errors) == 1
 
 
 def test_does_not_publish_while_playing_in_reverse(make_player):

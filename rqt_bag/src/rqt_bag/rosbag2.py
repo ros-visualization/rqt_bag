@@ -46,6 +46,10 @@ WRITE_ONLY_MSG = "open for writing only, returning None"
 Entry = namedtuple('Entry', ['topic', 'data', 'timestamp'])
 
 
+class MessageTypeUnavailableError(Exception):
+    """The message type of a bag entry is not available in the current environment."""
+
+
 class Rosbag2:
 
     def __init__(self, bag_path, recording=False, topics={},
@@ -60,7 +64,19 @@ class Rosbag2:
             self.metadata.duration = Duration(nanoseconds=0)
             self.topic_metadata_map = topics
         else:
-            self.reader = rosbag2_py.SequentialReader()
+            # Bags recorded with per-message compression store the compressed payload in
+            # the storage file. A plain SequentialReader returns those payloads verbatim,
+            # which breaks message deserialization, so open those bags with a
+            # SequentialCompressionReader, which decompresses messages transparently.
+            # The compression settings are read from the metadata before opening the bag,
+            # because opening a compressed bag with a plain reader may already fail.
+            metadata_io = rosbag2_py.MetadataIo()
+            metadata = (metadata_io.read_metadata(bag_path)
+                        if metadata_io.metadata_file_exists(bag_path) else None)
+            message_compressed = (metadata is not None and bool(metadata.compression_format)
+                                  and metadata.compression_mode.upper() == 'MESSAGE')
+            self.reader = (rosbag2_py.SequentialCompressionReader() if message_compressed
+                           else rosbag2_py.SequentialReader())
             self.reader.open(
                 rosbag2_py.StorageOptions(uri=bag_path), rosbag2_py.ConverterOptions())
             self.metadata = self.reader.get_metadata()
@@ -178,6 +194,14 @@ class Rosbag2:
     def deserialize_entry(self, entry):
         """Deserialize a bag entry into its corresponding ROS message."""
         msg_type_name = self.get_topic_type(entry.topic)
-        msg_type = get_message(msg_type_name)
+        try:
+            msg_type = get_message(msg_type_name)
+        except (AttributeError, ImportError) as ex:
+            # The package providing the message type is typically not installed in the
+            # current environment. Raise a descriptive error instead of the raw import
+            # error so that the caller can report the actual problem to the user.
+            raise MessageTypeUnavailableError(
+                f'Message type "{msg_type_name}" of topic "{entry.topic}" is not available '
+                f'in the current environment: {ex}') from ex
         ros_message = deserialize_message(entry.data, msg_type)
         return (ros_message, msg_type_name)
