@@ -26,7 +26,9 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from python_qt_binding.QtCore import QObject
+from python_qt_binding.QtCore import QObject, qWarning
+
+from rqt_bag.rosbag2 import MessageTypeUnavailableError
 
 
 class MessageView(QObject):
@@ -85,7 +87,15 @@ class MessageView(QObject):
         """
         bag, entry = event.data
         if entry:
-            (ros_message, msg_type_name) = bag.deserialize_entry(entry)
+            try:
+                (ros_message, msg_type_name) = bag.deserialize_entry(entry)
+            except MessageTypeUnavailableError as ex:
+                # The message type of the topic is not available in the current
+                # environment, e.g. the message package is not installed. Clear the
+                # view instead of propagating the error and taking the GUI down.
+                qWarning(f'rqt_bag: {ex}')
+                self.message_cleared()
+                return True
             self.message_viewed(bag=bag, entry=entry, ros_message=ros_message,
                                 msg_type_name=msg_type_name, topic=entry.topic)
         else:
