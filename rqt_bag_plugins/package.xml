@@ -1,7 +1,7 @@
 <package format="3">
   <name>rqt_bag_plugins</name>
   <version>2.3.6</version>
-  <description>rqt_bag provides a GUI plugin for displaying and replaying ROS bag files.</description>
+  <description>rqt_bag_plugins provides GUI plugins for rqt_bag to display various message types, such as images and plots of numeric data.</description>
 
   <maintainer email="clalancette@gmail.com">Chris Lalancette</maintainer>
 
@@ -43,5 +43,6 @@
   <export>
     <build_type>ament_python</build_type>
     <rqt_bag plugin="${prefix}/plugin.xml"/>
+    <rosdoc2>rosdoc2.yaml</rosdoc2>
   </export>
 </package>
