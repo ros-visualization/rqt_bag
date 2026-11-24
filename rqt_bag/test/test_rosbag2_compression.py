@@ -85,7 +85,7 @@ def test_get_entry_from_compressed_bag(message_compressed_bag):
 
 def test_all_entries_from_compressed_bag(message_compressed_bag):
     bag = Rosbag2(message_compressed_bag)
-    entries = list(bag.entries_in_range_generator(
+    entries = list(bag.get_entries_in_range(
         Time(nanoseconds=BASE_TIME_NS),
         Time(nanoseconds=BASE_TIME_NS + NUM_MESSAGES * 1_000_000_000),
         TOPIC))
