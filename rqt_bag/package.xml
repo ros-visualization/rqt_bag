@@ -37,5 +37,6 @@
   <export>
     <build_type>ament_python</build_type>
     <rqt_gui plugin="${prefix}/plugin.xml"/>
+    <rosdoc2>rosdoc2.yaml</rosdoc2>
   </export>
 </package>

@@ -1,0 +1,25 @@
+## This 'attic section' self-documents this file's type and version.
+type: 'rosdoc2 config'
+version: 1
+
+---
+
+settings:
+    ## Generate the standard package index (package.xml metadata, README, CHANGELOG, ...).
+    generate_package_index: true
+
+    ## The Python modules are not in the standard location, so tell 'sphinx-apidoc'
+    ## where to find them (relative to the 'package.xml' file).
+    python_source: 'src/rqt_bag'
+
+    ## This package does not have a C++ API.
+    always_run_doxygen: false
+
+    ## The Python API is documented because of the 'ament_python' build type.
+    always_run_sphinx_apidoc: false
+
+builders:
+    - sphinx: {
+        name: 'rqt_bag',
+        output_dir: ''
+    }
