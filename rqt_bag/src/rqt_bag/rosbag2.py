@@ -281,7 +281,8 @@ class Rosbag2:
         return int(fraction * num_messages)
 
     def read_next(self):
-        return Entry(*self.reader.read_next())
+        topic, data, timestamp, _ = self.reader.read_next_ext()
+        return Entry(topic, data, timestamp)
 
     def deserialize_entry(self, entry):
         """Deserialize a bag entry into its corresponding ROS message."""
